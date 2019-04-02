@@ -19,6 +19,26 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
+            ]
+        },
+        {
+            "name": "(gdb) Compile and Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/main.out",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
             ],
             "preLaunchTask": "compile_only_debug_mode"
         }

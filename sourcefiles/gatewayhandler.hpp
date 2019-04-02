@@ -1,7 +1,10 @@
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
 
+#include <nlohmann/json.hpp>
+
 #include <iostream>
+#include <atomic>
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
@@ -10,8 +13,29 @@ using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
 
+using namespace nlohmann;
+
+int packet_counter = 0;
+json hello_packet;
+
 void on_message(websocketpp::connection_hdl, client::message_ptr msg) {
-    std::cout << msg->get_payload() << std::endl;
+    json j = json::parse(msg->get_payload());
+    int opcode = j["op"];
+    if (opcode == 10){
+        hello_packet = json::parse(msg->get_payload());
+    } else {
+        // handle_command();
+    }
+    packet_counter++;
+}
+
+void send_heartbeat_packets(){
+    while(!packet_counter);
+    int delay = hello_packet["d"]["heartbeat_interval"];
+    while (true){
+        std::cout << "Sending heartbeat packet\nSleeping for " << delay / 1000 << " seconds!" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+    }
 }
 
 bool verify_subject_alternative_name(const char * hostname, X509 * cert) {
@@ -135,8 +159,12 @@ int handle_gateway(std::string uri) {
 
         c.get_alog().write(websocketpp::log::alevel::app, "Connecting to " + uri);
 
+        std::thread sender_thread = std::thread(send_heartbeat_packets);
         c.run();
+        sender_thread.join();
+
     } catch (websocketpp::exception const & e) {
         std::cout << e.what() << std::endl;
     }
+    return 0;
 }

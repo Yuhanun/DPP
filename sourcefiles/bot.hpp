@@ -29,8 +29,8 @@ using websocketpp::lib::bind;
 
 class Bot {
 public:
-    Bot(const std::string& token, const std::string prefix, std::thread* t)
-        : prefix{prefix}, token{token}, gateway_thread{t}
+    Bot(const std::string& token, const std::string prefix)
+        : prefix{prefix}, token{token}
     {
         curlpp::Cleanup cleaner;
         curlpp::Easy request;
@@ -56,13 +56,17 @@ public:
         request.setOpt(new curlpp::options::HttpHeader(headers));
     }
 
+    void run(){
+        gateway_thread.join();
+    }
+
 private:
     std::string get_channel_link(long id){
         return "http://discordapp.com/api/v6/channels/" + std::to_string(id) + "/messages";
     }
 
     void gateway_auth(){
-        gateway_thread = new std::thread{ handle_gateway, get_gateway_url() };
+        gateway_thread = std::thread{ handle_gateway, get_gateway_url() };
     }
 
     std::string get_gateway_url(){
@@ -77,12 +81,10 @@ private:
         s << request;
         json j;
         j << s;
-        std::cout << j.dump(4) << std::endl;
         return j["url"];
     }
 
     bool initialize_variables(const json& j){
-        std::cout << j.dump(4) << std::endl;
         if (j.contains("message")){
             error_message = j["message"];
             return false;
@@ -125,7 +127,7 @@ public:
 
     std::string prefix;
 private:
-    std::thread* gateway_thread;
+    std::thread gateway_thread;
     std::string token;
     std::string auth_url = "https://discordapp.com/api/v6/users/@me";
 };
