@@ -32,7 +32,27 @@
         "typeinfo": "cpp",
         "utility": "cpp",
         "__config": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "atomic": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "condition_variable": "cpp",
+        "cstdarg": "cpp",
+        "cstddef": "cpp",
+        "cstring": "cpp",
+        "ctime": "cpp",
+        "deque": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "unordered_set": "cpp",
+        "functional": "cpp",
+        "iomanip": "cpp",
+        "memory": "cpp",
+        "mutex": "cpp",
+        "numeric": "cpp",
+        "ratio": "cpp",
+        "thread": "cpp",
+        "valarray": "cpp"
     },
     "git.ignoreLimitWarning": true
 }

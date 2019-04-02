@@ -12,7 +12,9 @@ using namespace nlohmann;
 
 class Bot {
 public:
-    Bot(std::string token){
+    Bot(const std::string& token, const std::string prefix)
+        : prefix{prefix}
+    {
         curlpp::Cleanup cleaner;
         curlpp::Easy request;
         request.setOpt(new curlpp::options::Url(auth_url));
@@ -25,10 +27,12 @@ public:
         s << request;
         j << s;
         std::cout << j.dump(4) << std::endl;
-        set_private_vars(j);
+        initialize_variables(j);
+        
     }
+
 private:
-    void set_private_vars(json& j){
+    void initialize_variables(const json& j){
         std::string temp_id = j["id"];
         std::string temp_discrim = j["discriminator"];
         id = std::stol(temp_id);
@@ -55,6 +59,8 @@ public:
     std::string avatar;
     std::string locale;
     std::string username;
+
+    std::string prefix;
 private:
     std::string token;
     std::string auth_url = "https://discordapp.com/api/v6/users/@me";
