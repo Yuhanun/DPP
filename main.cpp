@@ -6,7 +6,8 @@ int main(){
     curlpp::initialize(CURL_GLOBAL_ALL);
     std::string token = "";
     Bot bot{ token, "." };
-    std::cout << bot.avatar << std::endl;
-    std::cout << bot.id << std::endl;
+    if (!bot.authenticated){
+        std::cout << "Failed to authenticate, error: " << bot.error_message << std::endl;
+    }
     return 0;
 }

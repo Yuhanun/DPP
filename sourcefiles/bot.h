@@ -26,13 +26,15 @@ public:
         std::stringstream s;
         s << request;
         j << s;
-        std::cout << j.dump(4) << std::endl;
-        initialize_variables(j);
-        
+        authenticated = initialize_variables(j);
     }
 
 private:
-    void initialize_variables(const json& j){
+    bool initialize_variables(const json& j){
+        if (j.contains("message")){
+            error_message = j["message"];
+            return false;
+        }
         std::string temp_id = j["id"];
         std::string temp_discrim = j["discriminator"];
         id = std::stol(temp_id);
@@ -45,10 +47,14 @@ private:
         locale = j["locale"];
         avatar = j["avatar"];
         email = j["avatar"];
+        return true;
     }
 
 
 public:
+    bool authenticated;
+    std::string error_message;
+
     int flags;
     long id;
     int discriminator;
