@@ -1,0 +1,1 @@
+enum activity : short;

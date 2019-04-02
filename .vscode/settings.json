@@ -52,7 +52,8 @@
         "numeric": "cpp",
         "ratio": "cpp",
         "thread": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "*.ipp": "cpp"
     },
     "git.ignoreLimitWarning": true
 }
