@@ -31,6 +31,7 @@
 *.out
 *.app
 ipch/*
+*bot.ipch
 
 # [VSCode]
 .vscode/*
