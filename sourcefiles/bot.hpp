@@ -15,7 +15,7 @@
 #include <boost/asio/ssl.hpp>
 #include <boost/asio.hpp>
 
-#include "sourcefiles/gatewayhandler.h"
+#include "gatewayhandler.hpp"
 
 using namespace nlohmann;
 using namespace boost;
