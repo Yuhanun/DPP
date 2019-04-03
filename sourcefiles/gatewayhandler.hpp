@@ -6,6 +6,8 @@
 #include <iostream>
 #include <atomic>
 
+#include <sstream>
+
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
 
@@ -15,19 +17,29 @@ using websocketpp::lib::bind;
 
 using namespace nlohmann;
 
+
 int packet_counter = 0;
 json hello_packet;
 
-void on_message(websocketpp::connection_hdl, client::message_ptr msg) {
+std::string get_introduce_packet(std::string& token){
+    std::stringstream s;
+    s << "{\"token\": \"" << token << "\",\"properties\": { \"$os\": \"linux\", \"$browser\": \"DiscordPP Library\", \"$device\": \"laptop\" } }";
+    return s.str();
+}
+
+void on_message(client::connection_ptr c, std::string& token, websocketpp::connection_hdl, client::message_ptr msg) {
     json j = json::parse(msg->get_payload());
     int opcode = j["op"];
     if (opcode == 10){
         hello_packet = json::parse(msg->get_payload());
+        std::cout << get_introduce_packet(token) << std::endl;
+        c->send(get_introduce_packet(token));
     } else {
         // handle_command();
     }
     packet_counter++;
 }
+
 
 void send_heartbeat_packets(){
     while(!packet_counter);
@@ -133,7 +145,7 @@ context_ptr on_tls_init(const char * hostname, websocketpp::connection_hdl) {
     return ctx;
 }
 
-int handle_gateway(std::string uri) {
+int handle_gateway(std::string uri, std::string& token) {
     client c;
 
     std::string hostname = "discord.gg";
@@ -145,11 +157,11 @@ int handle_gateway(std::string uri) {
 
         c.init_asio();
 
-        c.set_message_handler(&on_message);
         c.set_tls_init_handler(bind(&on_tls_init, hostname.c_str(), ::_1));
 
         websocketpp::lib::error_code ec;
         client::connection_ptr con = c.get_connection(uri, ec);
+        c.set_message_handler(bind(&on_message, con, token, ::_1, ::_2));
         if (ec) {
             std::cout << "could not create connection because: " << ec.message() << std::endl;
             return 0;

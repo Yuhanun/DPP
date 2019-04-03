@@ -19,6 +19,7 @@
          "-lssl",
          "-O0",
          "-I./sourcefiles",
+         "-w",
          "&&",
          "clear",
          "&&",

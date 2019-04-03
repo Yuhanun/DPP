@@ -66,7 +66,7 @@ private:
     }
 
     void gateway_auth(){
-        gateway_thread = std::thread{ handle_gateway, get_gateway_url() };
+        gateway_thread = std::thread{ handle_gateway, get_gateway_url(), std::ref(this->token) };
     }
 
     std::string get_gateway_url(){
@@ -126,8 +126,9 @@ public:
     std::string username;
 
     std::string prefix;
+    std::string token;
+
 private:
     std::thread gateway_thread;
-    std::string token;
     std::string auth_url = "https://discordapp.com/api/v6/users/@me";
 };
