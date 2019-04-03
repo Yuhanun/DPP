@@ -22,19 +22,35 @@ json hello_packet;
 std::string tkn;
 client::connection_ptr con;
 
-std::string get_identify_packet(){
-    std::stringstream s;
-    s << "{\"d\": {\"token\": \"" << tkn << "\",\"properties\": { \"$os\": \"linux\", \"$browser\": \"DiscordPP Library\", \"$device\": \"laptop\" } } }";
-    return s.str();
+std::string get_identify_packet() {
+    json obj = {
+        { "op", 2 },
+        {
+            "d",
+            {
+                { "token", tkn },
+                { "properties",
+                    {
+                        { "$os", "Linux" },
+                        { "$browser", "DiscordPP" },
+                        { "$device", "DiscordPP" }
+                    }
+                },
+                { "compress", false },
+                { "large_threshold", 250 }
+            }
+        }
+    };
+    return obj.dump();
 }
 
 void on_message(websocketpp::connection_hdl, client::message_ptr msg) {
     json j = json::parse(msg->get_payload());
+    std::cout << "Incoming packet, OPCode:";
     int opcode = j["op"];
+    std::cout << opcode << "\nData: " << msg->get_payload() << "\n4";
     if (opcode == 10){
-        con->send("{\"op\": 1, \"d\": null}");
         hello_packet = json::parse(msg->get_payload());
-        std::cout << hello_packet.dump(4) << std::endl;
         con->send(get_identify_packet());
     } else {
         // handle_command();
@@ -42,14 +58,14 @@ void on_message(websocketpp::connection_hdl, client::message_ptr msg) {
     packet_counter++;
 }
 
-void background_heartbeat(){
-    // while (!packet_counter){}
-    // int delay = hello_packet["d"]["heartbeat_interval"];
-    // while (true){
-    //     std::cout << "Sleeping for " << delay << " miliseconds" << std::endl;
-    //     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-    // }
-}
+// void background_heartbeat(){
+//     // while (!packet_counter){}
+//     // int delay = hello_packet["d"]["heartbeat_interval"];
+//     // while (true){
+//     //     std::cout << "Sleeping for " << delay << " miliseconds" << std::endl;
+//     //     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+//     // }
+// }
 
 
 bool verify_subject_alternative_name(const char * hostname, X509 * cert) {
@@ -127,7 +143,7 @@ bool verify_certificate(const char * hostname, bool preverified, boost::asio::ss
     return preverified;
 }
 
-context_ptr on_tls_init(const char * hostname, websocketpp::connection_hdl) {
+context_ptr on_tls_init(const char* hostname, websocketpp::connection_hdl) {
     context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
 
     try {
@@ -173,10 +189,10 @@ int handle_gateway(std::string uri, std::string& token) {
 
         c.get_alog().write(websocketpp::log::alevel::app, "Connecting to " + uri);
         
-        auto heartbeat_thread = std::thread{background_heartbeat};
+        // auto heartbeat_thread = std::thread{background_heartbeat};
 
         c.run();
-        heartbeat_thread.join();
+        // heartbeat_thread.join();
 
     } catch (websocketpp::exception const & e) {
         std::cout << e.what() << std::endl;

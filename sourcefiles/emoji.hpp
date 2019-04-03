@@ -1,0 +1,7 @@
+#include <discord.hpp>
+
+namespace discord {
+    class Emoji : public discord::Object {
+
+    };
+};
