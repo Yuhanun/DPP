@@ -16,10 +16,6 @@ namespace discord{
             return this->id == other.id;
         }
 
-        // bool operator==(discord::Object* other){
-        //     return this->id == other->id;
-        // }
-
         bool operator==(uint64_t other){
             return this->id == other;
         }

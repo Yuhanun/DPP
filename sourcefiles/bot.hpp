@@ -26,7 +26,7 @@ typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> conte
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
-
+namespace discord{
 class Bot {
 public:
     Bot(const std::string& token, const std::string prefix)
@@ -132,3 +132,4 @@ private:
     std::thread gateway_thread;
     std::string auth_url = "https://discordapp.com/api/v6/users/@me";
 };
+}; //namespace discord

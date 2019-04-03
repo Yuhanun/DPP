@@ -53,7 +53,13 @@
         "ratio": "cpp",
         "thread": "cpp",
         "valarray": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "csignal": "cpp",
+        "codecvt": "cpp",
+        "complex": "cpp",
+        "future": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp"
     },
     "git.ignoreLimitWarning": true
 }
