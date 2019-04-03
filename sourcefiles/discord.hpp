@@ -2,24 +2,25 @@
 
 typedef uint64_t discord_id;
 
-
 namespace discord {
-    class Object{
+    class Object {
     public:
+
+        Object() = default;
+
         Object(discord_id id)
             : id{id}
-        {
-
-        }
+        {}
 
         discord_id id;
         // some datetime creation time.
+
 
         bool operator==(const Object& other){
             return this->id == other.id;
         }
 
-        bool operator==(discord_id other){
+        bool operator==(const discord_id& other){
             return this->id == other;
         }
         template <typename T>

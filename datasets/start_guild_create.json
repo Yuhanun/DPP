@@ -1,0 +1,217 @@
+{
+    "t": "GUILD_CREATE",
+    "s": 2,
+    "op": 0,
+    "d": {
+        "voice_states": [],
+        "verification_level": 0,
+        "vanity_url_code": null,
+        "unavailable": false,
+        "system_channel_id": "562636135428521986",
+        "splash": null,
+        "roles": [
+            {
+                "position": 0,
+                "permissions": 104324161,
+                "name": "@everyone",
+                "mentionable": false,
+                "managed": false,
+                "id": "562636135428521984",
+                "hoist": false,
+                "color": 0
+            },
+            {
+                "position": 2,
+                "permissions": 8,
+                "name": "DPP",
+                "mentionable": true,
+                "managed": true,
+                "id": "562636540002435083",
+                "hoist": true,
+                "color": 0
+            },
+            {
+                "position": 1,
+                "permissions": 104324169,
+                "name": "new role",
+                "mentionable": true,
+                "managed": false,
+                "id": "562636783662399518",
+                "hoist": true,
+                "color": 1752220
+            }
+        ],
+        "region": "eu-central",
+        "presences": [
+            {
+                "user": {
+                    "id": "553478921870508061"
+                },
+                "status": "dnd",
+                "game": {
+                    "type": 0,
+                    "timestamps": {
+                        "start": 1554312489538
+                    },
+                    "state": "Workspace: DPP",
+                    "name": "Visual Studio Code",
+                    "id": "b8aacbfe6b20ad8b",
+                    "details": "Editing gatewayhandler.hpp",
+                    "created_at": 1554312489597,
+                    "assets": {
+                        "small_text": "Visual Studio Code",
+                        "small_image": "500323476255670272",
+                        "large_text": "Editing a CPP file",
+                        "large_image": "383928222733172757"
+                    },
+                    "application_id": "383226320970055681"
+                },
+                "client_status": {
+                    "desktop": "dnd"
+                },
+                "activities": [
+                    {
+                        "type": 0,
+                        "timestamps": {
+                            "start": 1554312489538
+                        },
+                        "state": "Workspace: DPP",
+                        "name": "Visual Studio Code",
+                        "id": "b8aacbfe6b20ad8b",
+                        "details": "Editing gatewayhandler.hpp",
+                        "created_at": 1554312489597,
+                        "assets": {
+                            "small_text": "Visual Studio Code",
+                            "small_image": "500323476255670272",
+                            "large_text": "Editing a CPP file",
+                            "large_image": "383928222733172757"
+                        },
+                        "application_id": "383226320970055681"
+                    },
+                    {
+                        "type": 2,
+                        "timestamps": {
+                            "start": 1554312830896,
+                            "end": 1554313024983
+                        },
+                        "sync_id": "2Fxmhks0bxGSBdJ92vM42m",
+                        "state": "Billie Eilish",
+                        "session_id": "68b2908e2993c0f146fff1d70f52ef3c",
+                        "party": {
+                            "id": "spotify:553478921870508061"
+                        },
+                        "name": "Spotify",
+                        "id": "spotify:1",
+                        "flags": 48,
+                        "details": "bad guy",
+                        "created_at": 1554312831968,
+                        "assets": {
+                            "large_text": "WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?",
+                            "large_image": "spotify:52ffeafbe4596e56446b287dac123b25a3499be5"
+                        }
+                    }
+                ]
+            },
+            {
+                "user": {
+                    "id": "562635899314372618"
+                },
+                "status": "online",
+                "game": null,
+                "client_status": {
+                    "web": "online"
+                },
+                "activities": []
+            }
+        ],
+        "owner_id": "553478921870508061",
+        "name": "test",
+        "mfa_level": 0,
+        "members": [
+            {
+                "user": {
+                    "username": "Mehodin",
+                    "id": "553478921870508061",
+                    "discriminator": "0001",
+                    "avatar": "a_15d2d0eef64132dbc446b0f24ba16db2"
+                },
+                "roles": [],
+                "mute": false,
+                "joined_at": "2019-04-02T13:55:07.965000+00:00",
+                "deaf": false
+            },
+            {
+                "user": {
+                    "username": "DPP",
+                    "id": "562635899314372618",
+                    "discriminator": "4635",
+                    "bot": true,
+                    "avatar": null
+                },
+                "roles": [
+                    "562636540002435083",
+                    "562636783662399518"
+                ],
+                "mute": false,
+                "joined_at": "2019-04-02T13:56:44.411000+00:00",
+                "deaf": false
+            }
+        ],
+        "member_count": 2,
+        "lazy": true,
+        "large": false,
+        "joined_at": "2019-04-02T13:56:44.411000+00:00",
+        "id": "562636135428521984",
+        "icon": null,
+        "features": [],
+        "explicit_content_filter": 0,
+        "emojis": [],
+        "description": null,
+        "default_message_notifications": 0,
+        "channels": [
+            {
+                "user_limit": 0,
+                "type": 4,
+                "position": 0,
+                "permission_overwrites": [],
+                "name": "Text Channels",
+                "id": "562636135428521985",
+                "bitrate": 64000
+            },
+            {
+                "type": 0,
+                "topic": null,
+                "rate_limit_per_user": 0,
+                "position": 0,
+                "permission_overwrites": [],
+                "parent_id": "562636135428521985",
+                "name": "general",
+                "last_message_id": "562636540984033291",
+                "id": "562636135428521986"
+            },
+            {
+                "user_limit": 0,
+                "type": 4,
+                "position": 0,
+                "permission_overwrites": [],
+                "name": "Voice Channels",
+                "id": "562636135428521987",
+                "bitrate": 64000
+            },
+            {
+                "user_limit": 0,
+                "type": 2,
+                "position": 0,
+                "permission_overwrites": [],
+                "parent_id": "562636135428521987",
+                "name": "General",
+                "id": "562636135428521988",
+                "bitrate": 64000
+            }
+        ],
+        "banner": null,
+        "application_id": null,
+        "afk_timeout": 300,
+        "afk_channel_id": null
+    }
+}

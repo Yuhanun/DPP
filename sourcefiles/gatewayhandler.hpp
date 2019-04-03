@@ -6,6 +6,9 @@
 #include <iostream>
 #include <atomic>
 
+#include <utility>
+#include <guild.hpp>
+
 #include <sstream>
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
@@ -53,6 +56,9 @@ void on_message(websocketpp::connection_hdl, client::message_ptr msg) {
         hello_packet = json::parse(msg->get_payload());
         con->send(get_identify_packet());
     } else {
+        std::unique_ptr<discord::Guild> g = std::make_unique<discord::Guild>(j);
+        std::cout << g.get() << std::endl;
+        std::cout << g.get()->region << std::endl;
         // handle_command();
     }
     packet_counter++;
