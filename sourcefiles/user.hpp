@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <color.hpp>
 #include <discord.hpp>
@@ -5,6 +6,8 @@
 namespace discord {
     class User : public discord::Object {
     public:
+        User() : discord::Object() {}
+
         User(discord_id id) : discord::Object(id) {
 
         }

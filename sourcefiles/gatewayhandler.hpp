@@ -1,3 +1,4 @@
+#pragma once
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
 
@@ -11,68 +12,13 @@
 
 #include <sstream>
 
+
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
 
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
-
-using namespace nlohmann;
-
-int packet_counter = 0;
-json hello_packet;
-std::string tkn;
-client::connection_ptr con;
-
-std::string get_identify_packet() {
-    json obj = {
-        { "op", 2 },
-        {
-            "d",
-            {
-                { "token", tkn },
-                { "properties",
-                    {
-                        { "$os", "Linux" },
-                        { "$browser", "DiscordPP" },
-                        { "$device", "DiscordPP" }
-                    }
-                },
-                { "compress", false },
-                { "large_threshold", 250 }
-            }
-        }
-    };
-    return obj.dump();
-}
-
-void on_message(websocketpp::connection_hdl, client::message_ptr msg) {
-    json j = json::parse(msg->get_payload());
-    std::cout << "Incoming packet, OPCode:";
-    int opcode = j["op"];
-    std::cout << opcode << "\nData: " << msg->get_payload() << "\n4";
-    if (opcode == 10){
-        hello_packet = json::parse(msg->get_payload());
-        con->send(get_identify_packet());
-    } else {
-        std::unique_ptr<discord::Guild> g = std::make_unique<discord::Guild>(j);
-        std::cout << g.get() << std::endl;
-        std::cout << g.get()->region << std::endl;
-        // handle_command();
-    }
-    packet_counter++;
-}
-
-// void background_heartbeat(){
-//     // while (!packet_counter){}
-//     // int delay = hello_packet["d"]["heartbeat_interval"];
-//     // while (true){
-//     //     std::cout << "Sleeping for " << delay << " miliseconds" << std::endl;
-//     //     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-//     // }
-// }
-
 
 bool verify_subject_alternative_name(const char * hostname, X509 * cert) {
     STACK_OF(GENERAL_NAME) * san_names = NULL;
@@ -167,40 +113,4 @@ context_ptr on_tls_init(const char* hostname, websocketpp::connection_hdl) {
         std::cout << e.what() << std::endl;
     }
     return ctx;
-}
-
-int handle_gateway(std::string uri, std::string& token) {
-    client c;
-    tkn = token;
-    std::string hostname = "discord.gg";
-
-    try {
-        c.set_access_channels(websocketpp::log::alevel::all);
-        c.clear_access_channels(websocketpp::log::alevel::frame_payload);
-        c.set_error_channels(websocketpp::log::elevel::all);
-
-        c.init_asio();
-
-        c.set_message_handler(&on_message);
-        c.set_tls_init_handler(bind(&on_tls_init, hostname.c_str(), ::_1));
-
-        websocketpp::lib::error_code ec;
-        con = c.get_connection(uri, ec);
-        if (ec) {
-            std::cout << "could not create connection because: " << ec.message() << std::endl;
-            return 0;
-        }
-
-        c.connect(con);
-
-        c.get_alog().write(websocketpp::log::alevel::app, "Connecting to " + uri);
-        
-        // auto heartbeat_thread = std::thread{background_heartbeat};
-
-        c.run();
-        // heartbeat_thread.join();
-
-    } catch (websocketpp::exception const & e) {
-        std::cout << e.what() << std::endl;
-    }
 }
