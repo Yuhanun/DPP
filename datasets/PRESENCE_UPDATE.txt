@@ -1,0 +1,80 @@
+{
+    "activities": [
+        {
+            "assets": {
+                "large_image": "spotify:0f1a43944518edd75743e840cde5b763bd8560ce",
+                "large_text": "Solo Dance"
+            },
+            "created_at": 1554469320339,
+            "details": "Solo Dance",
+            "flags": 48,
+            "id": "spotify:1",
+            "name": "Spotify",
+            "party": {
+                "id": "spotify:553478921870508061"
+            },
+            "session_id": "60e71d9a2b7bcf6046289d1af36362ee",
+            "state": "Martin Jensen",
+            "sync_id": "10AsRVRdU07cMAFHeGYO3c",
+            "timestamps": {
+                "end": 1554469494915,
+                "start": 1554469319982
+            },
+            "type": 2
+        },
+        {
+            "application_id": "383226320970055681",
+            "assets": {
+                "large_image": "383928222733172757",
+                "large_text": "Editing a CPP file",
+                "small_image": "500323476255670272",
+                "small_text": "Visual Studio Code"
+            },
+            "created_at": 1554467880532,
+            "details": "Editing bot.hpp",
+            "id": "b8d1d8aa2d975934",
+            "name": "Visual Studio Code",
+            "state": "Workspace: DPP",
+            "timestamps": {
+                "start": 1554467880474
+            },
+            "type": 0
+        }
+    ],
+    "client_status": {
+        "desktop": "dnd"
+    },
+    "game": {
+        "assets": {
+            "large_image": "spotify:0f1a43944518edd75743e840cde5b763bd8560ce",
+            "large_text": "Solo Dance"
+        },
+        "created_at": 1554469320339,
+        "details": "Solo Dance",
+        "flags": 48,
+        "id": "spotify:1",
+        "name": "Spotify",
+        "party": {
+            "id": "spotify:553478921870508061"
+        },
+        "session_id": "60e71d9a2b7bcf6046289d1af36362ee",
+        "state": "Martin Jensen",
+        "sync_id": "10AsRVRdU07cMAFHeGYO3c",
+        "timestamps": {
+            "end": 1554469494915,
+            "start": 1554469319982
+        },
+        "type": 2
+    },
+    "guild_id": "560046619974828052",
+    "nick": "Reformodin",
+    "roles": [
+        "560052484664721408",
+        "561220735406833674",
+        "560052416708608003"
+    ],
+    "status": "dnd",
+    "user": {
+        "id": "553478921870508061"
+    }
+}

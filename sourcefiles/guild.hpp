@@ -2,6 +2,8 @@
 #include <discord.hpp>
 #include <nlohmann/json.hpp>
 
+#include "utility.hpp"
+
 #include <channel.hpp>
 #include <role.hpp>
 #include <member.hpp>
@@ -44,14 +46,6 @@ namespace discord {
             vanity_url_code = get_value(guild, "vanity_url_code", "");
         }
 
-        std::string get_value(json& j, const char* s, const char* default_value){
-            return j[s].empty() ? default_value : j[s].get<std::string>();
-        }
-
-        template <typename T>
-        T get_value(json& j, const char* s, T default_value){
-            return j[s].empty() ? default_value : j[s].get<T>();
-        }
 
         int splash;
         int mfa_level;

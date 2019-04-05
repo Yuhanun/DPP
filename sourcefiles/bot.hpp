@@ -3,12 +3,16 @@
 #include <array>
 #include <chrono>
 #include <thread>
-#include <sstream>
 #include <memory>
-#include <curl/curl.h>
+#include <fstream>
+#include <sstream>
 #include <unordered_map>
 
-#include "guild.hpp"
+#include <websocketpp/config/asio_client.hpp>
+#include <websocketpp/client.hpp>
+#include <boost/asio/ssl/context.hpp>
+#include <boost/asio/ssl.hpp>
+#include <boost/asio.hpp>
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
@@ -17,12 +21,10 @@
 
 #include "nlohmann/json.hpp"
 
-#include <websocketpp/config/asio_client.hpp>
-#include <websocketpp/client.hpp>
-#include <boost/asio/ssl/context.hpp>
-#include <boost/asio/ssl.hpp>
-#include <boost/asio.hpp>
-
+#include "message.hpp"
+#include "guild.hpp"
+#include "events.hpp"
+#include "function_types.hpp"
 #include "gatewayhandler.hpp"
 
 namespace discord {
@@ -43,21 +45,18 @@ namespace discord {
             : prefix{prefix}, token{token}
         {
             initialize_curl();
-            curlpp::Cleanup cleaner;
-            curlpp::Easy request;
-            request.setOpt(new curlpp::options::Url(auth_url));
-            request.setOpt(new curlpp::options::HttpHeader(get_basic_header()));
-            std::stringstream s;
-            s << request;
-            json j = json::parse(s.str());
-            initialize_variables(j);
         }
 
-        void send_message(discord_id channel_id, std::string message_content){
+        template <size_t EVENT, typename FType>
+        void register_callback(FType&& func)
+        {
+            std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
+        }
+
+        discord::Message send_message(discord_id channel_id, std::string message_content){
             auto h = get_basic_header();
             h.push_back("Content-Type: application/json");
             h.push_back("User-Agent: DiscordPP (C++ discord library)");
-            h.push_back("Accept-Encoding: gzip, deflate");
             h.push_back("Connection: keep-alive");
             json j = json(
                 {
@@ -67,66 +66,24 @@ namespace discord {
             );
 
             json response = send_request(j, h, get_channel_link(channel_id));
-        }
-
-        void handle_event(json& j, std::string event_name){
-            std::cout << "Incoming event: " << event_name << "\n";
-            const json data = j["d"];
-            if (j.contains("s")){
-                last_sequence_data = j["s"].is_number() ? j["s"].get<int>() : -1;
-            } else {
-                last_sequence_data = -1;
-            }
-            if (event_name == "READY"){
-                this->session_id = j["d"]["session_id"].get<std::string>();
-                ready = true;
-                heartbeat_thread = std::thread{ &Bot::handle_heartbeat, this };
-            } else if (event_name == "ERROR"){
-                
-            } else if (event_name == "GUILD_STATUS"){
-
-            } else if (event_name == "GUILD_CREATE"){
-                guilds.push_back(std::make_unique<discord::Guild>(j.dump()));
-            } else if (event_name == "CHANNEL_CREATE"){
-
-            } else if (event_name == "VOICE_CHANNEL_SELECT"){
-                
-            } else if (event_name == "VOICE_STATE_CREATE"){
-
-            } else if (event_name == "VOICE_STATE_UPDATE"){
-
-            } else if (event_name == "VOICE_STATE_DELETE"){
-
-            } else if (event_name == "VOICE_SETTINGS_UPDATE"){
-
-            } else if (event_name == "VOICE_CONNECTION_STATUS"){
-
-            } else if (event_name == "SPEAKING_START"){
-
-            } else if (event_name == "SPEAKING_STOP"){
-
-            } else if (event_name == "MESSAGE_CREATE"){
-
-            } else if (event_name == "MESSAGE_UPDATE"){
-
-            } else if (event_name == "MESSAGE_DELETE"){
-
-            } else if (event_name == "NOTIFICATION_CREATE"){
-
-            } else if (event_name == "CAPTURE_SHORTCUT_CHANGE"){
-
-            } else if (event_name == "ACTIVITY_JOIN"){
-
-            } else if (event_name == "ACTIVITY_SPECTATE"){
-
-            } else if (event_name == "ACTIVITY_JOIN_REQUEST"){
-
-            }
-            // fire_events(event_name);
-
+            return discord::Message::from_sent_message(response.dump(), token);
         }
 
 
+        void write_to_file(std::string event_name, std::string data){
+            struct stat buffer;   
+            bool exists = (stat (event_name.c_str(), &buffer) == 0); 
+            if (exists){
+                return;
+            }
+            std::ofstream output_file(event_name, std::ios::out);
+            output_file << data;
+        }
+
+        template <typename T>
+        std::vector<T> get_functions(std::string event_name){
+            return { T{} };
+        }
 
         void on_incoming_packet(websocketpp::connection_hdl, client::message_ptr msg) {
             json j = json::parse(msg->get_payload());
@@ -187,6 +144,66 @@ namespace discord {
         }
 
     private:
+        void handle_event(json& j, std::string event_name){
+            std::cout << "Incoming event: " << event_name << "\n";
+            const json data = j["d"];
+            if (j.contains("s")){
+                last_sequence_data = j["s"].is_number() ? j["s"].get<int>() : -1;
+            } else {
+                last_sequence_data = -1;
+            }
+            if (event_name == "READY"){
+                this->session_id = j["d"]["session_id"].get<std::string>();
+                ready = true;
+                heartbeat_thread = std::thread{ &Bot::handle_heartbeat, this };
+                initialize_variables(j["d"].dump());
+                func_holder.call<EVENTS::READY>();
+            } else if (event_name == "ERROR"){
+                
+            } else if (event_name == "GUILD_STATUS"){
+
+            } else if (event_name == "GUILD_CREATE"){
+                guilds.push_back(std::make_unique<discord::Guild>(j.dump()));
+            } else if (event_name == "CHANNEL_CREATE"){
+
+            } else if (event_name == "VOICE_CHANNEL_SELECT"){
+                
+            } else if (event_name == "VOICE_STATE_CREATE"){
+
+            } else if (event_name == "VOICE_STATE_UPDATE"){
+
+            } else if (event_name == "VOICE_STATE_DELETE"){
+
+            } else if (event_name == "VOICE_SETTINGS_UPDATE"){
+
+            } else if (event_name == "VOICE_CONNECTION_STATUS"){
+
+            } else if (event_name == "SPEAKING_START"){
+
+            } else if (event_name == "SPEAKING_STOP"){
+
+            } else if (event_name == "MESSAGE_CREATE"){
+
+            } else if (event_name == "MESSAGE_UPDATE"){
+
+            } else if (event_name == "MESSAGE_DELETE"){
+
+            } else if (event_name == "NOTIFICATION_CREATE"){
+
+            } else if (event_name == "CAPTURE_SHORTCUT_CHANGE"){
+
+            } else if (event_name == "ACTIVITY_JOIN"){
+
+            } else if (event_name == "ACTIVITY_SPECTATE"){
+
+            } else if (event_name == "ACTIVITY_JOIN_REQUEST"){
+
+            }
+            // write_to_file(("datasets/" + event_name + ".txt"), data.dump(4));
+            // fire_events(event_name);
+
+        }
+
         std::string get_channel_link(long id){
             return "https://discordapp.com/api/v6/channels/" + std::to_string(id) + "/messages";
         }
@@ -231,25 +248,21 @@ namespace discord {
             return j["url"];
         }
 
-        bool initialize_variables(const json& j){
-            if (j.contains("message")){
-                error_message = j["message"];
-                return false;
-            }
-            std::string temp_id = j["id"];
-            std::string temp_discrim = j["discriminator"];
+        void initialize_variables(const std::string raw){
+            json j = json::parse(raw);
+            std::cout << j.dump(4) << std::endl;
+            auto user = j["user"];
+            std::string temp_id = user["id"];
+            std::string temp_discrim = user["discriminator"];
             id = std::stol(temp_id);
             discriminator = std::stoi(temp_discrim);
 
-            flags = j["flags"];
-            verified = j["verified"];
-            mfa_enabled = j["mfa_enabled"];
-            bot = j["bot"];
-            username = j["username"];
-            locale = j["locale"];
+            verified = user["verified"];
+            mfa_enabled = user["mfa_enabled"];
+            bot = user["bot"];
+            username = user["username"];
             avatar = j["avatar"].is_string() ? j["avatar"] : "Null";
             email = j["email"].is_string() ? j["email"] : "Null";
-            return true;
         }
 
         std::list<std::string> get_basic_header() {
@@ -265,6 +278,7 @@ namespace discord {
             r.setOpt(new curlpp::options::PostFieldSize(j.dump().size()));
             std::stringstream response_stream;
             response_stream << r;
+            std::cout << response_stream.str() << std::endl;
             return json::parse(response_stream.str());
         }
 
@@ -300,7 +314,6 @@ namespace discord {
 
         long id;
 
-        int flags;
         int discriminator;
 
         bool bot;
@@ -310,10 +323,10 @@ namespace discord {
 
         std::string email;
         std::string avatar;
-        std::string locale;
         std::string username;
         std::string prefix;
 
+        function_handler func_holder;
         std::vector<std::shared_ptr<discord::Guild>> guilds;
 
     private:
@@ -322,13 +335,13 @@ namespace discord {
 
         std::string session_id;
         std::string token;
-        std::string auth_url = "https://discordapp.com/api/v6/users/@me";
         
         long long packet_counter;
         int last_sequence_data;
 
         client c;
         client::connection_ptr con;
+
 
         std::unordered_map<std::string, void(*)> event_map;
         std::thread gateway_thread;

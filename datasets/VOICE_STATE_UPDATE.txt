@@ -1,0 +1,24 @@
+{
+    "channel_id": "562636135428521988",
+    "deaf": false,
+    "guild_id": "562636135428521984",
+    "member": {
+        "deaf": false,
+        "joined_at": "2019-04-02T13:55:07.965000+00:00",
+        "mute": false,
+        "roles": [],
+        "user": {
+            "avatar": "a_15d2d0eef64132dbc446b0f24ba16db2",
+            "discriminator": "0001",
+            "id": "553478921870508061",
+            "username": "Mehodin"
+        }
+    },
+    "mute": false,
+    "self_deaf": false,
+    "self_mute": true,
+    "self_video": false,
+    "session_id": "60e71d9a2b7bcf6046289d1af36362ee",
+    "suppress": false,
+    "user_id": "553478921870508061"
+}

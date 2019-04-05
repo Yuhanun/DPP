@@ -6,6 +6,8 @@
        "type":"shell",
        "command":"",
        "args":[
+         "clear",
+         "&&",
          "g++",
          "-g",
          "main.cpp",
@@ -50,6 +52,8 @@
         "type":"shell",
         "command":"",
         "args":[
+         "clear",
+         "&&",
          "g++",
          "-g",
          "main.cpp",

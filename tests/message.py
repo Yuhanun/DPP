@@ -7,7 +7,7 @@ basic_auth_headers = {
     "Content-Type": "application/json"
 }
 
-channel_id = 562636135428521986
+channel_id = 563703009394294794
 send_url = f"http://discordapp.com/api/v6/channels/{channel_id}/messages"
 data = {
   "content": "Hello, World!",
