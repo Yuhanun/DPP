@@ -28,8 +28,8 @@ namespace discord {
             verification_level = get_value(guild, "verification_level", 0);
             explicit_content_filter = get_value(guild, "explicit_content_filter", 0);
 
-            large = guild["large"];
-            unavailable = guild["unavailable"];
+            large = get_value(guild, "large", true);
+            unavailable = get_value(guild, "unavailable", false);
 
             std::string temp_id = guild["id"];
             id = std::stoll(temp_id);
