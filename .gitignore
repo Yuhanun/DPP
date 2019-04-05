@@ -40,3 +40,6 @@ ipch/*
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/*
+
+./tests
+./datasets
