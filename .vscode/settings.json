@@ -61,6 +61,7 @@
         "valarray": "cpp",
         "variant": "cpp",
         "__config": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "*.ipp": "cpp"
     }
 }

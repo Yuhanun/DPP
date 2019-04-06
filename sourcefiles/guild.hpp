@@ -15,6 +15,10 @@ discord::Guild::Guild(discord_id id) : discord::Object(id) {}
 discord::Guild::Guild(std::string guild_create_event){
     json guild = json::parse(guild_create_event)["d"];
 
+    for (auto& each : json::iterator_wrapper(guild["members"])){
+        members.push_back(discord::Member(each.value().dump(), discord::User(each.value()["user"].dump())));
+    }
+
     splash = get_value(guild, "splash", 0);
     mfa_level = get_value(guild, "mfa_level", 0);
     afk_timeout = get_value(guild, "afk_timeout", 0);
@@ -26,9 +30,9 @@ discord::Guild::Guild(std::string guild_create_event){
     unavailable = get_value(guild, "unavailable", false);
 
     std::string temp_id = guild["id"];
-    id = std::stoll(temp_id);
+    id = std::stol(temp_id);
     std::string temp_app_id = get_value(guild, "application_id", "0");
-    application_id = std::stoll(temp_app_id);
+    application_id = std::stol(temp_app_id);
 
     name = guild["name"];
     icon = get_value(guild, "icon", "");

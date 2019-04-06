@@ -10,7 +10,7 @@ discord::PermissionOverwrite::PermissionOverwrite(std::string const& name, bool 
 discord::PermissionOverwrites::PermissionOverwrites(const int value)
     : value{value}
 {
-    for (auto& each : discord::permission_overwrites){
+    for (auto const& each : discord::permission_overwrites){
         if ((each.second & value) == each.second){
             add_overwrite(PermissionOverwrite(each.first, true));
         } else {
@@ -36,7 +36,7 @@ discord::PermissionOverwrites& discord::PermissionOverwrites::add_overwrite(Perm
     calculate_value();
     if (value & 0x8 == 0x8){
         overwrites.clear();
-        for (auto& each : discord::permission_overwrites){
+        for (auto const& each : discord::permission_overwrites){
             overwrites.push_back(discord::PermissionOverwrite(each.first, true));    
         }
     }
@@ -44,7 +44,7 @@ discord::PermissionOverwrites& discord::PermissionOverwrites::add_overwrite(Perm
 }
 
 discord::PermissionOverwrite discord::PermissionOverwrites::get_overwrite(std::string const& name) const {
-    for (auto& each : overwrites){
+    for (auto const& each : overwrites){
         if (each.name != name){
             continue;
         }
@@ -59,10 +59,10 @@ int discord::PermissionOverwrites::get_value() const {
 
 void discord::PermissionOverwrites::calculate_value(){
     value = 0;
-    for (auto& perm : discord::permission_overwrites){
-        for (auto& each : overwrites){
+    for (auto const& perm : discord::permission_overwrites){
+        for (auto const& each : overwrites){
             if (each.value == true){
-                value = value | perm.second;
+                value |= perm.second;
             }
         }
     }

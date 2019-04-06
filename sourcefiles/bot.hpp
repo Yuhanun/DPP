@@ -13,7 +13,7 @@ discord::Bot::Bot(const std::string& token, const std::string prefix)
     : prefix{prefix}, token{token}
 {
     curlpp::initialize(CURL_GLOBAL_ALL);
-    discord::Channel::token = token;
+    discord::Channel::bot = this;
 }
 
 
@@ -30,7 +30,7 @@ discord::Message discord::Bot::send_message(discord_id channel_id, std::string m
     );
 
     json response = send_request(j, h, get_channel_link(channel_id));
-    return discord::Message::from_sent_message(response.dump());
+    return discord::Message::from_sent_message(response.dump(), this);
 }
 
 
@@ -100,7 +100,6 @@ void discord::Bot::run(){
 }
 
 void discord::Bot::handle_event(json& j, std::string event_name){
-    std::cout << "Incoming event: " << event_name << "\n";
     const json data = j["d"];
     if (j.contains("s")){
         last_sequence_data = j["s"].is_number() ? j["s"].get<int>() : -1;
@@ -118,9 +117,7 @@ void discord::Bot::handle_event(json& j, std::string event_name){
     } else if (event_name == "GUILD_STATUS"){
 
     } else if (event_name == "GUILD_CREATE"){
-        guilds.push_back(std::make_unique<discord::Guild>(j.dump()));
-        std::ofstream file("GUILD_CREATE_" + rand() % 50);
-        file << j.dump(4);
+        guilds.emplace_back(std::make_unique<discord::Guild>(j.dump()));
     } else if (event_name == "CHANNEL_CREATE"){
 
     } else if (event_name == "VOICE_CHANNEL_SELECT"){
@@ -140,7 +137,8 @@ void discord::Bot::handle_event(json& j, std::string event_name){
     } else if (event_name == "SPEAKING_STOP"){
 
     } else if (event_name == "MESSAGE_CREATE"){
-
+        auto message = Message::from_sent_message(j["d"].dump(), this);
+        func_holder.call<EVENTS::MESSAGE_CREATE>(message);
     } else if (event_name == "MESSAGE_UPDATE"){
 
     } else if (event_name == "MESSAGE_DELETE"){
@@ -203,7 +201,6 @@ std::string discord::Bot::get_gateway_url(){
 
 void discord::Bot::initialize_variables(const std::string raw){
     json j = json::parse(raw);
-    std::cout << j.dump(4) << std::endl;
     auto user = j["user"];
     std::string temp_id = user["id"];
     std::string temp_discrim = user["discriminator"];

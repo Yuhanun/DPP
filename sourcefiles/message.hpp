@@ -8,7 +8,7 @@
 discord::Message::Message(discord_id id) : discord::Object(id)
 {}
 
-discord::Message discord::Message::from_sent_message(std::string data){
+discord::Message discord::Message::from_sent_message(std::string data, discord::Bot* bot){
     auto j = json::parse(data);
     auto m = Message{};
     if (j.contains("message")){
@@ -16,13 +16,24 @@ discord::Message discord::Message::from_sent_message(std::string data){
         m.error = j["message"];
         m.sent = false;
     } else {
+        discord_id sender_id = std::stol(j["author"]["id"].get<std::string>());
         m.sent = true;
         m.tts = j["tts"];
         m.timestamp = j["timestamp"];
         m.mention_everyone = j["mention_everyone"];
-        m.id = std::stoll( j["id"].get<std::string>() );
-        m.author = discord::Member{ std::stoll(j["author"]["id"].get<std::string>()) };
-        m.channel = discord::Channel{ std::stoll(j["channel_id"].get<std::string>()) };
+        m.id = std::stol( j["id"].get<std::string>() );
+        m.channel = discord::Channel{ std::stol(j["channel_id"].get<std::string>()) };
+
+        for (auto& guild : bot->guilds){
+            for (auto& member : guild->members){
+                if (member.id == sender_id){
+                    m.author = member;
+                    goto found;
+                }
+            }
+        }
+        found:
+
         m.content = j["content"];
         m.type = j["type"];
     }

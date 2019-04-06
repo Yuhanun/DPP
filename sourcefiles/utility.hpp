@@ -31,7 +31,6 @@ namespace discord{
             r.setOpt(new curlpp::options::PostFieldSize(j.dump().size()));
             std::stringstream response_stream;
             response_stream << r;
-            std::cout << response_stream.str() << std::endl;
             return json::parse(response_stream.str());
     }
 

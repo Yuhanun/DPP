@@ -29,6 +29,7 @@
 namespace discord {
 
     class Bot;
+    class User;
     class Color;
     class Guild;
     class Member;
@@ -142,20 +143,21 @@ namespace discord {
         bool verified;
         bool mfa_enabled;
 
+        std::string token;
         std::string email;
         std::string avatar;
-        std::string username;
         std::string prefix;
+        std::string username;
 
         function_handler func_holder;
-        std::vector<std::shared_ptr<discord::Guild>> guilds;
+        std::vector<std::unique_ptr<discord::Guild>> guilds;
+        std::vector<discord::User> users;
 
     private:
         bool heartbeat_acked;
         json hello_packet;
 
         std::string session_id;
-        std::string token;
         
         long long packet_counter;
         int last_sequence_data;
@@ -194,8 +196,9 @@ namespace discord {
 
             // std::vector<discord::PermissionOverwrite> overwrites;
 
-            inline static std::string token;
+            inline static discord::Bot* bot;
         private:
+
             enum channel_type {
                 TextChannel,
                 VoiceChannel,
@@ -239,8 +242,8 @@ namespace discord {
         std::vector<int> features;
         // std::vector<discord::Role> roles;
         // std::vector<discord::Emoji> emojis;
-        // std::vector<discord::Member> members;
-        // std::vector<discord::Channel> channels;
+        std::vector<discord::Member> members;
+        std::vector<discord::Channel> channels;
 
         // discord::Member owner;
         discord::Channel afk_channel;
@@ -252,21 +255,31 @@ namespace discord {
     public:
         User() = default;
         User(discord_id);
+        User(std::string const&);
 
     public:
         bool bot;
+        
         std::string name;
-        std::string discriminator;
         std::string avatar;
-        std::string avatar_url;
-        std::string display_name;
         std::string mention;
+        std::string discriminator;
     };
 
     class Member: public User{
     public:
         Member() = default;
         Member(discord_id);
+        Member(std::string const&, discord::User const&);
+
+    public:
+        bool deaf;
+        bool muted;
+        
+        // std::vector<discord::Role> roles;
+
+        std::string nick;
+        std::string joined_at;
     };
 
     class Message : public Object{
@@ -274,7 +287,7 @@ namespace discord {
         Message() = default;
         Message(discord_id);
 
-        inline static Message from_sent_message(std::string);
+        inline static Message from_sent_message(std::string, discord::Bot*);
 
         std::string get_delete_url();
 
