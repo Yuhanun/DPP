@@ -3,9 +3,12 @@
 
 #include "sourcefiles/bot.hpp"
 #include "message.hpp"
+#include "utility.hpp"
 
 int main(){
-    std::string token = "NTYyNjM1ODk5MzE0MzcyNjE4.XKNpig.QAiFqpcua1ojloNuVzEJtzJoqiU";
+    std::cout << discord::get_iso_datetime_now() << std::endl;
+    std::cout << discord::get_iso_from_unix(500) << std::endl;
+    std::string token = "";
     discord::Bot bot{ token, "." };
     bot.register_callback<EVENTS::READY>([&bot](){
         std::cout << "Ready!" << std::endl;
@@ -14,7 +17,8 @@ int main(){
         std::cout << "-----------------------------" << std::endl;
     });
     bot.register_callback<EVENTS::READY>([&bot](){
-        discord::Message message = bot.send_message(563703009394294794, "Events::Ready, second callback.");
+        discord::Channel channel{ 563794584778309642 };
+        auto message = channel.send("Deleting this message after 0.5 seconds");
         message.remove();
     });
     bot.run();

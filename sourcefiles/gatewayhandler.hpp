@@ -8,7 +8,6 @@
 #include <atomic>
 
 #include <utility>
-#include <guild.hpp>
 
 #include <sstream>
 
