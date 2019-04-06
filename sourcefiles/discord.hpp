@@ -29,10 +29,13 @@
 namespace discord {
 
     class Bot;
+    class Color;
     class Guild;
     class Member;
     class Message;
     class Channel;
+    class EmbedBuilder;
+    class PermissionOverwrite;
 
     typedef uint64_t discord_id;
 
@@ -102,7 +105,7 @@ namespace discord {
 
     class Bot {
     public:
-        Bot(const std::string&, const std::string);
+        Bot(std::string const&, const std::string);
         template <size_t EVENT, typename FType>
         void register_callback(FType&& func)
         {
@@ -174,6 +177,7 @@ namespace discord {
             Channel(std::string);
 
             discord::Message send(std::string);
+            discord::Message send(EmbedBuilder, std::string="");
 
         public:
             int type;
@@ -307,6 +311,72 @@ namespace discord {
 
     class Role : public Object{
         
+    };
+
+    class EmbedBuilder{
+    public:
+        EmbedBuilder();
+        EmbedBuilder& set_title(std::string const&);
+        EmbedBuilder& set_description(std::string const&);
+        EmbedBuilder& set_url(std::string const&);
+        EmbedBuilder& set_timestamp(std::string const&);
+        EmbedBuilder& set_color(const Color);
+        EmbedBuilder& set_footer(std::string const&, std::string const&);
+        EmbedBuilder& set_image(std::string const&, const int=-1, const int=-1);
+        EmbedBuilder& set_thumbnail(std::string const&, const int=-1, const int=-1);
+        EmbedBuilder& set_video(std::string const&, const int=-1, const int=-1);
+        EmbedBuilder& set_author(std::string const&, std::string const&, std::string const&);
+        EmbedBuilder& add_field(std::string const&, std::string const&, const bool=false);
+        json& to_json();
+
+    private:
+        json embed;
+    };
+
+    class Color{
+    public:
+        Color() = default;
+        Color(int, int, int, int=-1);
+        Color(int);
+
+    public:
+        int raw_int;
+        int r;
+        int g;
+        int b;
+    };
+
+    class PermissionOverwrite{
+    public:
+        PermissionOverwrite(std::string const&, bool);
+    public:
+        std::string name;
+        bool value;
+        int hex_value;
+
+    };
+
+    class PermissionOverwrites{
+    public:
+        PermissionOverwrites() = default;
+        PermissionOverwrites(const int);
+        PermissionOverwrites(std::vector<PermissionOverwrite> const&);
+
+        PermissionOverwrites& remove_overwrite(std::string const&);
+        PermissionOverwrites& add_overwrite(PermissionOverwrite const&);
+
+        discord::PermissionOverwrite get_overwrite(std::string const&) const;
+
+        int get_value() const;
+
+    private:
+        void calculate_value();
+
+    public:
+        std::vector<PermissionOverwrite> overwrites;
+
+    private:
+        int value;
     };
 
 };

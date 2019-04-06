@@ -119,6 +119,8 @@ void discord::Bot::handle_event(json& j, std::string event_name){
 
     } else if (event_name == "GUILD_CREATE"){
         guilds.push_back(std::make_unique<discord::Guild>(j.dump()));
+        std::ofstream file("GUILD_CREATE_" + rand() % 50);
+        file << j.dump(4);
     } else if (event_name == "CHANNEL_CREATE"){
 
     } else if (event_name == "VOICE_CHANNEL_SELECT"){
@@ -154,7 +156,6 @@ void discord::Bot::handle_event(json& j, std::string event_name){
     } else if (event_name == "ACTIVITY_JOIN_REQUEST"){
 
     }
-    // write_to_file(("datasets/" + event_name + ".txt"), data.dump(4));
     // fire_events(event_name);
 
 }

@@ -46,3 +46,26 @@ discord::Message discord::Channel::send(std::string content){
     json response = send_request(j, h, get_channel_link(id));
     return discord::Message::from_sent_message(response.dump());
 }
+
+discord::Message discord::Channel::send(EmbedBuilder embed, std::string content){
+    const std::list<std::string> h = {
+        { "Authorization: Bot " + token },
+        { "Content-Type: application/json" },
+        { "User-Agent: DiscordPP (C++ discord library)" },
+        { "Connection: keep-alive" }
+    };
+    json j = json(
+        {
+            {"embed", embed.to_json()},
+            {"tts", false}
+        }
+    );
+
+    if (content != ""){
+        j["content"] = content;
+    }
+
+    json response = send_request(j, h, get_channel_link(id));
+    return discord::Message::from_sent_message(response.dump());
+}
+
