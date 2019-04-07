@@ -5,27 +5,33 @@
 discord::Channel::Channel(discord_id id) : discord::Object(id)
 {}
 
-discord::Channel::Channel(std::string guild_create){
+discord::Channel::Channel(std::string guild_create, discord_id guild_id){
     json data = json::parse(guild_create);
     if (data.contains("bitrate")) {
         if (!data.contains("parent_id")){
             type = channel_type::CategoryChannel;
         } else {
             type = channel_type::VoiceChannel;
-            parent_id = std::stol( data["parent_id"].get<std::string>() );
+            parent_id = std::stoul( get_value(data, "parent_id", "0") );
         }
         bitrate = data["bitrate"];
         user_limit = data["user_limit"];
     } else {
         type = channel_type::TextChannel;
-        parent_id = std::stol( data["parent_id"].get<std::string>() );
-        rate_limit_per_user = data["rate_limit_per_user"];
+        parent_id = std::stoul( get_value(data, "parent_id", "0") );
+        rate_limit_per_user = get_value(data, "rate_limit_per_user", 0);
         topic = discord::get_value(data, "topic", "");
     }
 
+    guild = nullptr;
+    for (auto const& v_guild : bot->guilds){
+        if (v_guild->id == guild_id){
+            guild = v_guild.get();
+        }
+    }
     name = data["name"];
     position = data["position"];
-    id = std::stol( data["id"].get<std::string>() );
+    id = std::stoul( data["id"].get<std::string>() );
     // type = data["type"];
 }
 
@@ -51,6 +57,6 @@ discord::Message discord::Channel::send(EmbedBuilder embed, std::string content)
         j["content"] = content;
     }
 
-    return discord::Channel::bot->send_message(id, j.dump());
+    return discord::Channel::bot->send_message(id, j);
 }
 

@@ -16,19 +16,30 @@ discord::Message discord::Message::from_sent_message(std::string data, discord::
         m.error = j["message"];
         m.sent = false;
     } else {
-        discord_id sender_id = std::stol(j["author"]["id"].get<std::string>());
+        discord_id sender_id = std::stoul(j["author"]["id"].get<std::string>());
         m.sent = true;
         m.tts = j["tts"];
         m.timestamp = j["timestamp"];
         m.mention_everyone = j["mention_everyone"];
-        m.id = std::stol( j["id"].get<std::string>() );
-        m.channel = discord::Channel{ std::stol(j["channel_id"].get<std::string>()) };
+        m.id = std::stoul( j["id"].get<std::string>() );
+        discord_id channel_id = std::stoul(j["channel_id"].get<std::string>());
+
+        for (auto const& chan : bot->channels){
+            if (chan->id == channel_id){
+                m.channel = *(chan.get());
+            }
+        }
 
         for (auto& guild : bot->guilds){
-            for (auto& member : guild->members){
-                if (member.id == sender_id){
-                    m.author = member;
-                    goto found;
+            for (auto& channel: guild->channels){
+                if (channel.id != m.channel.id){
+                    continue;
+                }
+                for (auto& member : guild->members){
+                    if (member.id == sender_id){
+                        m.author = member;
+                        goto found;
+                    }
                 }
             }
         }
@@ -59,6 +70,5 @@ nlohmann::json discord::Message::remove(){
     r.setOpt(new curlpp::options::HttpHeader(h));
     std::stringstream response_stream;
     response_stream << r;
-    std::cout << response_stream.str() << std::endl;
-    return response_stream.str().length() > 1 ? json::parse("{}") : json::parse(response_stream.str());
+    return response_stream.str().length() > 1 ? json({}) : json::parse(response_stream.str());
 }

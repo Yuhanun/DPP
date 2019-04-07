@@ -8,7 +8,7 @@
        "args":[
          "clear",
          "&&",
-         "g++",
+         "clang++",
          "-g",
          "main.cpp",
          "-o",
@@ -56,7 +56,7 @@
         "args":[
          "clear",
          "&&",
-         "g++",
+         "clang++",
          "-g",
          "main.cpp",
          "-o",

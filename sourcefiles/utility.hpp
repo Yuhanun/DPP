@@ -8,6 +8,18 @@
 namespace discord{
     using namespace nlohmann;
 
+    namespace utils{
+        template <typename S, typename F>
+        S* get(std::vector<std::unique_ptr<S>>& iterable, F callable){
+            for (auto& each : iterable){
+                if (callable(each)){
+                    return each.get();
+                }
+            }
+            return nullptr;
+        }
+    };
+
     template <typename T>
     T get_value(json& j, const char* s, T default_value){
         return j[s].empty() ? default_value : j[s].get<T>();

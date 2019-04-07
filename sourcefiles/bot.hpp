@@ -14,6 +14,7 @@ discord::Bot::Bot(const std::string& token, const std::string prefix)
 {
     curlpp::initialize(CURL_GLOBAL_ALL);
     discord::Channel::bot = this;
+    discord::Guild::bot = this;
 }
 
 
@@ -30,6 +31,16 @@ discord::Message discord::Bot::send_message(discord_id channel_id, std::string m
     );
 
     json response = send_request(j, h, get_channel_link(channel_id));
+    return discord::Message::from_sent_message(response.dump(), this);
+}
+
+discord::Message discord::Bot::send_message(discord_id channel_id, json message_content){
+    auto h = get_basic_header();
+    h.push_back("Content-Type: application/json");
+    h.push_back("User-Agent: DiscordPP (C++ discord library)");
+    h.push_back("Connection: keep-alive");
+
+    json response = send_request(message_content, h, get_channel_link(channel_id));
     return discord::Message::from_sent_message(response.dump(), this);
 }
 
@@ -103,55 +114,95 @@ void discord::Bot::handle_event(json& j, std::string event_name){
     const json data = j["d"];
     if (j.contains("s")){
         last_sequence_data = j["s"].is_number() ? j["s"].get<int>() : -1;
-    } else {
-        last_sequence_data = -1;
     }
-    if (event_name == "READY"){
-        this->session_id = j["d"]["session_id"].get<std::string>();
+    
+    if (event_name == "HELLO"){
+
+    } else if (event_name == "READY"){
+        this->session_id = data["session_id"].get<std::string>();
         ready = true;
         heartbeat_thread = std::thread{ &Bot::handle_heartbeat, this };
-        initialize_variables(j["d"].dump());
+        initialize_variables(data.dump());
         func_holder.call<EVENTS::READY>();
-    } else if (event_name == "ERROR"){
-        
-    } else if (event_name == "GUILD_STATUS"){
+    } else if (event_name == "RESUMED"){
 
-    } else if (event_name == "GUILD_CREATE"){
-        guilds.emplace_back(std::make_unique<discord::Guild>(j.dump()));
+    } else if (event_name == "INVALID_SESSION"){
+
     } else if (event_name == "CHANNEL_CREATE"){
 
-    } else if (event_name == "VOICE_CHANNEL_SELECT"){
-        
-    } else if (event_name == "VOICE_STATE_CREATE"){
+    } else if (event_name == "CHANNEL_UPDATE"){
 
-    } else if (event_name == "VOICE_STATE_UPDATE"){
+    } else if (event_name == "CHANNEL_DELETE"){
 
-    } else if (event_name == "VOICE_STATE_DELETE"){
+    } else if (event_name == "CHANNEL_PINS_UPDATE"){
 
-    } else if (event_name == "VOICE_SETTINGS_UPDATE"){
+    } else if (event_name == "GUILD_CREATE"){
+        discord_id guild_id = std::stoul(data["id"].get<std::string>());
+        for (auto const& member : data["members"]){
+            users.emplace_back(std::make_unique<discord::User>(member["user"].dump()));
+        }
+        for (auto const& channel : data["channels"]){
+            channels.emplace_back(std::make_unique<discord::Channel>(channel.dump(), guild_id));
+        }
+        auto guild = discord::Guild(j.dump());
+        guilds.push_back(std::make_unique<discord::Guild>(j.dump()));
+        func_holder.call<EVENTS::GUILD_CREATE>(guild);
+    } else if (event_name == "GUILD_UPDATE"){
 
-    } else if (event_name == "VOICE_CONNECTION_STATUS"){
+    } else if (event_name == "GUILD_DELETE"){
+        discord_id to_remove = std::stoul(data["id"].get<std::string>());
+        guilds.erase(
+            std::remove_if(guilds.begin(), guilds.end(), [&to_remove](std::unique_ptr<discord::Guild> const& g){
+                return g->id == to_remove;
+        }), guilds.end());
+    } else if (event_name == "GUILD_BAN_ADD"){
 
-    } else if (event_name == "SPEAKING_START"){
+    } else if (event_name == "GUILD_BAN_REMOVE"){
 
-    } else if (event_name == "SPEAKING_STOP"){
+    } else if (event_name == "GUILD_EMOJIS_UPDATE"){
+
+    } else if (event_name == "GUILD_INTEGRATIONS_UPDATE"){
+
+    } else if (event_name == "GUILD_MEMBER_ADD"){
+
+    } else if (event_name == "GUILD_MEMBER_REMOVE"){
+
+    } else if (event_name == "GUILD_MEMBER_UPDATE"){
+
+    } else if (event_name == "GUILD_MEMBERS_CHUNK"){
+
+    } else if (event_name == "GUILD_ROLE_CREATE"){
+
+    } else if (event_name == "GUILD_ROLE_UPDATE"){
+
+    } else if (event_name == "GUILD_ROLE_DELETE"){
 
     } else if (event_name == "MESSAGE_CREATE"){
-        auto message = Message::from_sent_message(j["d"].dump(), this);
+        auto message = Message::from_sent_message(data.dump(), this);
         func_holder.call<EVENTS::MESSAGE_CREATE>(message);
     } else if (event_name == "MESSAGE_UPDATE"){
 
     } else if (event_name == "MESSAGE_DELETE"){
 
-    } else if (event_name == "NOTIFICATION_CREATE"){
+    } else if (event_name == "MESSAGE_DELETE_BULK"){
 
-    } else if (event_name == "CAPTURE_SHORTCUT_CHANGE"){
+    } else if (event_name == "MESSAGE_REACTION_ADD"){
 
-    } else if (event_name == "ACTIVITY_JOIN"){
+    } else if (event_name == "MESSAGE_REACTION_REMOVE"){
 
-    } else if (event_name == "ACTIVITY_SPECTATE"){
+    } else if (event_name == "MESSAGE_REACTION_REMOVE_ALL"){
 
-    } else if (event_name == "ACTIVITY_JOIN_REQUEST"){
+    } else if (event_name == "PRESENCE_UPDATE"){
+
+    } else if (event_name == "TYPING_START"){
+
+    } else if (event_name == "USER_UPDATE"){
+
+    } else if (event_name == "VOICE_STATE_UPDATE"){
+
+    } else if (event_name == "VOICE_SERVER_UPDATE"){
+
+    } else if (event_name == "WEBHOOKS_UPDATE"){
 
     }
     // fire_events(event_name);
@@ -204,7 +255,7 @@ void discord::Bot::initialize_variables(const std::string raw){
     auto user = j["user"];
     std::string temp_id = user["id"];
     std::string temp_discrim = user["discriminator"];
-    id = std::stol(temp_id);
+    id = std::stoul(temp_id);
     discriminator = std::stoi(temp_discrim);
 
     verified = user["verified"];

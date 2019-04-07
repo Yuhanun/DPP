@@ -1,21 +1,35 @@
-"READY"
-"ERROR"
-"GUILD_STATUS"
-"GUILD_CREATE"
-"CHANNEL_CREATE"
-"VOICE_CHANNEL_SELECT"
-"VOICE_STATE_CREATE"
-"VOICE_STATE_UPDATE"
-"VOICE_STATE_DELETE"
-"VOICE_SETTINGS_UPDATE"
-"VOICE_CONNECTION_STATUS"
-"SPEAKING_START"
-"SPEAKING_STOP"
-"MESSAGE_CREATE"
-"MESSAGE_UPDATE"
-"MESSAGE_DELETE"
-"NOTIFICATION_CREATE"
-"CAPTURE_SHORTCUT_CHANGE"
-"ACTIVITY_JOIN"
-"ACTIVITY_SPECTATE"
-"ACTIVITY_JOIN_REQUEST"
+Hello
+Ready
+Resumed
+Invalid Session
+Channel Create
+Channel Update
+Channel Delete
+Channel Pins Update
+Guild Create
+Guild Update
+Guild Delete
+Guild Ban Add
+Guild Ban Remove
+Guild Emojis Update
+Guild Integrations Update
+Guild Member Add
+Guild Member Remove
+Guild Member Update
+Guild Members Chunk
+Guild Role Create
+Guild Role Update
+Guild Role Delete
+Message Create
+Message Update
+Message Delete
+Message Delete Bulk
+Message Reaction Add
+Message Reaction Remove
+Message Reaction Remove All
+Presence Update
+Typing Start
+User Update
+Voice State Update
+Voice Server Update
+Webhooks Update

@@ -114,6 +114,8 @@ namespace discord {
         }
 
         discord::Message send_message(discord_id, std::string);
+        discord::Message send_message(discord_id, json);
+
         void write_to_file(std::string, std::string);
         void on_incoming_packet(websocketpp::connection_hdl, client::message_ptr);
         void handle_gateway();
@@ -150,8 +152,9 @@ namespace discord {
         std::string username;
 
         function_handler func_holder;
+        std::vector<std::unique_ptr<discord::User>> users;
         std::vector<std::unique_ptr<discord::Guild>> guilds;
-        std::vector<discord::User> users;
+        std::vector<std::unique_ptr<discord::Channel>> channels;
 
     private:
         bool heartbeat_acked;
@@ -166,7 +169,6 @@ namespace discord {
         client::connection_ptr con;
 
 
-        std::unordered_map<std::string, void(*)> event_map;
         std::thread gateway_thread;
         std::thread heartbeat_thread;
     };
@@ -176,7 +178,7 @@ namespace discord {
             Channel() = default;
             Channel(discord_id id);
 
-            Channel(std::string);
+            Channel(std::string, discord_id);
 
             discord::Message send(std::string);
             discord::Message send(EmbedBuilder, std::string="");
@@ -194,6 +196,7 @@ namespace discord {
             std::string name;
             std::string topic;
 
+            discord::Guild* guild;
             // std::vector<discord::PermissionOverwrite> overwrites;
 
             inline static discord::Bot* bot;
@@ -208,6 +211,40 @@ namespace discord {
 
     class Emoji : public Object{
 
+    };
+
+
+
+    class User : public Object{
+    public:
+        User() = default;
+        User(discord_id);
+        User(std::string const&);
+
+    public:
+        bool bot;
+        
+        std::string name;
+
+        std::string avatar;
+        std::string mention;
+        std::string discriminator;
+    };
+
+    class Member: public User{
+    public:
+        Member() = default;
+        Member(discord_id);
+        Member(std::string const&, discord::User const&);
+
+    public:
+        bool deaf;
+        bool muted;
+        
+        // std::vector<discord::Role> roles;
+
+        std::string nick;
+        std::string joined_at;
     };
 
 
@@ -245,43 +282,16 @@ namespace discord {
         std::vector<discord::Member> members;
         std::vector<discord::Channel> channels;
 
-        // discord::Member owner;
+        discord::Member owner;
         discord::Channel afk_channel;
         discord::Channel system_channel;
 
+        inline static discord::Bot* bot;
+    
+    private:
+
     };
-
-    class User : public Object{
-    public:
-        User() = default;
-        User(discord_id);
-        User(std::string const&);
-
-    public:
-        bool bot;
-        
-        std::string name;
-        std::string avatar;
-        std::string mention;
-        std::string discriminator;
-    };
-
-    class Member: public User{
-    public:
-        Member() = default;
-        Member(discord_id);
-        Member(std::string const&, discord::User const&);
-
-    public:
-        bool deaf;
-        bool muted;
-        
-        // std::vector<discord::Role> roles;
-
-        std::string nick;
-        std::string joined_at;
-    };
-
+    
     class Message : public Object{
     public:
         Message() = default;
