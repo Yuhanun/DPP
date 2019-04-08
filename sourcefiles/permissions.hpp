@@ -19,8 +19,23 @@ discord::PermissionOverwrites::PermissionOverwrites(const int value)
     }
 }
 
+discord::PermissionOverwrites::PermissionOverwrites(const int& value, discord_id owner, std::string const& type_input)
+    : value{value}, object_id{owner}
+{
+    type = type_input == "role";
+    for (auto const& each : discord::permission_overwrites){
+        if ((each.second & value) == each.second){
+            add_overwrite(PermissionOverwrite(each.first, true));
+        } else {
+            add_overwrite(PermissionOverwrite(each.first, false));
+        }     
+    }
+}
+
+
 discord::PermissionOverwrites::PermissionOverwrites(std::vector<PermissionOverwrite> const& ows){
     overwrites = ows;
+    calculate_value();
 }
 
 discord::PermissionOverwrites& discord::PermissionOverwrites::remove_overwrite(std::string const& name){
@@ -34,7 +49,7 @@ discord::PermissionOverwrites& discord::PermissionOverwrites::remove_overwrite(s
 discord::PermissionOverwrites& discord::PermissionOverwrites::add_overwrite(PermissionOverwrite const& overwrite){
     overwrites.push_back(overwrite);
     calculate_value();
-    if (value & 0x8 == 0x8){
+    if ((value & 0x8) == 0x8){
         overwrites.clear();
         for (auto const& each : discord::permission_overwrites){
             overwrites.push_back(discord::PermissionOverwrite(each.first, true));    
@@ -66,4 +81,12 @@ void discord::PermissionOverwrites::calculate_value(){
             }
         }
     }
+}
+
+std::vector<discord::PermissionOverwrite>::const_iterator discord::PermissionOverwrites::begin() const noexcept {
+    return overwrites.begin();
+}
+
+std::vector<discord::PermissionOverwrite>::const_iterator discord::PermissionOverwrites::end() const noexcept {
+    return overwrites.end();
 }

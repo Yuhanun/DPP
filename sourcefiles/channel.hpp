@@ -1,6 +1,7 @@
 #pragma once
 #include <discord.hpp>
 #include "utility.hpp"
+#include "permissions.hpp"
 
 discord::Channel::Channel(discord_id id) : discord::Object(id)
 {}
@@ -28,6 +29,9 @@ discord::Channel::Channel(std::string guild_create, discord_id guild_id){
         if (v_guild->id == guild_id){
             guild = v_guild.get();
         }
+    }
+    for (auto& each : data["permission_overwrites"]){
+        overwrites.push_back(discord::PermissionOverwrites{ each["allow"].get<int>(), std::stoul(each["id"].get<std::string>()), each["type"].get<std::string>()});
     }
     name = data["name"];
     position = data["position"];

@@ -22,8 +22,14 @@ discord::Guild::Guild(std::string guild_create_event){
             owner = member;
         }
     }
+    std::string temp_id = guild["id"];
+    id = std::stoul(temp_id);
 
-    // "owner_id": "553478921870508061",
+    for (auto& channel : guild["channels"]){
+        discord::Channel c { channel.dump(), id };
+        channels.push_back(c);
+    }
+
     splash = get_value(guild, "splash", 0);
     mfa_level = get_value(guild, "mfa_level", 0);
     afk_timeout = get_value(guild, "afk_timeout", 0);
@@ -34,8 +40,6 @@ discord::Guild::Guild(std::string guild_create_event){
     large = get_value(guild, "large", true);
     unavailable = get_value(guild, "unavailable", false);
 
-    std::string temp_id = guild["id"];
-    id = std::stoul(temp_id);
     std::string temp_app_id = get_value(guild, "application_id", "0");
     application_id = std::stoul(temp_app_id);
 

@@ -7,6 +7,7 @@
 #include "events.hpp"
 #include "function_types.hpp"
 #include "gatewayhandler.hpp"
+#include "exceptions.hpp"
 
 
 discord::Bot::Bot(const std::string& token, const std::string prefix)
@@ -179,6 +180,9 @@ void discord::Bot::handle_event(json& j, std::string event_name){
 
     } else if (event_name == "MESSAGE_CREATE"){
         auto message = Message::from_sent_message(data.dump(), this);
+        if (!message.author.bot){
+            fire_commands(message);
+        }
         func_holder.call<EVENTS::MESSAGE_CREATE>(message);
     } else if (event_name == "MESSAGE_UPDATE"){
 
@@ -205,8 +209,6 @@ void discord::Bot::handle_event(json& j, std::string event_name){
     } else if (event_name == "WEBHOOKS_UPDATE"){
 
     }
-    // fire_events(event_name);
-
 }
 
 
@@ -247,7 +249,28 @@ std::string discord::Bot::get_gateway_url(){
     std::stringstream s;
     s << request;
     json j = json::parse(s.str());
+    if (!j.contains("url")){
+        throw discord::ImproperToken();
+    }
     return j["url"];
+}
+
+void discord::Bot::register_command(std::string const& command_name, std::function<void(discord::Message&, std::vector<std::string>&)> function){
+    command_map[command_name] = function;
+}
+
+void discord::Bot::fire_commands(discord::Message& m) const {
+    std::vector<std::string> argument_vec;
+    boost::split(argument_vec, m.content, boost::is_any_of(" "));
+    if (argument_vec.size() <= 1){
+        return;
+    }
+    auto command_name = argument_vec[0].substr(1, argument_vec[0].size());
+    if (command_map.find(command_name) == command_map.end()){
+        return;
+    }
+    argument_vec.erase(argument_vec.begin());
+    command_map.at(command_name)(m, argument_vec);
 }
 
 void discord::Bot::initialize_variables(const std::string raw){

@@ -76,4 +76,3 @@ enum EVENTS : int{
     VOICE_SERVER_UPDATE,
     WEBHOOKS_UPDATE
 };
-

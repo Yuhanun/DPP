@@ -16,6 +16,8 @@
 #include <boost/asio/ssl.hpp>
 #include <boost/asio.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
@@ -37,6 +39,7 @@ namespace discord {
     class Channel;
     class EmbedBuilder;
     class PermissionOverwrite;
+    class PermissionOverwrites;
 
     typedef uint64_t discord_id;
 
@@ -45,28 +48,41 @@ namespace discord {
 
     typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
     typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
+
     typedef Events<
+        void(), // HELLO
         void(), // READY 
-        void(discord::Message, std::exception, std::string), // ERROR
-        void(discord::Guild), // GUILD_STATUS
-        void(discord::Guild), // GUILD_CREATE
+        void(), // RESUMED
+        void(), // INVALID_SESSION,
         void(discord::Channel), // CHANNEL_CREATE
-        void(discord::Channel), // VOICE_CHANNEL_SELECT
-        void(discord::Member, discord::Channel), // VOICE_STATE_CREATE
-        void(discord::Member, discord::Channel), // VOICE_STATE_UPDATE
-        void(discord::Member, discord::Channel), // VOICE_STATE_DELETE
-        void(), // VOICE_SETTINGS_UPDATE
-        void(discord::Channel), // VOICE_CONNECTION_STATUS
-        void(discord::Member), // SPEAKING_START
-        void(discord::Member), // SPEAKING_STOP
+        void(discord::Channel), // CHANNEL_UPDATE
+        void(discord::Channel), // CHANNEL_DELETE
+        void(discord::Channel), // CHANNEL_PINS_UPDATE
+        void(discord::Guild), // GUILD_CREATE
+        void(discord::Guild), // GUILD_UPDATE
+        void(discord_id), // GUILD_DELETE
+        void(discord::User), // GUILD_BAN_ADD,
+        void(discord::User), // GUILD_BAN_REMOVE,
+        void(discord::Guild), // GUILD_EMOJIS_UPDATE
+        void(discord::Guild), // GUILD_INTEGRATIONS_UPDATE
+        void(discord::Member), // GUILD_MEMBER_ADD
+        void(), // GUILD_MEMBERS_CHUNK
+        void(), //discord::Role), // GUILD_ROLE_CREATE 
+        void(), //discord::Role), // GUILD_ROLE_UPDATE 
+        void(), //discord::Role), // GUILD_ROLE_DELETE
         void(discord::Message), // MESSAGE_CREATE
         void(discord::Message), // MESSAGE_UPDATE
         void(discord::Message), // MESSAGE_DELETE
-        void(discord::Message), // NOTIFICATION_CREATE
-        void(), // CAPTURE_SHORTCUT_CHANGE
-        void(), // ACTIVITY_JOIN
-        void(), // ACTIVITY_SPECTATE
-        void()> function_handler; // ACTIVITY_JOIN_REQUEST
+        void(std::vector<discord::Message>), //MESSAGE_DELETE_BULK
+        void(discord::Message), // MESSAGE_REACTION_ADD
+        void(discord::Message), // MESSAGE_REACTION_REMOVE
+        void(discord::Message), // MESSAGE_REACTION_REMOVE_ALL
+        void(discord::User), // PRECENSE_UPDATE
+        void(discord::Member, discord::Channel), // PRESENCE_UPDATE
+        void(discord::User), // USER_UPDATE
+        void(discord::Member, discord::Channel), // VOICE_STATE_UPDATE
+        void(discord::Guild), // VOICE_SERVER_UPDATE
+        void(discord::Guild)> function_handler; // WEBHOOKS_UPDATE
 
     using websocketpp::lib::placeholders::_1;
     using websocketpp::lib::placeholders::_2;
@@ -113,6 +129,8 @@ namespace discord {
             std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
         }
 
+        void register_command(std::string const&, std::function<void(discord::Message&, std::vector<std::string>&)>);
+
         discord::Message send_message(discord_id, std::string);
         discord::Message send_message(discord_id, json);
 
@@ -121,7 +139,9 @@ namespace discord {
         void handle_gateway();
 
         void run();
+
     private:
+        void fire_commands(discord::Message&) const;
         void gateway_auth();
         void handle_heartbeat();
         void handle_event(json&, std::string);
@@ -168,9 +188,10 @@ namespace discord {
         client c;
         client::connection_ptr con;
 
-
         std::thread gateway_thread;
         std::thread heartbeat_thread;
+
+        std::unordered_map<std::string, std::function<void(discord::Message&, std::vector<std::string>&)>> command_map;
     };
 
     class Channel : public Object{
@@ -197,11 +218,11 @@ namespace discord {
             std::string topic;
 
             discord::Guild* guild;
-            // std::vector<discord::PermissionOverwrite> overwrites;
+            std::vector<discord::PermissionOverwrites> overwrites;
 
             inline static discord::Bot* bot;
-        private:
 
+        private:
             enum channel_type {
                 TextChannel,
                 VoiceChannel,
@@ -384,11 +405,15 @@ namespace discord {
         PermissionOverwrites() = default;
         PermissionOverwrites(const int);
         PermissionOverwrites(std::vector<PermissionOverwrite> const&);
+        PermissionOverwrites(const int&, discord_id, std::string const&);
 
         PermissionOverwrites& remove_overwrite(std::string const&);
         PermissionOverwrites& add_overwrite(PermissionOverwrite const&);
 
         discord::PermissionOverwrite get_overwrite(std::string const&) const;
+
+        std::vector<discord::PermissionOverwrite>::const_iterator begin() const noexcept;
+        std::vector<discord::PermissionOverwrite>::const_iterator end() const noexcept;
 
         int get_value() const;
 
@@ -397,9 +422,21 @@ namespace discord {
 
     public:
         std::vector<PermissionOverwrite> overwrites;
+        discord_id object_id;
+        int type;
 
     private:
         int value;
+        enum owner_type{
+            role,
+            member
+        };
+    };
+
+
+
+    class ImproperToken : public std::exception{
+        const char* what() const throw();
     };
 
 };
