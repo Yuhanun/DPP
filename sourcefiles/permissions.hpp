@@ -3,90 +3,70 @@
 #include "experimental/vector"
 #include "utility.hpp"
 
-discord::PermissionOverwrite::PermissionOverwrite(std::string const& name, bool value)
-    : name{name}, value{value}
+discord::PermissionOverwrite::PermissionOverwrite(int value, int allow_type)
+    : allow_type{allow_type}, value{value}
 {}
 
-discord::PermissionOverwrites::PermissionOverwrites(const int value)
-    : value{value}
-{
-    for (auto const& each : discord::permission_overwrites){
-        if ((each.second & value) == each.second){
-            add_overwrite(PermissionOverwrite(each.first, true));
-        } else {
-            add_overwrite(PermissionOverwrite(each.first, false));
-        }     
+void discord::PermissionOverwrite::calculate_value(){
+    int value = 0;
+    for (auto const& each : ows){
+        if (each.second == allow_type){ // not working for deny
+            value |= discord::permission_overwrites[each.first];
+        }
     }
 }
 
-discord::PermissionOverwrites::PermissionOverwrites(const int& value, snowflake owner, std::string const& type_input)
-    : value{value}, object_id{owner}
-{
-    type = type_input == "role";
+void discord::PermissionOverwrite::set_table(){
+    ows.clear();
     for (auto const& each : discord::permission_overwrites){
-        if ((each.second & value) == each.second){
-            add_overwrite(PermissionOverwrite(each.first, true));
-        } else {
-            add_overwrite(PermissionOverwrite(each.first, false));
-        }     
+        if ((value & each.second) == value){
+            ows[each.first] = allow_type;
+        }
     }
 }
 
-
-discord::PermissionOverwrites::PermissionOverwrites(std::vector<PermissionOverwrite> const& ows){
-    overwrites = ows;
-    calculate_value();
-}
-
-discord::PermissionOverwrites& discord::PermissionOverwrites::remove_overwrite(std::string const& name){
-    overwrites.erase(std::remove_if(overwrites.begin() , overwrites.end(), [&](const PermissionOverwrite& o){
-        return o.name == name;
-    }));
+discord::PermissionOverwrite& discord::PermissionOverwrite::add_permission(std::string const& name){
+    ows[name] = allow_type;
     calculate_value();
     return *this;
 }
 
-discord::PermissionOverwrites& discord::PermissionOverwrites::add_overwrite(PermissionOverwrite const& overwrite){
-    overwrites.push_back(overwrite);
-    calculate_value();
-    if ((value & 0x8) == 0x8){
-        overwrites.clear();
-        for (auto const& each : discord::permission_overwrites){
-            overwrites.push_back(discord::PermissionOverwrite(each.first, true));    
-        }
+discord::PermissionOverwrites::PermissionOverwrites(int allow_value, int deny_value, snowflake object_id, int object_type)
+    : object_id{object_id}, object_type{object_type}
+{
+    allow_perms = PermissionOverwrite(allow_value, permission_type::allow);
+    deny_perms = PermissionOverwrite(deny_value, permission_type::deny);
+    allow_perms.set_table();
+    deny_perms.set_table();
+}
+
+discord::PermissionOverwrites::PermissionOverwrites(snowflake object_id, int object_type)
+    : object_id{object_id}, object_type{object_type}
+{
+    allow_perms = PermissionOverwrite(0, permission_type::allow);
+    deny_perms = PermissionOverwrite(0, permission_type::deny);
+}
+
+std::pair<int, int> discord::PermissionOverwrites::get_values() const {
+    return { allow_perms.value, deny_perms.value };
+}
+
+discord::PermissionOverwrites& discord::PermissionOverwrites::add_permission(std::string const& name, int allow_type){
+    if (allow_type == allow_perms.allow_type){
+        allow_perms.add_permission(name);
+    } else if (allow_type == deny_perms.allow_type){
+        deny_perms.add_permission(name);
     }
     return *this;
 }
 
-discord::PermissionOverwrite discord::PermissionOverwrites::get_overwrite(std::string const& name) const {
-    for (auto const& each : overwrites){
-        if (each.name != name){
-            continue;
-        }
-        return each;
-    }
-    return PermissionOverwrite("INVALID_PERMISSION", false);
-}
-
-int discord::PermissionOverwrites::get_value() const {
-    return value;
-}
-
-void discord::PermissionOverwrites::calculate_value(){
-    value = 0;
-    for (auto const& perm : discord::permission_overwrites){
-        for (auto const& each : overwrites){
-            if (each.value == true){
-                value |= perm.second;
-            }
-        }
-    }
-}
-
-std::vector<discord::PermissionOverwrite>::const_iterator discord::PermissionOverwrites::begin() const noexcept {
-    return overwrites.begin();
-}
-
-std::vector<discord::PermissionOverwrite>::const_iterator discord::PermissionOverwrites::end() const noexcept {
-    return overwrites.end();
+nlohmann::json discord::PermissionOverwrites::to_json() const {
+    auto t = object_type == object_type::role ? "role" : "member";
+    auto vals = get_values();
+    return json({
+        {"allow", vals.first},
+        {"deny", vals.second},
+        {"type", t},
+        {"id", object_id}
+    });
 }

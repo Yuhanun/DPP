@@ -38,7 +38,7 @@ bool verify_subject_alternative_name(const char * hostname, X509 * cert) {
             continue;
         }
 
-        const char * dns_name = (char *) ASN1_STRING_data(current_name->d.dNSName);
+        const char * dns_name = (char *) ASN1_STRING_get0_data(current_name->d.dNSName);
 
         if (ASN1_STRING_length(current_name->d.dNSName) != strlen(dns_name)) {
             break;
@@ -66,7 +66,7 @@ bool verify_common_name(const char * hostname, X509 * cert) {
         return false;
     }
 
-    const char * common_name_str = (char *) ASN1_STRING_data(common_name_asn1);
+    const char * common_name_str = (char *) ASN1_STRING_get0_data(common_name_asn1);
 
     if (ASN1_STRING_length(common_name_asn1) != strlen(common_name_str)) {
         return false;

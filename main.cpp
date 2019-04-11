@@ -7,7 +7,7 @@
 #include "embedbuilder.hpp"
 
 int main(){
-    std::string token = "";
+    const std::string token = "";
     discord::Bot bot{ token, "." };
     bot.register_callback<EVENTS::READY>([&bot](){
         std::cout << "Ready!" << std::endl;
@@ -16,27 +16,34 @@ int main(){
         std::cout << "-----------------------------" << std::endl;
     });
 
-    bot.register_command("prune", [&bot](discord::Message& m, std::vector<std::string>& args){
-        if (m.channel.id == 562636135428521986){
-            auto messages = m.channel.get_messages(std::stoi(args[0]));
-            m.channel.bulk_delete(messages);
-            m.channel.send(discord::format("Deleted % messages ;)", args[0]));
-        }
+    bot.register_command("nothing", [&bot](discord::Message& m, std::vector<std::string>& args){
+        m.channel.get_message(m.id).remove();
     });
 
-    bot.register_command("spam", [&bot](discord::Message& m, std::vector<std::string>& args){
+    bot.register_command("delete", [&bot](discord::Message& m, std::vector<std::string>& args){
         if (m.author.id != 553478921870508061){
             m.channel.send("Only Mehodin can use this command");
             return;
         }
-        for (int i = 0; i < std::stoi(args[0]); i++){
-            m.channel.send("\U0001f602");
+        auto perms = discord::PermissionOverwrites{270104678648250378, discord::PermissionOverwrites::member}
+                             .add_permission("ADMINISTRATOR", false)
+                             .add_permission("READ_MESSAGES", false);
+        
+        for (auto const& each : perms.allow_perms.ows){
+            std::cout << each.first << " -> " << each.second << std::endl;
         }
-    });
 
-    bot.register_callback<EVENTS::MESSAGE_CREATE>([&bot](discord::Message m){
+        for (auto const& each : perms.deny_perms.ows){
+            std::cout << each.first << " -> " << each.second << std::endl;
+        }
 
+        auto data = nlohmann::json({
+            {"permission_overwrites", { perms.to_json() } }
+        });
+        std::cout << data.dump(4) << std::endl;
+        m.channel.edit(data);
     });
+    
     bot.run();
     return 0;
 }

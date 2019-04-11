@@ -128,7 +128,7 @@ namespace discord {
         {
             std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
         }
-
+        
         void register_command(std::string const&, std::function<void(discord::Message&, std::vector<std::string>&)>);
 
         discord::Message send_message(snowflake, std::string);
@@ -203,13 +203,21 @@ namespace discord {
 
             discord::Message send(std::string);
             discord::Message send(EmbedBuilder, std::string="");
+            discord::Message get_message(snowflake);
 
             std::string get_bulk_delete_url();
             std::string get_get_messages_url(int);
+            std::string get_channel_edit_url();
+            std::string get_delete_url();
+            std::string get_get_message_url(snowflake);
+
 
             std::vector<discord::Message> get_messages(int);
 
             void bulk_delete(std::vector<discord::Message>&);
+
+            void edit(json&);
+            void remove();
 
         public:
             int type;
@@ -399,44 +407,46 @@ namespace discord {
 
     class PermissionOverwrite{
     public:
-        PermissionOverwrite(std::string const&, bool);
-    public:
-        std::string name;
-        bool value;
-        int hex_value;
+        PermissionOverwrite() = default;
+        PermissionOverwrite(int, int);
+        PermissionOverwrite& add_permission(std::string const&);
 
+        void calculate_value();
+        void set_table();
+
+        int value;
+        int allow_type;
+
+        std::unordered_map<std::string, int> ows;
     };
 
     class PermissionOverwrites{
     public:
         PermissionOverwrites() = default;
-        PermissionOverwrites(const int);
-        PermissionOverwrites(std::vector<PermissionOverwrite> const&);
-        PermissionOverwrites(const int&, snowflake, std::string const&);
+        PermissionOverwrites(int, int, snowflake, int);
+        PermissionOverwrites(snowflake, int);
 
-        PermissionOverwrites& remove_overwrite(std::string const&);
-        PermissionOverwrites& add_overwrite(PermissionOverwrite const&);
+        PermissionOverwrites& add_permission(std::string const&, int);
 
-        discord::PermissionOverwrite get_overwrite(std::string const&) const;
+        json to_json() const;
+        std::pair<int, int> get_values() const;
+        
+        int object_type;
 
-        std::vector<discord::PermissionOverwrite>::const_iterator begin() const noexcept;
-        std::vector<discord::PermissionOverwrite>::const_iterator end() const noexcept;
-
-        int get_value() const;
-
-    private:
-        void calculate_value();
-
-    public:
-        std::vector<PermissionOverwrite> overwrites;
         snowflake object_id;
-        int type;
 
-    private:
-        int value;
-        enum owner_type{
+        PermissionOverwrite allow_perms;
+        PermissionOverwrite deny_perms;
+
+        static enum object_type{
             role,
             member
+        };
+
+        static enum permission_type{
+            deny,
+            allow,
+            neutral
         };
     };
 

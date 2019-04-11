@@ -1,7 +1,7 @@
 {
     "version":"2.0.0",
     "tasks":[
-    {
+     {
        "label":"compile_and_run_debug",
        "type":"shell",
        "command":"",

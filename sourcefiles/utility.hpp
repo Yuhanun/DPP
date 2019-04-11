@@ -46,6 +46,23 @@ namespace discord{
             return response_stream.str().length() > 0 ? json::parse(response_stream.str()) : json({});
     }
 
+    inline json send_request(const json& j, const std::list<std::string>& h, const std::string& url, const std::string& method){
+        curlpp::Cleanup clean;
+        curlpp::Easy r;
+        r.setOpt(new curlpp::options::CustomRequest{method});
+        r.setOpt(new curlpp::options::Url(url));
+        r.setOpt(new curlpp::options::HttpHeader(h));
+        auto data_str = j.dump();
+        if (method != "GET"){
+            r.setOpt(new curlpp::options::PostFields(data_str));
+            r.setOpt(new curlpp::options::PostFieldSize(data_str.size()));
+        }
+        std::stringstream response_stream;
+        response_stream << r;
+        return response_stream.str().length() > 0 ? json::parse(response_stream.str()) : json({});
+    }
+
+
     inline std::string get_iso_datetime_now()
     {
         boost::posix_time::ptime t = boost::posix_time::microsec_clock::universal_time();
@@ -111,5 +128,4 @@ namespace discord{
     inline std::string get_api(){
         return "https://discordapp.com/api/v6";
     }
-
 }

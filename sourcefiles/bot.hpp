@@ -264,7 +264,7 @@ void discord::Bot::register_command(std::string const& command_name, std::functi
 void discord::Bot::fire_commands(discord::Message& m) const {
     std::vector<std::string> argument_vec;
     boost::split(argument_vec, m.content, boost::is_any_of(" "));
-    if (argument_vec.size() <= 1){
+    if (argument_vec.size() < 1){
         return;
     }
     auto command_name = argument_vec[0].substr(1, argument_vec[0].size());
