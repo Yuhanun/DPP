@@ -5,7 +5,7 @@
 #include "utility.hpp"
 
 
-discord::User::User(discord_id id) : discord::Object(id) {
+discord::User::User(snowflake id) : discord::Object(id) {
 
 }
 

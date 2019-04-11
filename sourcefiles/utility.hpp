@@ -43,7 +43,7 @@ namespace discord{
             r.setOpt(new curlpp::options::PostFieldSize(j.dump().size()));
             std::stringstream response_stream;
             response_stream << r;
-            return json::parse(response_stream.str());
+            return response_stream.str().length() > 0 ? json::parse(response_stream.str()) : json({});
     }
 
     inline std::string get_iso_datetime_now()
@@ -88,4 +88,28 @@ namespace discord{
         {"MANAGE_WEBHOOKS", 0x20000000},
         {"MANAGE_EMOJIS", 0x40000000}
     };
+
+    template <typename S>
+    inline void format_slice(std::string const& input_str, std::stringstream& output_str, int& start_index, S var){
+        long unsigned int index = input_str.find('%', start_index);
+        if (index == std::string::npos){
+            return;
+        }
+        output_str << input_str.substr(start_index, index - start_index) << var;
+        start_index = index + 1;
+    }
+
+    template <typename ...T>
+    inline std::string format(std::string const& str, T...args){
+        std::stringstream output_str;
+        int start_index = 0;
+        ((format_slice(str, output_str, start_index, args)), ...);
+        output_str << str.substr(start_index, str.length());
+        return output_str.str();
+    }
+
+    inline std::string get_api(){
+        return "https://discordapp.com/api/v6";
+    }
+
 }

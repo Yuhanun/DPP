@@ -41,7 +41,7 @@ namespace discord {
     class PermissionOverwrite;
     class PermissionOverwrites;
 
-    typedef uint64_t discord_id;
+    typedef uint64_t snowflake;
 
     using namespace nlohmann;
     using namespace boost;
@@ -60,7 +60,7 @@ namespace discord {
         void(discord::Channel), // CHANNEL_PINS_UPDATE
         void(discord::Guild), // GUILD_CREATE
         void(discord::Guild), // GUILD_UPDATE
-        void(discord_id), // GUILD_DELETE
+        void(snowflake), // GUILD_DELETE
         void(discord::User), // GUILD_BAN_ADD,
         void(discord::User), // GUILD_BAN_REMOVE,
         void(discord::Guild), // GUILD_EMOJIS_UPDATE
@@ -93,11 +93,11 @@ namespace discord {
 
         Object() = default;
 
-        Object(discord_id id)
+        Object(snowflake id)
             : id{id}
         {}
 
-        discord_id id;
+        snowflake id;
         // some datetime creation time.
 
 
@@ -105,7 +105,7 @@ namespace discord {
             return this->id == other.id;
         }
 
-        bool operator==(const discord_id& other){
+        bool operator==(const snowflake& other){
             return this->id == other;
         }
         template <typename T>
@@ -131,8 +131,8 @@ namespace discord {
 
         void register_command(std::string const&, std::function<void(discord::Message&, std::vector<std::string>&)>);
 
-        discord::Message send_message(discord_id, std::string);
-        discord::Message send_message(discord_id, json);
+        discord::Message send_message(snowflake, std::string);
+        discord::Message send_message(snowflake, json);
 
         void write_to_file(std::string, std::string);
         void on_incoming_packet(websocketpp::connection_hdl, client::message_ptr);
@@ -197,12 +197,19 @@ namespace discord {
     class Channel : public Object{
         public:
             Channel() = default;
-            Channel(discord_id id);
+            Channel(snowflake id);
 
-            Channel(std::string, discord_id);
+            Channel(std::string, snowflake);
 
             discord::Message send(std::string);
             discord::Message send(EmbedBuilder, std::string="");
+
+            std::string get_bulk_delete_url();
+            std::string get_get_messages_url(int);
+
+            std::vector<discord::Message> get_messages(int);
+
+            void bulk_delete(std::vector<discord::Message>&);
 
         public:
             int type;
@@ -212,7 +219,7 @@ namespace discord {
             int user_limit;
             int rate_limit_per_user;
 
-            discord_id last_message_id;
+            snowflake last_message_id;
 
             std::string name;
             std::string topic;
@@ -239,7 +246,7 @@ namespace discord {
     class User : public Object{
     public:
         User() = default;
-        User(discord_id);
+        User(snowflake);
         User(std::string const&);
 
     public:
@@ -255,7 +262,7 @@ namespace discord {
     class Member: public User{
     public:
         Member() = default;
-        Member(discord_id);
+        Member(snowflake);
         Member(std::string const&, discord::User const&);
 
     public:
@@ -272,7 +279,7 @@ namespace discord {
     class Guild : public Object{
     public:
         Guild() = default;
-        Guild(discord_id);
+        Guild(snowflake);
 
         Guild(std::string);
 
@@ -287,8 +294,8 @@ namespace discord {
         bool large;
         bool unavailable;
 
-        discord_id id;
-        discord_id application_id;
+        snowflake id;
+        snowflake application_id;
 
         std::string name;
         std::string icon;
@@ -316,13 +323,13 @@ namespace discord {
     class Message : public Object{
     public:
         Message() = default;
-        Message(discord_id);
+        Message(snowflake);
 
         inline static Message from_sent_message(std::string, discord::Bot*);
 
         std::string get_delete_url();
 
-        json remove();
+        void remove();
 
     public:
         int type;
@@ -333,7 +340,7 @@ namespace discord {
         bool pinned;
         bool mention_everyone;
 
-        discord_id id;
+        snowflake id;
 
         std::string error;
         std::string content;
@@ -405,7 +412,7 @@ namespace discord {
         PermissionOverwrites() = default;
         PermissionOverwrites(const int);
         PermissionOverwrites(std::vector<PermissionOverwrite> const&);
-        PermissionOverwrites(const int&, discord_id, std::string const&);
+        PermissionOverwrites(const int&, snowflake, std::string const&);
 
         PermissionOverwrites& remove_overwrite(std::string const&);
         PermissionOverwrites& add_overwrite(PermissionOverwrite const&);
@@ -422,7 +429,7 @@ namespace discord {
 
     public:
         std::vector<PermissionOverwrite> overwrites;
-        discord_id object_id;
+        snowflake object_id;
         int type;
 
     private:
@@ -438,5 +445,6 @@ namespace discord {
     class ImproperToken : public std::exception{
         const char* what() const throw();
     };
+
 
 };

@@ -10,7 +10,7 @@
 #include <emoji.hpp>
 
 
-discord::Guild::Guild(discord_id id) : discord::Object(id) {}
+discord::Guild::Guild(snowflake id) : discord::Object(id) {}
 
 discord::Guild::Guild(std::string guild_create_event){
     json guild = json::parse(guild_create_event)["d"];

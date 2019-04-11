@@ -19,7 +19,7 @@ discord::Bot::Bot(const std::string& token, const std::string prefix)
 }
 
 
-discord::Message discord::Bot::send_message(discord_id channel_id, std::string message_content){
+discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content){
     auto h = get_basic_header();
     h.push_back("Content-Type: application/json");
     h.push_back("User-Agent: DiscordPP (C++ discord library)");
@@ -35,7 +35,7 @@ discord::Message discord::Bot::send_message(discord_id channel_id, std::string m
     return discord::Message::from_sent_message(response.dump(), this);
 }
 
-discord::Message discord::Bot::send_message(discord_id channel_id, json message_content){
+discord::Message discord::Bot::send_message(snowflake channel_id, json message_content){
     auto h = get_basic_header();
     h.push_back("Content-Type: application/json");
     h.push_back("User-Agent: DiscordPP (C++ discord library)");
@@ -91,7 +91,7 @@ void discord::Bot::handle_gateway(){
         websocketpp::lib::error_code ec;
         con = c.get_connection(uri, ec);
         if (ec) {
-            std::cout << "could not create connection because: " << ec.message() << std::endl;
+            throw std::runtime_error(ec.message());
             return;
         }
 
@@ -138,20 +138,22 @@ void discord::Bot::handle_event(json& j, std::string event_name){
     } else if (event_name == "CHANNEL_PINS_UPDATE"){
 
     } else if (event_name == "GUILD_CREATE"){
-        discord_id guild_id = std::stoul(data["id"].get<std::string>());
+        snowflake guild_id = std::stoul(data["id"].get<std::string>());
         for (auto const& member : data["members"]){
             users.emplace_back(std::make_unique<discord::User>(member["user"].dump()));
         }
+
+        auto guild = discord::Guild(j.dump());
+        guilds.push_back(std::make_unique<discord::Guild>(j.dump()));
+
         for (auto const& channel : data["channels"]){
             channels.emplace_back(std::make_unique<discord::Channel>(channel.dump(), guild_id));
         }
-        auto guild = discord::Guild(j.dump());
-        guilds.push_back(std::make_unique<discord::Guild>(j.dump()));
         func_holder.call<EVENTS::GUILD_CREATE>(guild);
     } else if (event_name == "GUILD_UPDATE"){
 
     } else if (event_name == "GUILD_DELETE"){
-        discord_id to_remove = std::stoul(data["id"].get<std::string>());
+        snowflake to_remove = std::stoul(data["id"].get<std::string>());
         guilds.erase(
             std::remove_if(guilds.begin(), guilds.end(), [&to_remove](std::unique_ptr<discord::Guild> const& g){
                 return g->id == to_remove;

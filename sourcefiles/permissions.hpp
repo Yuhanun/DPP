@@ -19,7 +19,7 @@ discord::PermissionOverwrites::PermissionOverwrites(const int value)
     }
 }
 
-discord::PermissionOverwrites::PermissionOverwrites(const int& value, discord_id owner, std::string const& type_input)
+discord::PermissionOverwrites::PermissionOverwrites(const int& value, snowflake owner, std::string const& type_input)
     : value{value}, object_id{owner}
 {
     type = type_input == "role";

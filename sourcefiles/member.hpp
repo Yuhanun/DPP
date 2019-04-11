@@ -2,7 +2,7 @@
 #include <discord.hpp>
 #include <user.hpp>
         
-discord::Member::Member(discord_id id) : discord::User(id) 
+discord::Member::Member(snowflake id) : discord::User(id) 
 {}
 
 discord::Member::Member(std::string const& event, discord::User const& user) 
