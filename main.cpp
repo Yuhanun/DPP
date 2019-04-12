@@ -6,8 +6,10 @@
 #include "utility.hpp"
 #include "embedbuilder.hpp"
 
+using namespace nlohmann;
+
 int main(){
-    const std::string token = "";
+    const std::string token = "N";
     discord::Bot bot{ token, "." };
     bot.register_callback<EVENTS::READY>([&bot](){
         std::cout << "Ready!" << std::endl;
@@ -20,28 +22,14 @@ int main(){
         m.channel.get_message(m.id).remove();
     });
 
-    bot.register_command("delete", [&bot](discord::Message& m, std::vector<std::string>& args){
+    bot.register_command("test", [&bot](discord::Message& m, std::vector<std::string>& args){
         if (m.author.id != 553478921870508061){
             m.channel.send("Only Mehodin can use this command");
             return;
         }
-        auto perms = discord::PermissionOverwrites{270104678648250378, discord::PermissionOverwrites::member}
-                             .add_permission("ADMINISTRATOR", false)
-                             .add_permission("READ_MESSAGES", false);
-        
-        for (auto const& each : perms.allow_perms.ows){
-            std::cout << each.first << " -> " << each.second << std::endl;
-        }
-
-        for (auto const& each : perms.deny_perms.ows){
-            std::cout << each.first << " -> " << each.second << std::endl;
-        }
-
-        auto data = nlohmann::json({
-            {"permission_overwrites", { perms.to_json() } }
-        });
-        std::cout << data.dump(4) << std::endl;
-        m.channel.edit(data);
+        m.channel.typing();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        m.channel.send("Hello, i was typing");
     });
     
     bot.run();

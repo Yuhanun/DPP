@@ -13,35 +13,26 @@
 discord::Bot::Bot(const std::string& token, const std::string prefix)
     : prefix{prefix}, token{token}
 {
+    discord::bot_instance = this;
     curlpp::initialize(CURL_GLOBAL_ALL);
-    discord::Channel::bot = this;
-    discord::Guild::bot = this;
 }
 
 
-discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content){
-    auto h = get_basic_header();
-    h.push_back("Content-Type: application/json");
-    h.push_back("User-Agent: DiscordPP (C++ discord library)");
-    h.push_back("Connection: keep-alive");
+discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts){
     json j = json(
         {
             {"content", message_content},
-            {"tts", false}
+            {"tts", tts}
         }
     );
 
-    json response = send_request(j, h, get_channel_link(channel_id));
+    json response = send_request(j, get_default_headers(), get_channel_link(channel_id));
     return discord::Message::from_sent_message(response.dump(), this);
 }
 
-discord::Message discord::Bot::send_message(snowflake channel_id, json message_content){
-    auto h = get_basic_header();
-    h.push_back("Content-Type: application/json");
-    h.push_back("User-Agent: DiscordPP (C++ discord library)");
-    h.push_back("Connection: keep-alive");
-
-    json response = send_request(message_content, h, get_channel_link(channel_id));
+discord::Message discord::Bot::send_message(snowflake channel_id, json message_content, bool tts){
+    message_content["tts"] = tts;
+    json response = send_request(message_content, get_default_headers(), get_channel_link(channel_id));
     return discord::Message::from_sent_message(response.dump(), this);
 }
 

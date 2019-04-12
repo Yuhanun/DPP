@@ -29,17 +29,19 @@
 
 
 namespace discord {
-
     class Bot;
     class User;
     class Color;
     class Guild;
     class Member;
+    class Invite;
     class Message;
     class Channel;
     class EmbedBuilder;
     class PermissionOverwrite;
     class PermissionOverwrites;
+
+    inline discord::Bot* bot_instance;
 
     typedef uint64_t snowflake;
 
@@ -131,8 +133,8 @@ namespace discord {
         
         void register_command(std::string const&, std::function<void(discord::Message&, std::vector<std::string>&)>);
 
-        discord::Message send_message(snowflake, std::string);
-        discord::Message send_message(snowflake, json);
+        discord::Message send_message(snowflake, std::string, bool=false);
+        discord::Message send_message(snowflake, json, bool=false);
 
         void write_to_file(std::string, std::string);
         void on_incoming_packet(websocketpp::connection_hdl, client::message_ptr);
@@ -201,16 +203,13 @@ namespace discord {
 
             Channel(std::string, snowflake);
 
-            discord::Message send(std::string);
-            discord::Message send(EmbedBuilder, std::string="");
+            discord::Message send(std::string, bool=false);
+            discord::Message send(EmbedBuilder, bool=false, std::string="");
             discord::Message get_message(snowflake);
-
-            std::string get_bulk_delete_url();
-            std::string get_get_messages_url(int);
-            std::string get_channel_edit_url();
-            std::string get_delete_url();
-            std::string get_get_message_url(snowflake);
-
+            discord::Invite create_invite(int=86400, int=0, bool=false, bool=false);
+            std::vector<discord::Invite> get_invites();
+            void remove_permissions(discord::Object const&);
+            void typing();
 
             std::vector<discord::Message> get_messages(int);
 
@@ -218,6 +217,17 @@ namespace discord {
 
             void edit(json&);
             void remove();
+
+        private:
+            std::string get_bulk_delete_url();
+            std::string get_get_messages_url(int);
+            std::string get_channel_edit_url();
+            std::string get_delete_url();
+            std::string get_get_message_url(snowflake);
+            std::string get_channel_invites_url();
+            std::string get_create_invite_url();
+            std::string get_delete_channel_permission_url(discord::Object const&);
+            std::string get_typing_url();
 
         public:
             int type;
@@ -235,7 +245,6 @@ namespace discord {
             discord::Guild* guild;
             std::vector<discord::PermissionOverwrites> overwrites;
 
-            inline static discord::Bot* bot;
 
         private:
             enum channel_type {
@@ -283,6 +292,22 @@ namespace discord {
         std::string joined_at;
     };
 
+    class Invite{
+    public:
+        Invite() = default;
+        Invite(std::string const&);
+
+        int uses;
+        int max_age;
+        int max_uses;
+        bool temporary;
+
+        std::string code;
+        std::string created_at;
+        discord::Member inviter;
+        discord::Channel channel;
+    };
+
 
     class Guild : public Object{
     public:
@@ -322,7 +347,6 @@ namespace discord {
         discord::Channel afk_channel;
         discord::Channel system_channel;
 
-        inline static discord::Bot* bot;
     
     private:
 
@@ -334,7 +358,10 @@ namespace discord {
         Message(snowflake);
 
         inline static Message from_sent_message(std::string, discord::Bot*);
+        discord::Message edit(std::string);
+        discord::Message edit(EmbedBuilder, std::string="");
 
+        std::string get_edit_url();
         std::string get_delete_url();
 
         void remove();
@@ -437,24 +464,9 @@ namespace discord {
 
         PermissionOverwrite allow_perms;
         PermissionOverwrite deny_perms;
-
-        static enum object_type{
-            role,
-            member
-        };
-
-        static enum permission_type{
-            deny,
-            allow,
-            neutral
-        };
     };
-
-
 
     class ImproperToken : public std::exception{
         const char* what() const throw();
     };
-
-
 };

@@ -8,9 +8,9 @@ discord::PermissionOverwrite::PermissionOverwrite(int value, int allow_type)
 {}
 
 void discord::PermissionOverwrite::calculate_value(){
-    int value = 0;
+    value = 0;
     for (auto const& each : ows){
-        if (each.second == allow_type){ // not working for deny
+        if (each.second == allow_type){
             value |= discord::permission_overwrites[each.first];
         }
     }
@@ -34,8 +34,8 @@ discord::PermissionOverwrite& discord::PermissionOverwrite::add_permission(std::
 discord::PermissionOverwrites::PermissionOverwrites(int allow_value, int deny_value, snowflake object_id, int object_type)
     : object_id{object_id}, object_type{object_type}
 {
-    allow_perms = PermissionOverwrite(allow_value, permission_type::allow);
-    deny_perms = PermissionOverwrite(deny_value, permission_type::deny);
+    allow_perms = PermissionOverwrite(allow_value, allow);
+    deny_perms = PermissionOverwrite(deny_value, deny);
     allow_perms.set_table();
     deny_perms.set_table();
 }
@@ -61,7 +61,7 @@ discord::PermissionOverwrites& discord::PermissionOverwrites::add_permission(std
 }
 
 nlohmann::json discord::PermissionOverwrites::to_json() const {
-    auto t = object_type == object_type::role ? "role" : "member";
+    auto t = object_type == role ? "role" : "member";
     auto vals = get_values();
     return json({
         {"allow", vals.first},

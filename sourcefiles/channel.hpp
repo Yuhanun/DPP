@@ -2,6 +2,7 @@
 #include <discord.hpp>
 #include "utility.hpp"
 #include "permissions.hpp"
+#include <invite.hpp>
 
 discord::Channel::Channel(snowflake id) : discord::Object(id)
 {}
@@ -25,14 +26,14 @@ discord::Channel::Channel(std::string guild_create, snowflake guild_id){
     }
 
     guild = nullptr;
-    for (auto const& v_guild : bot->guilds){
+    for (auto const& v_guild : discord::bot_instance->guilds){
         if (v_guild->id == guild_id){
             guild = v_guild.get();
             break;
         }
     }
     for (auto& each : data["permission_overwrites"]){
-        int type = each["type"].get<std::string>() == "role" ? discord::PermissionOverwrites::role : discord::PermissionOverwrites::member;
+        int type = each["type"].get<std::string>() == "role" ? role : member;
         overwrites.push_back(discord::PermissionOverwrites{ 
             each["allow"].get<int>(),
             each["deny"].get<int>(),
@@ -46,21 +47,15 @@ discord::Channel::Channel(std::string guild_create, snowflake guild_id){
     // type = data["type"];
 }
 
-discord::Message discord::Channel::send(std::string content){
-    return discord::Channel::bot->send_message(id, content);
+discord::Message discord::Channel::send(std::string content, bool tts){
+    return discord::bot_instance->send_message(id, content, tts);
 }
 
-discord::Message discord::Channel::send(EmbedBuilder embed, std::string content){
-    const std::list<std::string> h = {
-        { "Authorization: Bot " + discord::Channel::bot->token },
-        { "Content-Type: application/json" },
-        { "User-Agent: DiscordPP (C++ discord library)" },
-        { "Connection: keep-alive" }
-    };
+discord::Message discord::Channel::send(EmbedBuilder embed, bool tts, std::string content){
     json j = json(
         {
             {"embed", embed.to_json()},
-            {"tts", false}
+            {"tts", tts}
         }
     );
 
@@ -68,7 +63,7 @@ discord::Message discord::Channel::send(EmbedBuilder embed, std::string content)
         j["content"] = content;
     }
 
-    return discord::Channel::bot->send_message(id, j);
+    return discord::bot_instance->send_message(id, j, tts);
 }
 
 std::string discord::Channel::get_bulk_delete_url(){
@@ -80,41 +75,30 @@ std::string discord::Channel::get_get_messages_url(int limit){
 }
 
 void discord::Channel::bulk_delete(std::vector<discord::Message>& m){
-    const std::list<std::string> h = {
-        { "Authorization: Bot " + discord::Channel::bot->token },
-        { "Content-Type: application/json" },
-        { "User-Agent: DiscordPP (C++ discord library)" },
-        { "Connection: keep-alive" }
-    };
     json array = json::array();
     for (auto const& each : m){
         array.push_back(each.id);
     }
     json data = json();
     data["messages"] = array;
-    discord::send_request(data, h, get_bulk_delete_url());
+    discord::send_request(data, get_default_headers(), get_bulk_delete_url());
 }
 
 std::vector<discord::Message> discord::Channel::get_messages(int limit){
     std::vector<discord::Message> return_vec;
     limit = limit < 1 || limit > 100 ? 50 : limit;
-    const std::list<std::string> h = {
-        { "Authorization: Bot " + discord::Channel::bot->token },
-        { "Content-Type: application/json" },
-        { "User-Agent: DiscordPP (C++ discord library)" },
-        { "Connection: keep-alive" }
-    };
+
 
     curlpp::Cleanup cleaner;
     curlpp::Easy request;
 
     request.setOpt(new curlpp::options::Url(get_get_messages_url(limit)));
-    request.setOpt(new curlpp::options::HttpHeader(h));
+    request.setOpt(new curlpp::options::HttpHeader(get_default_headers()));
     std::stringstream reply;
     reply << request;
     auto data = json::parse(reply.str());
     for (auto& each : data){
-        return_vec.push_back(discord::Message::from_sent_message(each.dump(), bot));
+        return_vec.push_back(discord::Message::from_sent_message(each.dump(), discord::bot_instance));
     }
     return return_vec;
 }
@@ -128,38 +112,62 @@ std::string discord::Channel::get_delete_url(){
 }
 
 void discord::Channel::edit(json& j){
-    const std::list<std::string> h = {
-        { "Authorization: Bot " + discord::Channel::bot->token },
-        { "Content-Type: application/json" },
-        { "User-Agent: DiscordPP (C++ discord library)" },
-        { "Connection: keep-alive" }
-    };
-    send_request(j, h, get_channel_edit_url(), "PATCH");
+    send_request(j, get_default_headers(), get_channel_edit_url(), "PATCH");
 }
 
 void discord::Channel::remove(){
-    const std::list<std::string> h = {
-        { "Authorization: Bot " + discord::Channel::bot->token },
-        { "Content-Type: application/json" },
-        { "User-Agent: DiscordPP (C++ discord library)" },
-        { "Connection: keep-alive" }
-    };
-
-    discord::send_request(json({}), h, get_delete_url(), "DELETE");
-
+    discord::send_request(json({}), get_default_headers(), get_delete_url(), "DELETE");
 }
 
 discord::Message discord::Channel::get_message(snowflake id){
-    const std::list<std::string> h = {
-        { "Authorization: Bot " + discord::Channel::bot->token },
-        { "Content-Type: application/json" },
-        { "User-Agent: DiscordPP (C++ discord library)" },
-        { "Connection: keep-alive" }
-    };
+    return discord::Message::from_sent_message(
+        discord::send_request(json({}), get_default_headers(), get_get_message_url(id), "GET").dump(), 
+        discord::bot_instance);
+}
 
-    return discord::Message::from_sent_message(discord::send_request(json({}), h, get_get_message_url(id), "GET").dump(), discord::Channel::bot);
+std::vector<discord::Invite> discord::Channel::get_invites(){
+    std::vector<discord::Invite> return_vec;
+    auto response = discord::send_request(json({}), get_default_headers(), get_channel_invites_url(), "GET");
+    for (auto const& each : response){
+        return_vec.push_back(discord::Invite{each.dump()});
+    }
+    return return_vec;
+}
+
+discord::Invite discord::Channel::create_invite(int max_age, int max_uses, bool temporary, bool unique){
+    json data = json({
+        {"max_age", max_age},
+        {"max_uses", max_uses},
+        {"temporary", temporary},
+        {"unique", unique}
+    });
+    return discord::Invite{ discord::send_request(data, get_default_headers(), get_create_invite_url(), "POST").dump() };
+}
+
+void discord::Channel::remove_permissions(discord::Object const& obj){
+    discord::send_request(json({}), get_default_headers(), get_delete_channel_permission_url(obj), "DELETE");
+}
+
+void discord::Channel::typing(){
+    discord::send_request(json({}), get_default_headers(), get_typing_url(), "POST");
 }
 
 std::string discord::Channel::get_get_message_url(snowflake m_id){
     return format("%/channels/%/messages/%", get_api(), id, m_id);
+}
+
+std::string discord::Channel::get_channel_invites_url(){
+    return format("%/channels/%/invites", get_api(), id);
+}
+
+std::string discord::Channel::get_create_invite_url(){
+    return format("%/channels/%/invites", get_api(), id);
+}
+
+std::string discord::Channel::get_delete_channel_permission_url(discord::Object const& obj){
+    return format("%/channels/%/permissions/%", id, obj.id);
+}
+
+std::string discord::Channel::get_typing_url(){
+    return format("%/channels/%/typing", get_api(), id);
 }

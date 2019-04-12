@@ -128,4 +128,24 @@ namespace discord{
     inline std::string get_api(){
         return "https://discordapp.com/api/v6";
     }
+
+    inline std::list<std::string> get_default_headers(){
+        return {
+            { "Authorization: Bot " + discord::bot_instance->token },
+            { "Content-Type: application/json" },
+            { "User-Agent: DiscordPP (C++ discord library)" },
+            { "Connection: keep-alive" }
+        };
+    }
+
+    enum object_type{
+        role,
+        member
+    };
+
+    enum permission_type{
+        deny,
+        allow,
+        neutral
+    };
 }

@@ -66,3 +66,30 @@ void discord::Message::remove(){
     r.setOpt(new curlpp::options::HttpHeader(h));
     r.perform();
 }
+std::string discord::Message::get_edit_url(){
+    return format("%/channels/%/messages/%", get_api(), channel.id, id);
+}
+
+discord::Message discord::Message::edit(std::string content){
+    json j = json(
+        {
+            {"content", content},
+            {"tts", tts}
+        }
+    );
+    json response = send_request(j, get_default_headers(), get_edit_url(), "PATCH");
+    return discord::Message::from_sent_message(response.dump(), discord::bot_instance);
+}
+
+discord::Message discord::Message::edit(EmbedBuilder embed, std::string content){
+    json j = json(
+        {
+            {"content", content},
+            {"tts", tts},
+            {"embed", embed.to_json()}
+        }
+    );
+
+    json response = send_request(j, get_default_headers(), get_edit_url(), "PATCH");
+    return discord::Message::from_sent_message(response.dump(), discord::bot_instance);
+}
