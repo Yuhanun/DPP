@@ -98,7 +98,7 @@ std::vector<discord::Message> discord::Channel::get_messages(int limit){
     reply << request;
     auto data = json::parse(reply.str());
     for (auto& each : data){
-        return_vec.push_back(discord::Message::from_sent_message(each.dump(), discord::bot_instance));
+        return_vec.push_back(discord::Message::from_sent_message(each.dump()));
     }
     return return_vec;
 }
@@ -121,8 +121,7 @@ void discord::Channel::remove(){
 
 discord::Message discord::Channel::get_message(snowflake id){
     return discord::Message::from_sent_message(
-        discord::send_request(json({}), get_default_headers(), get_get_message_url(id), "GET").dump(), 
-        discord::bot_instance);
+        discord::send_request(json({}), get_default_headers(), get_get_message_url(id), "GET").dump());
 }
 
 std::vector<discord::Invite> discord::Channel::get_invites(){
@@ -142,6 +141,15 @@ discord::Invite discord::Channel::create_invite(int max_age, int max_uses, bool 
         {"unique", unique}
     });
     return discord::Invite{ discord::send_request(data, get_default_headers(), get_create_invite_url(), "POST").dump() };
+}
+
+std::vector<discord::Message> discord::Channel::get_pins(){
+    std::vector<discord::Message> message_vec;
+    auto reply = discord::send_request(json({}), get_default_headers(), get_pins_url(), "GET");
+    for (auto const& each : reply){
+        message_vec.push_back( discord::Message::from_sent_message(each.dump()));
+    }
+    return message_vec;
 }
 
 void discord::Channel::remove_permissions(discord::Object const& obj){
@@ -170,4 +178,8 @@ std::string discord::Channel::get_delete_channel_permission_url(discord::Object 
 
 std::string discord::Channel::get_typing_url(){
     return format("%/channels/%/typing", get_api(), id);
+}
+
+std::string discord::Channel::get_pins_url(){
+    return format("%/channels/%/pins", get_api(), id);
 }

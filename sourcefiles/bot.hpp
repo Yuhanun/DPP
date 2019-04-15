@@ -27,13 +27,13 @@ discord::Message discord::Bot::send_message(snowflake channel_id, std::string me
     );
 
     json response = send_request(j, get_default_headers(), get_channel_link(channel_id));
-    return discord::Message::from_sent_message(response.dump(), this);
+    return discord::Message::from_sent_message(response.dump());
 }
 
 discord::Message discord::Bot::send_message(snowflake channel_id, json message_content, bool tts){
     message_content["tts"] = tts;
     json response = send_request(message_content, get_default_headers(), get_channel_link(channel_id));
-    return discord::Message::from_sent_message(response.dump(), this);
+    return discord::Message::from_sent_message(response.dump());
 }
 
 
@@ -172,7 +172,7 @@ void discord::Bot::handle_event(json& j, std::string event_name){
     } else if (event_name == "GUILD_ROLE_DELETE"){
 
     } else if (event_name == "MESSAGE_CREATE"){
-        auto message = Message::from_sent_message(data.dump(), this);
+        auto message = Message::from_sent_message(data.dump());
         if (!message.author.bot){
             fire_commands(message);
         }

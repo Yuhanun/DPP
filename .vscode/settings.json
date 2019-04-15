@@ -63,5 +63,20 @@
         "__config": "cpp",
         "__nullptr": "cpp",
         "*.ipp": "cpp"
-    }
+    },
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": ".*",
+                "isAsync": true,
+                "cmd": "clang-format -i -style=WebKit *.cpp"
+            }
+        ]
+    },
+    "C_Cpp.autocomplete": "Default",
+    "C_Cpp.clang_format_path": "/usr/bin/clang++",
+    "editor.formatOnPaste": true,
+    "editor.formatOnSaveTimeout": 0
 }

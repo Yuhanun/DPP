@@ -208,6 +208,7 @@ namespace discord {
             discord::Message get_message(snowflake);
             discord::Invite create_invite(int=86400, int=0, bool=false, bool=false);
             std::vector<discord::Invite> get_invites();
+            std::vector<discord::Message> get_pins();
             void remove_permissions(discord::Object const&);
             void typing();
 
@@ -228,6 +229,7 @@ namespace discord {
             std::string get_create_invite_url();
             std::string get_delete_channel_permission_url(discord::Object const&);
             std::string get_typing_url();
+            std::string get_pins_url();
 
         public:
             int type;
@@ -357,12 +359,16 @@ namespace discord {
         Message() = default;
         Message(snowflake);
 
-        inline static Message from_sent_message(std::string, discord::Bot*);
+        inline static Message from_sent_message(std::string);
         discord::Message edit(std::string);
         discord::Message edit(EmbedBuilder, std::string="");
+        void pin();
+        void unpin();
 
         std::string get_edit_url();
         std::string get_delete_url();
+        std::string get_pin_url();
+        std::string get_unpin_url();
 
         void remove();
 

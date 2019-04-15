@@ -9,10 +9,10 @@ discord::Message::Message(snowflake id)
     : id{id}
 {}
 
-discord::Message discord::Message::from_sent_message(std::string data, discord::Bot* bot){
+discord::Message discord::Message::from_sent_message(std::string data){
     auto j = json::parse(data);
     auto m = Message{};
-    m.token = bot->token;
+    m.token = discord::bot_instance->token;
     if (j.contains("message")){
         m.error_code = j["code"];
         m.error = j["message"];
@@ -26,7 +26,7 @@ discord::Message discord::Message::from_sent_message(std::string data, discord::
         m.id = std::stoul( j["id"].get<std::string>() );
         snowflake channel_id = std::stoul(j["channel_id"].get<std::string>());
 
-        for (auto const& chan : bot->channels){
+        for (auto const& chan : discord::bot_instance->channels){
             if (chan->id == channel_id){
                 m.channel = *(chan.get());
                 break;
@@ -78,7 +78,7 @@ discord::Message discord::Message::edit(std::string content){
         }
     );
     json response = send_request(j, get_default_headers(), get_edit_url(), "PATCH");
-    return discord::Message::from_sent_message(response.dump(), discord::bot_instance);
+    return discord::Message::from_sent_message(response.dump());
 }
 
 discord::Message discord::Message::edit(EmbedBuilder embed, std::string content){
@@ -91,5 +91,21 @@ discord::Message discord::Message::edit(EmbedBuilder embed, std::string content)
     );
 
     json response = send_request(j, get_default_headers(), get_edit_url(), "PATCH");
-    return discord::Message::from_sent_message(response.dump(), discord::bot_instance);
+    return discord::Message::from_sent_message(response.dump());
+}
+
+std::string discord::Message::get_pin_url(){
+    return format("%/channels/%/pins/%", get_api(), channel.id, id);
+}
+
+std::string discord::Message::get_unpin_url(){
+    return format("%/channels/%/pins/%", get_api(), channel.id, id);
+}
+
+void discord::Message::unpin(){
+    discord::send_request(json({}), get_default_headers(), get_pin_url(), "DELETE");
+}
+
+void discord::Message::pin(){
+    discord::send_request(json({}), get_default_headers(), get_pin_url(), "PUT");
 }
