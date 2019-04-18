@@ -66,17 +66,20 @@
     },
     "editor.formatOnSave": true,
     "editor.formatOnType": true,
-    "emeraldwalk.runonsave": {
-        "commands": [
-            {
-                "match": ".*",
-                "isAsync": true,
-                "cmd": "clang-format -i -style=WebKit *.cpp"
-            }
-        ]
-    },
     "C_Cpp.autocomplete": "Default",
-    "C_Cpp.clang_format_path": "/usr/bin/clang++",
+    "C_Cpp.clang_format_fallbackStyle": "Google",
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.clang_format_sortIncludes": true,
     "editor.formatOnPaste": true,
-    "editor.formatOnSaveTimeout": 0
+    "editor.formatOnSaveTimeout": 0,
+    "editor.tabSize": 4,
+    "editor.tabCompletion": "on",
+    "C_Cpp.intelliSenseEngine": "Default",
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": true,
+        "strings": true
+    },
+    "editor.quickSuggestionsDelay": 0,
+    "editor.acceptSuggestionOnEnter": "on"
 }

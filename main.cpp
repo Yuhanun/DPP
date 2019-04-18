@@ -8,40 +8,51 @@
 
 using namespace nlohmann;
 
-void do_smth() { return; }
-
 int main() {
-  const std::string token =
-      "";
-  discord::Bot bot{token, "."};
-  bot.register_callback<EVENTS::READY>([&bot]() {
-    std::cout << "Ready!" << std::endl;
-    std::cout << "Logged in as: " << bot.username << "#" << bot.discriminator
-              << std::endl;
-    std::cout << "ID: " << bot.id << std::endl;
-    std::cout << "-----------------------------" << std::endl;
-  });
+    const std::string token =
+        "NTYzNzkxNTI0MDczMTc3MDkw.XK8mVw.GXWHgGWJiSc5vTLEJezNrFlvpks";
+    discord::Bot bot{ token, "." };
+    bot.register_callback<discord::events::ready>([&bot]() {
+        std::cout << "Ready!" << std::endl;
+        std::cout << "Logged in as: " << bot.username << "#" << bot.discriminator
+                  << std::endl;
+        std::cout << "ID: " << bot.id << std::endl;
+        std::cout << "-----------------------------" << std::endl;
+    });
 
-  bot.register_command(
-      "nothing", [&bot](discord::Message &m, std::vector<std::string> &args) {
-        m.channel.get_message(m.id).remove();
-      });
+    bot.register_command(
+        "nothing", [&bot](discord::Message& m, std::vector<std::string>& args) {
+            for (int i = 0; i < 10; i++) {
+                m.channel.send("test for ratelimits");
+            }
+        });
 
-  bot.register_command(
-      "test", [&bot](discord::Message &m, std::vector<std::string> &args) {
-        if (m.author.id != 553478921870508061) {
-          m.channel.send("Only Mehodin can use this command");
-          return;
+    bot.register_command("delete", [&bot](discord::Message& m, std::vector<std::string>& args) {
+        m.channel.send("Test").remove();
+    });
+
+    bot.register_command("test", [&bot](discord::Message const& m, std::vector<std::string>& args) {
+        for (auto const& guild : bot.guilds) {
+            if (guild->name != "random_name") {
+                continue;
+            }
+            for (auto const& channel : guild->channels) {
+                if (channel.type == discord::channel_type::TextChannel) {
+                    try {
+                        std::cout << channel.create_invite().code << std::endl;
+                        auto k = m.channel.send(channel.create_invite().code);
+                        if (!k.sent) {
+                            std::cout << k.error << std::endl;
+                        }
+                    } catch (discord::UnknownChannel) {
+                        std::cout << channel.name << " -> " << channel.id << std::endl;
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                }
+            }
         }
-        m.channel.typing();
-        m.pin();
-        m.channel.send("Pinned!");
-        m.channel.typing();
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        m.unpin();
-        m.channel.send("Unpinned!");
-      });
+    });
 
-  bot.run();
-  return 0;
+    bot.run();
+    return 0;
 }

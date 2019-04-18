@@ -1,12 +1,12 @@
 #pragma once
 #include <discord.hpp>
 #include <user.hpp>
-        
-discord::Member::Member(snowflake id) : discord::User(id) 
-{}
 
-discord::Member::Member(std::string const& event, discord::User const& user) 
-{
+discord::Member::Member(snowflake id)
+    : discord::User(id) {
+}
+
+discord::Member::Member(std::string const &event, discord::User const &user) {
     json j = json::parse(event);
     deaf = j["deaf"];
     muted = j["mute"];

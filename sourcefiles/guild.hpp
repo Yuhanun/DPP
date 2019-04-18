@@ -5,28 +5,28 @@
 #include "utility.hpp"
 
 #include <channel.hpp>
-#include <role.hpp>
-#include <member.hpp>
 #include <emoji.hpp>
+#include <member.hpp>
+#include <role.hpp>
 
+discord::Guild::Guild(snowflake id)
+    : discord::Object(id) {
+}
 
-discord::Guild::Guild(snowflake id) : discord::Object(id) {}
-
-discord::Guild::Guild(std::string guild_create_event){
-    json guild = json::parse(guild_create_event)["d"];
-
-    for (auto& each : guild["members"]){
-        discord::Member member{each.dump(), discord::User(each["user"].dump())};
+discord::Guild::Guild(std::string guild_create_event) {
+    json guild = json::parse(guild_create_event);
+    for (auto &each : guild["members"]) {
+        discord::Member member{ each.dump(), discord::User(each["user"].dump()) };
         members.push_back(member);
-        if (each["id"] == guild["owner_id"]){
+        if (each["id"] == guild["owner_id"]) {
             owner = member;
         }
     }
     std::string temp_id = guild["id"];
     id = std::stoul(temp_id);
 
-    for (auto& channel : guild["channels"]){
-        discord::Channel c { channel.dump(), id };
+    for (auto &channel : guild["channels"]) {
+        discord::Channel c{ channel.dump(), id };
         channels.push_back(c);
     }
 

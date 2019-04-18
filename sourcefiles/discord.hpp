@@ -18,19 +18,18 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <curlpp/cURLpp.hpp>
-#include <curlpp/Easy.hpp>
-#include <curlpp/Options.hpp>
-#include <curlpp/Exception.hpp>
-
 #include "function_types.hpp"
 #include "gatewayhandler.hpp"
+
+#include "cpr/cpr.h"
 
 
 
 namespace discord {
+
     class Bot;
     class User;
+    class Role;
     class Color;
     class Guild;
     class Member;
@@ -100,7 +99,6 @@ namespace discord {
         {}
 
         snowflake id;
-        // some datetime creation time.
 
 
         bool operator==(const Object& other){
@@ -135,6 +133,7 @@ namespace discord {
 
         discord::Message send_message(snowflake, std::string, bool=false);
         discord::Message send_message(snowflake, json, bool=false);
+        discord::Guild create_guild(std::string const&, std::string const& = "us-east", int const& = 0, int const& = 0, int const& = 0);
 
         void write_to_file(std::string, std::string);
         void on_incoming_packet(websocketpp::connection_hdl, client::message_ptr);
@@ -151,8 +150,9 @@ namespace discord {
         
         std::string get_gateway_url();
         std::string get_identify_packet();
+        std::string get_create_guild_url();
         
-        std::list<std::string> get_basic_header();
+        cpr::Header get_basic_header();
 
     public:
         bool authenticated;
@@ -194,6 +194,7 @@ namespace discord {
         std::thread heartbeat_thread;
 
         std::unordered_map<std::string, std::function<void(discord::Message&, std::vector<std::string>&)>> command_map;
+        // std::vector<cpr::Session&>;
     };
 
     class Channel : public Object{
@@ -203,10 +204,10 @@ namespace discord {
 
             Channel(std::string, snowflake);
 
-            discord::Message send(std::string, bool=false);
-            discord::Message send(EmbedBuilder, bool=false, std::string="");
+            discord::Message send(std::string, bool=false) const;
+            discord::Message send(EmbedBuilder, bool=false, std::string="") const;
             discord::Message get_message(snowflake);
-            discord::Invite create_invite(int=86400, int=0, bool=false, bool=false);
+            discord::Invite create_invite(int=86400, int=0, bool=false, bool=false) const;
             std::vector<discord::Invite> get_invites();
             std::vector<discord::Message> get_pins();
             void remove_permissions(discord::Object const&);
@@ -226,7 +227,7 @@ namespace discord {
             std::string get_delete_url();
             std::string get_get_message_url(snowflake);
             std::string get_channel_invites_url();
-            std::string get_create_invite_url();
+            std::string get_create_invite_url() const;
             std::string get_delete_channel_permission_url(discord::Object const&);
             std::string get_typing_url();
             std::string get_pins_url();
@@ -244,20 +245,24 @@ namespace discord {
             std::string name;
             std::string topic;
 
-            discord::Guild* guild;
+            discord::Guild guild;
             std::vector<discord::PermissionOverwrites> overwrites;
-
-
-        private:
-            enum channel_type {
-                TextChannel,
-                VoiceChannel,
-                CategoryChannel
-            };
     };
 
     class Emoji : public Object{
+        Emoji() = default;
+        Emoji(std::string const& event);        
 
+    public:
+
+        bool managed;
+        bool animated;
+        bool require_colons;
+
+        snowflake id;
+        std::string name;
+        // discord::User user;
+        // std::vector<discord::Role> roles;
     };
 
 
@@ -474,5 +479,9 @@ namespace discord {
 
     class ImproperToken : public std::exception{
         const char* what() const throw();
+    };
+
+    class UnknownChannel : public std::exception {
+      const char *what() const throw();
     };
 };

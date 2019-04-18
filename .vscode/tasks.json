@@ -1,95 +1,95 @@
 {
-    "version":"2.0.0",
-    "tasks":[
-     {
-       "label":"compile_and_run_debug",
-       "type":"shell",
-       "command":"",
-       "args":[
-         "clear",
-         "&&",
-         "clang++",
-         "-g",
-         "main.cpp",
-         "-o",
-         "output/main.out",
-         "-lcurlpp",
-         "-lboost_date_time",
-         "-lcurl",
-         "-lboost_system",
-         "-lpthread",
-         "-lcrypto",
-         "-lssl",
-         "-O0",
-         "-std=c++17",
-         "-I./sourcefiles",
-         "-w",
-         "&&",
-         "clear",
-         "&&",
-         "./output/main.out"
-      ],
-      "group":{
-         "kind":"build",
-         "isDefault":true
-      },
-         "problemMatcher":{
-         "owner":"cpp",
-         "fileLocation":[
-            "relative",
-            "${workspaceRoot}"
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "label": "compile_and_run_debug",
+         "type": "shell",
+         "command": "",
+         "args": [
+            "clear",
+            "&&",
+            "clang++",
+            "-g",
+            "main.cpp",
+            "-o",
+            "output/main.out",
+            "-lcpr",
+            "-lboost_date_time",
+            "-lcurl",
+            "-lboost_system",
+            "-lpthread",
+            "-lcrypto",
+            "-lssl",
+            "-O0",
+            "-std=c++17",
+            "-I./sourcefiles",
+            "&&",
+            "clear",
+            "&&",
+            "./output/main.out"
          ],
-         "pattern":{
-            "regexp":"^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-            "file":1,
-            "line":2,
-            "column":3,
-            "severity":4,
-            "message":5
+         "group": {
+            "kind": "build",
+            "isDefault": true
+         },
+         "problemMatcher": {
+            "owner": "cpp",
+            "fileLocation": [
+               "relative",
+               "${workspaceRoot}"
+            ],
+            "pattern": {
+               "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+               "file": 1,
+               "line": 2,
+               "column": 3,
+               "severity": 4,
+               "message": 5
+            }
+         }
+      },
+      {
+         "label": "compile_only_debug_mode",
+         "type": "shell",
+         "command": "",
+         "args": [
+            "clear",
+            "&&",
+            "clang++",
+            "-g",
+            "main.cpp",
+            "-o",
+            "output/main.out",
+            "-lcpr",
+            "-lcurl",
+            "-lboost_date_time",
+            "-lssl",
+            "-std=c++17",
+            "-lcrypto",
+            "-lboost_system",
+            "-lpthread",
+            "-O0",
+            "-I./sourcefiles",
+         ],
+         "group": {
+            "kind": "build",
+            "isDefault": true
+         },
+         "problemMatcher": {
+            "owner": "cpp",
+            "fileLocation": [
+               "relative",
+               "${workspaceRoot}"
+            ],
+            "pattern": {
+               "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+               "file": 1,
+               "line": 2,
+               "column": 3,
+               "severity": 4,
+               "message": 5
+            }
          }
       }
-    },
-     {
-        "label":"compile_only_debug_mode",
-        "type":"shell",
-        "command":"",
-        "args":[
-         "clear",
-         "&&",
-         "clang++",
-         "-g",
-         "main.cpp",
-         "-o",
-         "output/main.out",
-         "-lcurlpp",
-         "-lcurl",
-         "-lboost_date_time",
-         "-lssl",
-         "-std=c++17",
-         "-lcrypto",
-         "-lboost_system",
-         "-lpthread",
-         "-O0",
-         "-I./sourcefiles",
-       ],
-       "group":{
-          "kind":"build",
-          "isDefault":true
-       },
-          "problemMatcher":{
-          "owner":"cpp",
-          "fileLocation":[
-             "relative",
-             "${workspaceRoot}"
-          ],
-          "pattern":{
-             "regexp":"^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-             "file":1,
-             "line":2,
-             "column":3,
-             "severity":4,
-             "message":5
-          }
-       }
-    }]
- }
+   ]
+}
