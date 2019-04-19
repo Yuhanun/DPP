@@ -144,7 +144,7 @@ namespace discord {
         void await_events();
         void gateway_auth();
         void handle_heartbeat();
-        void handle_event(json&, std::string);
+        void handle_event(json const, std::string);
         void initialize_variables(const std::string);
 
 
@@ -197,7 +197,6 @@ namespace discord {
 
         std::vector<std::future<void>> packet_handling;
         std::unordered_map<std::string, std::function<void(discord::Message&, std::vector<std::string>&)>> command_map;
-        // std::vector<cpr::Session&>;
     };
 
     class Channel : public Object {
@@ -205,7 +204,7 @@ namespace discord {
         Channel() = default;
         Channel(snowflake id);
 
-        Channel(std::string, snowflake);
+        Channel(json const, snowflake);
 
         discord::Message send(std::string, bool = false) const;
         discord::Message send(EmbedBuilder, bool = false, std::string = "") const;
@@ -272,7 +271,7 @@ namespace discord {
     public:
         User() = default;
         User(snowflake);
-        User(std::string const&);
+        User(json const);
 
     public:
         bool bot;
@@ -288,7 +287,7 @@ namespace discord {
     public:
         Member() = default;
         Member(snowflake);
-        Member(std::string const&, discord::User const&);
+        Member(json const, discord::User const&);
 
     public:
         bool deaf;
@@ -322,7 +321,7 @@ namespace discord {
         Guild() = default;
         Guild(snowflake);
 
-        Guild(std::string);
+        Guild(json const);
 
     public:
         int splash;
@@ -396,7 +395,7 @@ namespace discord {
         discord::Member author;
         discord::Channel channel;
 
-        // std::vector<std::string> mentions;
+        std::vector<discord::Member> mentions;
         // std::vector<discord::Role> mentioned_roles;
         // std::vector<type> attachments;
         // std::vector<embed> embeds;

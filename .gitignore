@@ -44,4 +44,7 @@ ipch/*
 ./tests
 ./datasets
 
+*main.cpp
+
+
 *.clang-format

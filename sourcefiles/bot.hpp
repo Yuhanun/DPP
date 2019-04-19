@@ -28,22 +28,23 @@ discord::Message discord::Bot::send_message(snowflake channel_id, json message_c
 }
 
 void discord::Bot::on_incoming_packet(websocketpp::connection_hdl, client::message_ptr msg) {
-    packet_handling.push_back(std::async(std::launch::async, [=]() {
-        json j = json::parse(msg->get_payload());
-        switch (j["op"].get<int>()) {
-            case (10):
-                hello_packet = j;
-                con->send(get_identify_packet());
-                break;
-            case (11):
-                heartbeat_acked = true;
-                break;
-            default:
-                std::string event_name = j["t"].is_null() ? "" : j["t"];
-                handle_event(j, event_name);
-                break;
-        }
-    }));
+    packet_handling.push_back(
+        std::async(std::launch::async, [=]() {
+            json j = json::parse(msg->get_payload());
+            switch (j["op"].get<int>()) {
+                case (10):
+                    hello_packet = j;
+                    con->send(get_identify_packet());
+                    break;
+                case (11):
+                    heartbeat_acked = true;
+                    break;
+                default:
+                    std::string event_name = j["t"].is_null() ? "" : j["t"];
+                    handle_event(j, event_name);
+                    break;
+            }
+        }));
     packet_counter++;
 }
 
@@ -83,7 +84,7 @@ void discord::Bot::run() {
     event_thread.join();
 }
 
-void discord::Bot::handle_event(json &j, std::string event_name) {
+void discord::Bot::handle_event(json const j, std::string event_name) {
     const json data = j["d"];
     if (j.contains("s")) {
         last_sequence_data = j["s"].is_number() ? j["s"].get<int>() : -1;
@@ -105,26 +106,30 @@ void discord::Bot::handle_event(json &j, std::string event_name) {
     } else if (event_name == "GUILD_CREATE") {
         snowflake guild_id = std::stoul(data["id"].get<std::string>());
         for (auto const &member : data["members"]) {
+            for (auto const &each : this->users) {
+                if (*each == std::stoul(member["user"]["id"].get<std::string>())) {
+                    break;
+                }
+            }
             users.emplace_back(
-                std::make_unique<discord::User>(member["user"].dump()));
+                std::make_unique<discord::User>(member["user"]));
         }
 
-        auto guild = discord::Guild(j["d"].dump());
-        guilds.push_back(std::make_unique<discord::Guild>(j["d"].dump()));
+        auto guild = discord::Guild(j["d"]);
+        guilds.push_back(std::make_unique<discord::Guild>(j["d"]));
 
         for (auto const &channel : data["channels"]) {
             channels.emplace_back(
-                std::make_unique<discord::Channel>(channel.dump(), guild_id));
+                std::make_unique<discord::Channel>(channel, guild_id));
         }
         func_holder.call<events::guild_create>(guild);
     } else if (event_name == "GUILD_UPDATE") {
     } else if (event_name == "GUILD_DELETE") {
         snowflake to_remove = std::stoul(data["id"].get<std::string>());
         guilds.erase(
-            std::remove_if(guilds.begin(), guilds.end(),
-                           [&to_remove](std::unique_ptr<discord::Guild> const &g) {
-                               return g->id == to_remove;
-                           }),
+            std::remove_if(guilds.begin(), guilds.end(), [&to_remove](std::unique_ptr<discord::Guild> const &g) {
+                return g->id == to_remove;
+            }),
             guilds.end());
     } else if (event_name == "GUILD_BAN_ADD") {
     } else if (event_name == "GUILD_BAN_REMOVE") {
@@ -188,22 +193,15 @@ void discord::Bot::await_events() {
 }
 
 std::string discord::Bot::get_gateway_url() {
-    auto r = cpr::GetAsync(
-        cpr::Url{ format("%/gateway/bot", get_api()) },
-        get_basic_header());
-
-    r.wait();
-    json j = json::parse(r.get().text);
-    if (!j.contains("url")) {
+    auto r = send_request<request_method::Get>(json({}), get_basic_header(), format("%/gateway/bot", get_api()));
+    if (!r.contains("url")) {
         throw discord::ImproperToken();
     }
-    return j["url"];
+    return r["url"];
 }
 
-void discord::Bot::register_command(
-    std::string const &command_name,
-    std::function<void(discord::Message &, std::vector<std::string> &)> function) {
-    command_map[command_name] = function;
+void discord::Bot::register_command(std::string const &command_name, std::function<void(discord::Message &, std::vector<std::string> &)> function) {
+    command_map[boost::to_lower_copy(command_name)] = function;
 }
 
 void discord::Bot::fire_commands(discord::Message &m) const {
@@ -263,17 +261,16 @@ void discord::Bot::handle_heartbeat() {
 }
 
 discord::Guild discord::Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
-    json data =
-        json({ { "name", name },
-               { "region", region },
-               { "icon", "" },
-               { "verification_level", verification_level },
-               { "default_message_notifications", default_message_notifications },
-               { "explicit_content_filter", explicit_content_filter },
-               { "roles", {} },
-               { "channels", {} } });
+    const json data = json({ { "name", name },
+                             { "region", region },
+                             { "icon", "" },
+                             { "verification_level", verification_level },
+                             { "default_message_notifications", default_message_notifications },
+                             { "explicit_content_filter", explicit_content_filter },
+                             { "roles", {} },
+                             { "channels", {} } });
     return discord::Guild{
-        send_request<request_method::Post>(data, get_default_headers(), get_create_guild_url()).dump()
+        send_request<request_method::Post>(data, get_default_headers(), get_create_guild_url())
     };
 }
 

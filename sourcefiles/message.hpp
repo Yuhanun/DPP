@@ -9,7 +9,6 @@ discord::Message::Message(snowflake id)
 }
 
 discord::Message discord::Message::from_sent_message(json j) {
-    std::cout << j.dump(4) << std::endl;
     auto m = Message{};
     m.token = discord::detail::bot_instance->token;
     snowflake sender_id = std::stoul(j["author"]["id"].get<std::string>());
@@ -28,12 +27,17 @@ discord::Message discord::Message::from_sent_message(json j) {
         break;
     }
 
-    for (auto const &member : m.channel.guild->members) {
-        if (member.id != sender_id) {
-            continue;
+    for (auto const &mention : j["mentions"]) {
+        snowflake mention_id = std::stoul(mention["id"].get<std::string>());
+        for (auto const &member : m.channel.guild->members) {
+            if (member.id == mention_id) {
+                m.mentions.push_back(member);    
+            }
+
+            if (member.id == sender_id) {
+                m.author = member;
+            }
         }
-        m.author = member;
-        break;
     }
 
     m.content = j["content"];

@@ -9,12 +9,10 @@ discord::User::User(snowflake id)
     : discord::Object(id) {
 }
 
-discord::User::User(std::string const& on_guild_create) {
+discord::User::User(json const j) {
     // string: name, avatar, mention, discriminator
     // int id
     // bool bot
-
-    json j = json::parse(on_guild_create);
     bot = j.contains("bot");
     avatar = discord::get_value(j, "avatar", "");
     discriminator = j["discriminator"];

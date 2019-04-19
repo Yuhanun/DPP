@@ -6,12 +6,10 @@ discord::Member::Member(snowflake id)
     : discord::User(id) {
 }
 
-discord::Member::Member(std::string const &event, discord::User const &user) {
-    json j = json::parse(event);
+discord::Member::Member(json const j, discord::User const &user) {
     deaf = j["deaf"];
     muted = j["mute"];
-
-    nick = discord::get_value(j, "nick", "");
+    nick = get_value(j, "nick", "");
     joined_at = j["joined_at"];
     id = user.id;
     bot = user.bot;

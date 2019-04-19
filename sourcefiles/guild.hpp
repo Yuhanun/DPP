@@ -13,12 +13,11 @@ discord::Guild::Guild(snowflake id)
     : discord::Object(id) {
 }
 
-discord::Guild::Guild(std::string guild_create_event) {
-    json guild = json::parse(guild_create_event);
+discord::Guild::Guild(json const guild) {
     for (auto &each : guild["members"]) {
-        discord::Member member{ each.dump(), discord::User(each["user"].dump()) };
+        discord::Member member{ each, discord::User(each["user"]) };
         members.push_back(member);
-        if (each["id"] == guild["owner_id"]) {
+        if (each["user"]["id"] == guild["owner_id"]) {
             owner = member;
         }
     }
@@ -26,7 +25,7 @@ discord::Guild::Guild(std::string guild_create_event) {
     id = std::stoul(temp_id);
 
     for (auto &channel : guild["channels"]) {
-        discord::Channel c{ channel.dump(), id };
+        discord::Channel c{ channel, id };
         channels.push_back(c);
     }
 

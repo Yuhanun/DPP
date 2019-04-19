@@ -45,12 +45,18 @@ namespace discord {
     }
 
     template <typename T>
-    T get_value(json &j, const char *s, T default_value) {
-        return j[s].empty() ? default_value : j[s].get<T>();
+    T get_value(json const &j, const char *s, T default_value) {
+        if (j.contains(s)) {
+            return j[s].empty() ? default_value : j[s].get<T>();
+        }
+        return default_value;
     }
 
-    inline std::string get_value(json &j, const char *s, const char *default_value) {
-        return j[s].empty() ? default_value : j[s].get<std::string>();
+    inline std::string get_value(json const &j, const char *s, const char *default_value) {
+        if (j.contains(s)) {
+            return j[s].empty() ? default_value : j[s].get<std::string>();
+        }
+        return default_value;
     }
 
     inline std::string get_channel_link(long id) {
@@ -135,10 +141,10 @@ namespace discord {
         auto url = cpr::Url{ uri };
         auto body = cpr::Body{ j.dump() };
 
-        static_assert(method != request_method::Get    || 
-                      method != request_method::Post   || 
-                      method != request_method::Put    || 
-                      method != request_method::Delete || 
+        static_assert(method != request_method::Get ||
+                      method != request_method::Post ||
+                      method != request_method::Put ||
+                      method != request_method::Delete ||
                       method != request_method::Patch);
 
         cpr::Response response;

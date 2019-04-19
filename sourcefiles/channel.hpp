@@ -8,8 +8,7 @@ discord::Channel::Channel(snowflake id)
     : discord::Object(id) {
 }
 
-discord::Channel::Channel(std::string guild_create, snowflake guild_id) {
-    json data = json::parse(guild_create);
+discord::Channel::Channel(json const data, snowflake guild_id) {
     if (data.contains("bitrate")) {
         if (!data.contains("parent_id")) {
             type = channel_type::CategoryChannel;
