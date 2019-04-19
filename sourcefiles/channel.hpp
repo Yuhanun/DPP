@@ -27,12 +27,14 @@ discord::Channel::Channel(std::string guild_create, snowflake guild_id) {
     }
 
     guild = nullptr;
-    for (auto const &v_guild : discord::bot_instance->guilds) {
-        if (v_guild->id == guild_id) {
-            guild = *(v_guild.get());
-            break;
+    for (auto const &v_guild : discord::detail::bot_instance->guilds) {
+        if (v_guild->id != guild_id) {
+            continue;
         }
+        guild = v_guild.get();
+        break;
     }
+
     for (auto &each : data["permission_overwrites"]) {
         int t = each["type"].get<std::string>() == "role" ? role : member;
         overwrites.push_back(discord::PermissionOverwrites{
@@ -45,7 +47,7 @@ discord::Channel::Channel(std::string guild_create, snowflake guild_id) {
 }
 
 discord::Message discord::Channel::send(std::string content, bool tts) const {
-    return discord::bot_instance->send_message(id, content, tts);
+    return discord::detail::bot_instance->send_message(id, content, tts);
 }
 
 discord::Message discord::Channel::send(EmbedBuilder embed, bool tts, std::string content) const {
@@ -55,7 +57,7 @@ discord::Message discord::Channel::send(EmbedBuilder embed, bool tts, std::strin
         j["content"] = content;
     }
 
-    return discord::bot_instance->send_message(id, j, tts);
+    return discord::detail::bot_instance->send_message(id, j, tts);
 }
 
 std::string discord::Channel::get_bulk_delete_url() {
@@ -80,9 +82,9 @@ std::vector<discord::Message> discord::Channel::get_messages(int limit) {
     std::vector<discord::Message> return_vec;
     limit = limit < 1 || limit > 100 ? 50 : limit;
 
-    auto data = send_request<request_method::Get>(json({}), get_default_headers(), get_get_messages_url(limit)).get();
+    auto data = send_request<request_method::Get>(json({}), get_default_headers(), get_get_messages_url(limit));
     for (auto &each : data) {
-        return_vec.push_back(discord::Message::from_sent_message(each.dump()));
+        return_vec.push_back(discord::Message::from_sent_message(each));
     }
     return return_vec;
 }
@@ -105,13 +107,13 @@ void discord::Channel::remove() {
 
 discord::Message discord::Channel::get_message(snowflake id) {
     return discord::Message::from_sent_message(
-        send_request<request_method::Get>(json({}), get_default_headers(), get_get_message_url(id)).get().dump());
+        send_request<request_method::Get>(json({}), get_default_headers(), get_get_message_url(id)));
 }
 
 std::vector<discord::Invite> discord::Channel::get_invites() {
     std::vector<discord::Invite> return_vec;
     auto response = send_request<request_method::Get>(json({}), get_default_headers(), get_channel_invites_url());
-    for (auto const &each : response.get()) {
+    for (auto const &each : response) {
         return_vec.push_back(discord::Invite{ each.dump() });
     }
     return return_vec;
@@ -122,14 +124,14 @@ discord::Invite discord::Channel::create_invite(int max_age, int max_uses, bool 
                        { "max_uses", max_uses },
                        { "temporary", temporary },
                        { "unique", unique } });
-    return discord::Invite{ send_request<request_method::Post>(data, get_default_headers(), get_create_invite_url()).get().dump() };
+    return discord::Invite{ send_request<request_method::Post>(data, get_default_headers(), get_create_invite_url()).dump() };
 }
 
 std::vector<discord::Message> discord::Channel::get_pins() {
     std::vector<discord::Message> message_vec;
     auto reply = send_request<request_method::Get>(json({}), get_default_headers(), get_pins_url());
-    for (auto const &each : reply.get()) {
-        message_vec.push_back(discord::Message::from_sent_message(each.dump()));
+    for (auto const &each : reply) {
+        message_vec.push_back(discord::Message::from_sent_message(each));
     }
     return message_vec;
 }

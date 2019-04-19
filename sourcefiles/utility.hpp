@@ -20,6 +20,30 @@ namespace discord {
         }
     };  // namespace utils
 
+
+    template <typename S>
+    inline void format_slice(std::string const &input_str, std::stringstream &output_str, int &start_index, S var) {
+        long unsigned int index = input_str.find('%', start_index);
+        if (index == std::string::npos) {
+            return;
+        }
+        output_str << input_str.substr(start_index, index - start_index) << var;
+        start_index = index + 1;
+    }
+
+    template <typename... T>
+    inline std::string format(std::string const &str, T... args) {
+        std::stringstream output_str;
+        int start_index = 0;
+        ((format_slice(str, output_str, start_index, args)), ...);
+        output_str << str.substr(start_index, str.length());
+        return output_str.str();
+    }
+
+    inline std::string get_api() {
+        return "https://discordapp.com/api/v6";
+    }
+
     template <typename T>
     T get_value(json &j, const char *s, T default_value) {
         return j[s].empty() ? default_value : j[s].get<T>();
@@ -30,38 +54,7 @@ namespace discord {
     }
 
     inline std::string get_channel_link(long id) {
-        return "https://discordapp.com/api/v6/channels/" + std::to_string(id) +
-               "/messages";
-    }
-
-    template <size_t method>
-    inline std::future<json> send_request(const json &j, const cpr::Header &h, const std::string &uri, const bool &wait_for = true) {
-        return std::async(std::launch::async, [&]() {
-            auto session = cpr::Session();
-            auto url = cpr::Url{ uri };
-            auto body = cpr::Body{ j.dump() };
-
-            std::future<cpr::Response> response;
-            if (method == request_type::Get) {
-                response = cpr::GetAsync(url, h);
-            } else if (method == request_type::Post) {
-                response = cpr::PostAsync(url, h, body);
-            } else if (method == request_type::Put) {
-                response = cpr::PutAsync(url, h, body);
-            } else if (method == request_type::Delete) {
-                response = cpr::DeleteAsync(url, h, body);
-            } else if (method == request_type::Patch) {
-                response = cpr::PatchAsync(url, h, body);
-            }
-
-            if (wait_for) {
-                response.wait();
-                auto r = response.get().text;
-                return r.length() > 0 ? json::parse(r) : json({});
-            } else {
-                return json({});
-            }
-        });
+        return format("%/channels/%/messages", get_api(), id);
     }
 
     inline std::string get_iso_datetime_now() {
@@ -107,32 +100,10 @@ namespace discord {
         { "MANAGE_EMOJIS", 0x40000000 }
     };
 
-    template <typename S>
-    inline void format_slice(std::string const &input_str, std::stringstream &output_str, int &start_index, S var) {
-        long unsigned int index = input_str.find('%', start_index);
-        if (index == std::string::npos) {
-            return;
-        }
-        output_str << input_str.substr(start_index, index - start_index) << var;
-        start_index = index + 1;
-    }
-
-    template <typename... T>
-    inline std::string format(std::string const &str, T... args) {
-        std::stringstream output_str;
-        int start_index = 0;
-        ((format_slice(str, output_str, start_index, args)), ...);
-        output_str << str.substr(start_index, str.length());
-        return output_str.str();
-    }
-
-    inline std::string get_api() {
-        return "https://discordapp.com/api/v6";
-    }
 
     inline cpr::Header get_default_headers() {
         return cpr::Header{
-            { "Authorization", format("Bot %", discord::bot_instance->token) },
+            { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
             { "Content-Type", "application/json" },
             { "User-Agent", "DiscordPP (C++ discord library)" },
             { "Connection", "keep-alive" }
@@ -157,4 +128,33 @@ namespace discord {
         Patch,
         Delete
     };
+
+    template <size_t method>
+    inline json send_request(const json &j, const cpr::Header &h, const std::string &uri) {
+        auto session = cpr::Session();
+        auto url = cpr::Url{ uri };
+        auto body = cpr::Body{ j.dump() };
+
+        static_assert(method != request_method::Get    || 
+                      method != request_method::Post   || 
+                      method != request_method::Put    || 
+                      method != request_method::Delete || 
+                      method != request_method::Patch);
+
+        cpr::Response response;
+        if (method == request_method::Get) {
+            response = cpr::Get(url, h);
+        } else if (method == request_method::Post) {
+            response = cpr::Post(url, h, body);
+        } else if (method == request_method::Put) {
+            response = cpr::Put(url, h, body);
+        } else if (method == request_method::Delete) {
+            response = cpr::Delete(url, h, body);
+        } else if (method == request_method::Patch) {
+            response = cpr::Patch(url, h, body);
+        }
+
+        return response.text.length() > 0 ? json::parse(response.text) : json({});
+    }
+
 }  // namespace discord

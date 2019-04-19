@@ -12,51 +12,38 @@
 
 discord::Bot::Bot(const std::string &token, const std::string prefix)
     : prefix{ prefix }, token{ token } {
-    discord::bot_instance = this;
+    discord::detail::bot_instance = this;
 }
 
-discord::Message discord::Bot::send_message(snowflake channel_id,
-                                            std::string message_content,
-                                            bool tts) {
+discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
     json j = json({ { "content", message_content }, { "tts", tts } });
-
-    auto response = send_request<request_method::Post>(j, get_default_headers(), get_channel_link(channel_id)).get();
-    return discord::Message::from_sent_message(response.dump());
+    auto response = send_request<request_method::Post>(j, get_default_headers(), get_channel_link(channel_id));
+    return discord::Message::from_sent_message(response);
 }
 
-discord::Message discord::Bot::send_message(snowflake channel_id,
-                                            json message_content,
-                                            bool tts) {
+discord::Message discord::Bot::send_message(snowflake channel_id, json message_content, bool tts) {
     message_content["tts"] = tts;
-    auto response = send_request<request_method::Post>(message_content, get_default_headers(), get_channel_link(channel_id)).get();
-    return discord::Message::from_sent_message(response.dump());
+    auto response = send_request<request_method::Post>(message_content, get_default_headers(), get_channel_link(channel_id));
+    return discord::Message::from_sent_message(response);
 }
 
-void discord::Bot::write_to_file(std::string event_name, std::string data) {
-    struct stat buffer;
-    bool exists = (stat(event_name.c_str(), &buffer) == 0);
-    if (exists) {
-        return;
-    }
-    std::ofstream output_file(event_name, std::ios::out);
-    output_file << data;
-}
-
-void discord::Bot::on_incoming_packet(websocketpp::connection_hdl,
-                                      client::message_ptr msg) {
-    json j = json::parse(msg->get_payload());
-    int opcode = j["op"];
-    if (opcode == 11) {
-        heartbeat_acked = true;
-        return;
-    }
-    std::string event_name = j["t"].is_null() ? "" : j["t"];
-    if (opcode == 10) {
-        hello_packet = j;
-        con->send(get_identify_packet());
-    } else {
-        handle_event(j, event_name);
-    }
+void discord::Bot::on_incoming_packet(websocketpp::connection_hdl, client::message_ptr msg) {
+    packet_handling.push_back(std::async(std::launch::async, [=]() {
+        json j = json::parse(msg->get_payload());
+        switch (j["op"].get<int>()) {
+            case (10):
+                hello_packet = j;
+                con->send(get_identify_packet());
+                break;
+            case (11):
+                heartbeat_acked = true;
+                break;
+            default:
+                std::string event_name = j["t"].is_null() ? "" : j["t"];
+                handle_event(j, event_name);
+                break;
+        }
+    }));
     packet_counter++;
 }
 
@@ -78,10 +65,10 @@ void discord::Bot::handle_gateway() {
         con = c.get_connection(uri, ec);
         if (ec) {
             throw std::runtime_error(ec.message());
-            return;
         }
 
         c.connect(con);
+
         c.run();
 
     } catch (websocketpp::exception const &e) {
@@ -91,7 +78,9 @@ void discord::Bot::handle_gateway() {
 
 void discord::Bot::run() {
     gateway_auth();
+    await_events();
     gateway_thread.join();
+    event_thread.join();
 }
 
 void discord::Bot::handle_event(json &j, std::string event_name) {
@@ -149,7 +138,7 @@ void discord::Bot::handle_event(json &j, std::string event_name) {
     } else if (event_name == "GUILD_ROLE_UPDATE") {
     } else if (event_name == "GUILD_ROLE_DELETE") {
     } else if (event_name == "MESSAGE_CREATE") {
-        auto message = Message::from_sent_message(data.dump());
+        auto message = Message::from_sent_message(data);
         if (!message.author.bot) {
             fire_commands(message);
         }
@@ -186,11 +175,24 @@ void discord::Bot::gateway_auth() {
     gateway_thread = std::thread{ &Bot::handle_gateway, this };
 }
 
+void discord::Bot::await_events() {
+    event_thread = std::thread{ [&]() {
+        while (true){
+            if (!packet_handling.size()){
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                continue;
+            }
+            packet_handling[0].wait();
+            packet_handling.erase(packet_handling.begin());
+    } } };
+}
+
 std::string discord::Bot::get_gateway_url() {
     auto r = cpr::GetAsync(
         cpr::Url{ format("%/gateway/bot", get_api()) },
         get_basic_header());
 
+    r.wait();
     json j = json::parse(r.get().text);
     if (!j.contains("url")) {
         throw discord::ImproperToken();
@@ -200,8 +202,7 @@ std::string discord::Bot::get_gateway_url() {
 
 void discord::Bot::register_command(
     std::string const &command_name,
-    std::function<void(discord::Message &, std::vector<std::string> &)>
-        function) {
+    std::function<void(discord::Message &, std::vector<std::string> &)> function) {
     command_map[command_name] = function;
 }
 
@@ -251,15 +252,17 @@ void discord::Bot::handle_heartbeat() {
         }
         con->send(data.dump());
         heartbeat_acked = false;
-        std::this_thread::sleep_for(std::chrono::milliseconds(
-            hello_packet["d"]["heartbeat_interval"].get<int>()));
-        if (heartbeat_acked) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(hello_packet["d"]["heartbeat_interval"].get<int>()));
+        if (!heartbeat_acked) {
+            data = json({ { "token", token },
+                          { "session_id", session_id },
+                          { "seq", last_sequence_data } });
+            con->send(data.dump());
         }
     }
 }
 
-discord::Guild
-discord::Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
+discord::Guild discord::Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
     json data =
         json({ { "name", name },
                { "region", region },
@@ -270,7 +273,7 @@ discord::Bot::create_guild(std::string const &name, std::string const &region, i
                { "roles", {} },
                { "channels", {} } });
     return discord::Guild{
-        send_request<request_method::Post>(data, get_default_headers(), get_create_guild_url()).get().dump()
+        send_request<request_method::Post>(data, get_default_headers(), get_create_guild_url()).dump()
     };
 }
 

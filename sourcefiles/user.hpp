@@ -1,15 +1,15 @@
 #pragma once
-#include <string>
 #include <color.hpp>
 #include <discord.hpp>
+#include <string>
 #include "utility.hpp"
 
 
-discord::User::User(snowflake id) : discord::Object(id) {
-
+discord::User::User(snowflake id)
+    : discord::Object(id) {
 }
 
-discord::User::User(std::string const& on_guild_create){
+discord::User::User(std::string const& on_guild_create) {
     // string: name, avatar, mention, discriminator
     // int id
     // bool bot

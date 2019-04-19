@@ -9,8 +9,7 @@
 using namespace nlohmann;
 
 int main() {
-    const std::string token =
-        "NTYzNzkxNTI0MDczMTc3MDkw.XK8mVw.GXWHgGWJiSc5vTLEJezNrFlvpks";
+    const std::string token = "";
     discord::Bot bot{ token, "." };
     bot.register_callback<discord::events::ready>([&bot]() {
         std::cout << "Ready!" << std::endl;
@@ -22,9 +21,7 @@ int main() {
 
     bot.register_command(
         "nothing", [&bot](discord::Message& m, std::vector<std::string>& args) {
-            for (int i = 0; i < 10; i++) {
-                m.channel.send("test for ratelimits");
-            }
+            m.channel.send("Test");
         });
 
     bot.register_command("delete", [&bot](discord::Message& m, std::vector<std::string>& args) {

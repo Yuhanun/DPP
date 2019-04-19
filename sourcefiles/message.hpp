@@ -8,10 +8,10 @@ discord::Message::Message(snowflake id)
     : id{ id } {
 }
 
-discord::Message discord::Message::from_sent_message(std::string data) {
-    auto j = json::parse(data);
+discord::Message discord::Message::from_sent_message(json j) {
+    std::cout << j.dump(4) << std::endl;
     auto m = Message{};
-    m.token = discord::bot_instance->token;
+    m.token = discord::detail::bot_instance->token;
     snowflake sender_id = std::stoul(j["author"]["id"].get<std::string>());
     m.sent = true;
     m.tts = j["tts"];
@@ -20,11 +20,12 @@ discord::Message discord::Message::from_sent_message(std::string data) {
     m.id = std::stoul(j["id"].get<std::string>());
     snowflake channel_id = std::stoul(j["channel_id"].get<std::string>());
 
-    for (auto const &chan : discord::bot_instance->channels) {
-        if (chan->id == channel_id) {
-            m.channel = *(chan.get());
-            break;
+    for (auto const &chan : discord::detail::bot_instance->channels) {
+        if (chan->id != channel_id) {
+            continue;
         }
+        m.channel = *(chan.get());
+        break;
     }
 
     for (auto const &member : m.channel.guild->members) {
@@ -41,9 +42,7 @@ discord::Message discord::Message::from_sent_message(std::string data) {
 }
 
 std::string discord::Message::get_delete_url() {
-    return std::string("https://discordapp.com/api/v6/channels/") +
-           std::to_string(channel.id) + std::string("/messages/") +
-           std::to_string(id);
+    return format("%/%/messages/%", get_api(), channel.id, id);
 }
 
 void discord::Message::remove() {
@@ -57,17 +56,14 @@ std::string discord::Message::get_edit_url() {
 discord::Message discord::Message::edit(std::string content) {
     json j = json({ { "content", content }, { "tts", tts } });
     auto response = send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
-    return discord::Message::from_sent_message(response.get().dump());
+    return discord::Message::from_sent_message(response);
 }
 
-discord::Message discord::Message::edit(EmbedBuilder embed,
-                                        std::string content) {
-    json j =
-        json({ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } });
+discord::Message discord::Message::edit(EmbedBuilder embed, std::string content) {
+    json j = json({ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } });
 
-    auto response =
-        send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
-    return discord::Message::from_sent_message(response.get().dump());
+    auto response = send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
+    return discord::Message::from_sent_message(response);
 }
 
 std::string discord::Message::get_pin_url() {
