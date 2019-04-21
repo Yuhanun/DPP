@@ -18,8 +18,8 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "function_types.hpp"
 #include "gatewayhandler.hpp"
+#include "function_type.hpp"
 
 #include "cpr/cpr.h"
 
@@ -44,7 +44,6 @@ namespace discord {
 
     typedef uint64_t snowflake;
 
-    using namespace nlohmann;
     using namespace boost;
 
     typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
@@ -131,7 +130,7 @@ namespace discord {
         void register_command(std::string const&, std::function<void(discord::Message&, std::vector<std::string>&)>);
 
         discord::Message send_message(snowflake, std::string, bool = false);
-        discord::Message send_message(snowflake, json, bool = false);
+        discord::Message send_message(snowflake, nlohmann::json, bool = false);
         discord::Guild create_guild(std::string const&, std::string const& = "us-east", int const& = 0, int const& = 0, int const& = 0);
 
         void on_incoming_packet(websocketpp::connection_hdl, client::message_ptr);
@@ -144,8 +143,10 @@ namespace discord {
         void await_events();
         void gateway_auth();
         void handle_heartbeat();
-        void handle_event(json const, std::string);
+        void handle_event(nlohmann::json const, std::string);
         void initialize_variables(const std::string);
+
+        void guild_create_event(nlohmann::json);
 
 
         std::string get_gateway_url();
@@ -163,7 +164,7 @@ namespace discord {
         int discriminator;
 
         bool bot;
-        bool ready = false;
+        bool ready;
         bool verified;
         bool mfa_enabled;
 
@@ -179,7 +180,8 @@ namespace discord {
         std::vector<std::unique_ptr<discord::Channel>> channels;
 
     private:
-        json hello_packet;
+        nlohmann::json hello_packet;
+        nlohmann::json ready_packet;
 
         bool heartbeat_acked;
         int last_sequence_data;
@@ -204,7 +206,7 @@ namespace discord {
         Channel() = default;
         Channel(snowflake id);
 
-        Channel(json const, snowflake);
+        Channel(nlohmann::json const, snowflake);
 
         discord::Message send(std::string, bool = false) const;
         discord::Message send(EmbedBuilder, bool = false, std::string = "") const;
@@ -219,7 +221,7 @@ namespace discord {
 
         void bulk_delete(std::vector<discord::Message>&);
 
-        void edit(json&);
+        void edit(nlohmann::json&);
         void remove();
 
     private:
@@ -271,7 +273,7 @@ namespace discord {
     public:
         User() = default;
         User(snowflake);
-        User(json const);
+        User(nlohmann::json const);
 
     public:
         bool bot;
@@ -287,7 +289,7 @@ namespace discord {
     public:
         Member() = default;
         Member(snowflake);
-        Member(json const, discord::User const&);
+        Member(nlohmann::json const, discord::User const&);
 
     public:
         bool deaf;
@@ -321,7 +323,7 @@ namespace discord {
         Guild() = default;
         Guild(snowflake);
 
-        Guild(json const);
+        Guild(nlohmann::json const);
 
     public:
         int splash;
@@ -363,7 +365,7 @@ namespace discord {
         Message() = default;
         Message(snowflake);
 
-        inline static Message from_sent_message(json);
+        inline static Message from_sent_message(nlohmann::json);
         discord::Message edit(std::string);
         discord::Message edit(EmbedBuilder, std::string = "");
         void pin();
@@ -421,10 +423,10 @@ namespace discord {
         EmbedBuilder& set_video(std::string const&, const int = -1, const int = -1);
         EmbedBuilder& set_author(std::string const&, std::string const&, std::string const&);
         EmbedBuilder& add_field(std::string const&, std::string const&, const bool = false);
-        json& to_json();
+        nlohmann::json& to_json();
 
     private:
-        json embed;
+        nlohmann::json embed;
     };
 
     class Color {
@@ -463,7 +465,7 @@ namespace discord {
 
         PermissionOverwrites& add_permission(std::string const&, int);
 
-        json to_json() const;
+        nlohmann::json to_json() const;
         std::pair<int, int> get_values() const;
 
         int object_type;

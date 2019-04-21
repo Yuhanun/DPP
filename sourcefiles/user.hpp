@@ -9,7 +9,7 @@ discord::User::User(snowflake id)
     : discord::Object(id) {
 }
 
-discord::User::User(json const j) {
+discord::User::User(nlohmann::json const j) {
     // string: name, avatar, mention, discriminator
     // int id
     // bool bot

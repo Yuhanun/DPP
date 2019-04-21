@@ -3,7 +3,7 @@
 #include "discord.hpp"
 
 discord::EmbedBuilder::EmbedBuilder() {
-    embed = json({});
+    embed = nlohmann::json({});
 }
 
 discord::EmbedBuilder &
@@ -37,7 +37,7 @@ discord::EmbedBuilder &discord::EmbedBuilder::set_color(Color c) {
 discord::EmbedBuilder &
 discord::EmbedBuilder::set_footer(std::string const &text,
                                   std::string const &icon_url) {
-    embed["footer"] = json({});
+    embed["footer"] = nlohmann::json({});
     if (icon_url != "") {
         embed["footer"]["icon_url"] = icon_url;
     }
@@ -48,7 +48,7 @@ discord::EmbedBuilder::set_footer(std::string const &text,
 discord::EmbedBuilder &discord::EmbedBuilder::set_image(std::string const &url,
                                                         int w,
                                                         int h) {
-    embed["image"] = json({});
+    embed["image"] = nlohmann::json({});
     if (w != -1) {
         embed["image"]["width"] = w;
     }
@@ -62,7 +62,7 @@ discord::EmbedBuilder &discord::EmbedBuilder::set_image(std::string const &url,
 
 discord::EmbedBuilder &
 discord::EmbedBuilder::set_thumbnail(std::string const &url, int w, int h) {
-    embed["thumbnail"] = json({});
+    embed["thumbnail"] = nlohmann::json({});
     if (w != -1) {
         embed["thumbnail"]["width"] = w;
     }
@@ -77,7 +77,7 @@ discord::EmbedBuilder::set_thumbnail(std::string const &url, int w, int h) {
 discord::EmbedBuilder &discord::EmbedBuilder::set_video(std::string const &url,
                                                         int w,
                                                         int h) {
-    embed["video"] = json({});
+    embed["video"] = nlohmann::json({});
     if (w != -1) {
         embed["video"]["width"] = w;
     }
@@ -93,7 +93,7 @@ discord::EmbedBuilder &
 discord::EmbedBuilder::set_author(std::string const &name,
                                   std::string const &url,
                                   std::string const &icon_url) {
-    embed["author"] = json({});
+    embed["author"] = nlohmann::json({});
     if (icon_url != "") {
         embed["author"]["icon_url"] = icon_url;
     }
@@ -110,9 +110,9 @@ discord::EmbedBuilder::add_field(std::string const &name,
                                  std::string const &value,
                                  bool in_line) {
     if (!embed.contains("fields")) {
-        embed["fields"] = json::array();
+        embed["fields"] = nlohmann::json::array();
     }
-    json field{};
+    nlohmann::json field{};
     field["name"] = name;
     field["value"] = value;
     embed["fields"].push_back(field);

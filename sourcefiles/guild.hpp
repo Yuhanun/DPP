@@ -13,7 +13,7 @@ discord::Guild::Guild(snowflake id)
     : discord::Object(id) {
 }
 
-discord::Guild::Guild(json const guild) {
+discord::Guild::Guild(nlohmann::json const guild) {
     for (auto &each : guild["members"]) {
         discord::Member member{ each, discord::User(each["user"]) };
         members.push_back(member);

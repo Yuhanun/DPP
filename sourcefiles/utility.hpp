@@ -2,12 +2,11 @@
 #include <string>
 
 #include "nlohmann/json.hpp"
+#include "cpr/cpr.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace discord {
-    using namespace nlohmann;
-
     namespace utils {
         template <typename S, typename F>
         S *get(std::vector<std::unique_ptr<S>> &iterable, F callable) {
@@ -45,18 +44,15 @@ namespace discord {
     }
 
     template <typename T>
-    T get_value(json const &j, const char *s, T default_value) {
+    T get_value(nlohmann::json const &j, const char *s, T default_value) {
         if (j.contains(s)) {
             return j[s].empty() ? default_value : j[s].get<T>();
         }
         return default_value;
     }
 
-    inline std::string get_value(json const &j, const char *s, const char *default_value) {
-        if (j.contains(s)) {
-            return j[s].empty() ? default_value : j[s].get<std::string>();
-        }
-        return default_value;
+    inline std::string get_value(nlohmann::json const &j, const char *s, const char *default_value) {
+        return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<std::string>()) : default_value;
     }
 
     inline std::string get_channel_link(long id) {
@@ -110,7 +106,7 @@ namespace discord {
     inline cpr::Header get_default_headers() {
         return cpr::Header{
             { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
-            { "Content-Type", "application/json" },
+            { "Content-Type", "application/nlohmann::json" },
             { "User-Agent", "DiscordPP (C++ discord library)" },
             { "Connection", "keep-alive" }
         };
@@ -136,7 +132,7 @@ namespace discord {
     };
 
     template <size_t method>
-    inline json send_request(const json &j, const cpr::Header &h, const std::string &uri) {
+    inline nlohmann::json send_request(const nlohmann::json &j, const cpr::Header &h, const std::string &uri) {
         auto session = cpr::Session();
         auto url = cpr::Url{ uri };
         auto body = cpr::Body{ j.dump() };
@@ -159,8 +155,15 @@ namespace discord {
         } else if (method == request_method::Patch) {
             response = cpr::Patch(url, h, body);
         }
-
-        return response.text.length() > 0 ? json::parse(response.text) : json({});
+        auto j_resp = response.text.length() ? nlohmann::json::parse(response.text) : nlohmann::json({});
+        if (j_resp.contains("message")) {
+            if (j_resp["message"].get<std::string>() == "You are being rate limited.") {
+                std::this_thread::sleep_for(std::chrono::milliseconds(j_resp["retry_after"].get<int>() + 1));
+                std::cout << "Recalling function  " << std::endl;
+                return send_request<method>(j, h, uri);
+            }
+        }
+        return j_resp;
     }
 
 }  // namespace discord

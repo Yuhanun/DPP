@@ -8,7 +8,7 @@ discord::Message::Message(snowflake id)
     : id{ id } {
 }
 
-discord::Message discord::Message::from_sent_message(json j) {
+discord::Message discord::Message::from_sent_message(nlohmann::json j) {
     auto m = Message{};
     m.token = discord::detail::bot_instance->token;
     snowflake sender_id = std::stoul(j["author"]["id"].get<std::string>());
@@ -27,18 +27,18 @@ discord::Message discord::Message::from_sent_message(json j) {
         break;
     }
 
-    for (auto const &mention : j["mentions"]) {
-        snowflake mention_id = std::stoul(mention["id"].get<std::string>());
-        for (auto const &member : m.channel.guild->members) {
-            if (member.id == mention_id) {
-                m.mentions.push_back(member);    
-            }
+    // for (auto const &mention : j["mentions"]) {
+    //     snowflake mention_id = std::stoul(mention["id"].get<std::string>());
+    //     for (auto const &member : m.channel.guild->members) {
+    //         if (member.id == mention_id) {
+    //             m.mentions.push_back(member);    
+    //         }
 
-            if (member.id == sender_id) {
-                m.author = member;
-            }
-        }
-    }
+    //         if (member.id == sender_id) {
+    //             m.author = member;
+    //         }
+    //     }
+    // }
 
     m.content = j["content"];
     m.type = j["type"];
@@ -50,7 +50,7 @@ std::string discord::Message::get_delete_url() {
 }
 
 void discord::Message::remove() {
-    send_request<request_method::Delete>(json({}), get_default_headers(), get_delete_url());
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_delete_url());
 }
 
 std::string discord::Message::get_edit_url() {
@@ -58,13 +58,13 @@ std::string discord::Message::get_edit_url() {
 }
 
 discord::Message discord::Message::edit(std::string content) {
-    json j = json({ { "content", content }, { "tts", tts } });
+    nlohmann::json j = nlohmann::json({ { "content", content }, { "tts", tts } });
     auto response = send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
     return discord::Message::from_sent_message(response);
 }
 
 discord::Message discord::Message::edit(EmbedBuilder embed, std::string content) {
-    json j = json({ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } });
+    nlohmann::json j = nlohmann::json({ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } });
 
     auto response = send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
     return discord::Message::from_sent_message(response);
@@ -79,9 +79,9 @@ std::string discord::Message::get_unpin_url() {
 }
 
 void discord::Message::unpin() {
-    send_request<request_method::Delete>(json({}), get_default_headers(), get_pin_url());
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_pin_url());
 }
 
 void discord::Message::pin() {
-    send_request<request_method::Put>(json({}), get_default_headers(), get_pin_url());
+    send_request<request_method::Put>(nlohmann::json({}), get_default_headers(), get_pin_url());
 }

@@ -1,7 +1,12 @@
 #pragma once
+#include <functional>
+#include <iostream>
+#include <tuple>
 #include <unordered_map>
+#include <vector>
 
 namespace discord {
+
     const inline std::unordered_map<std::string, int> event_m{
         { "HELLO", 0 },
         { "READY", 1 },

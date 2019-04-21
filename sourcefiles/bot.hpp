@@ -5,46 +5,45 @@
 #include "discord.hpp"
 #include "events.hpp"
 #include "exceptions.hpp"
-#include "function_types.hpp"
 #include "gatewayhandler.hpp"
 #include "guild.hpp"
 #include "message.hpp"
 
 discord::Bot::Bot(const std::string &token, const std::string prefix)
-    : prefix{ prefix }, token{ token } {
+    : prefix{ prefix }, token{ token }, ready{ false } {
     discord::detail::bot_instance = this;
 }
 
 discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
-    json j = json({ { "content", message_content }, { "tts", tts } });
+    nlohmann::json j = nlohmann::json({ { "content", message_content }, { "tts", tts } });
     auto response = send_request<request_method::Post>(j, get_default_headers(), get_channel_link(channel_id));
     return discord::Message::from_sent_message(response);
 }
 
-discord::Message discord::Bot::send_message(snowflake channel_id, json message_content, bool tts) {
+discord::Message discord::Bot::send_message(snowflake channel_id, nlohmann::json message_content, bool tts) {
     message_content["tts"] = tts;
     auto response = send_request<request_method::Post>(message_content, get_default_headers(), get_channel_link(channel_id));
     return discord::Message::from_sent_message(response);
 }
 
 void discord::Bot::on_incoming_packet(websocketpp::connection_hdl, client::message_ptr msg) {
-    packet_handling.push_back(
-        std::async(std::launch::async, [=]() {
-            json j = json::parse(msg->get_payload());
-            switch (j["op"].get<int>()) {
-                case (10):
-                    hello_packet = j;
-                    con->send(get_identify_packet());
-                    break;
-                case (11):
-                    heartbeat_acked = true;
-                    break;
-                default:
-                    std::string event_name = j["t"].is_null() ? "" : j["t"];
-                    handle_event(j, event_name);
-                    break;
-            }
-        }));
+    auto t_handle = [=]() {
+        nlohmann::json j = nlohmann::json::parse(msg->get_payload());
+        switch (j["op"].get<int>()) {
+            case (10):
+                hello_packet = j;
+                con->send(get_identify_packet());
+                break;
+            case (11):
+                heartbeat_acked = true;
+                break;
+            default:
+                std::string event_name = j["t"].is_null() ? "" : j["t"];
+                handle_event(j, event_name);
+                break;
+        }
+    };
+    ready ? packet_handling.push_back(std::async(std::launch::async, t_handle)) : t_handle();
     packet_counter++;
 }
 
@@ -84,19 +83,16 @@ void discord::Bot::run() {
     event_thread.join();
 }
 
-void discord::Bot::handle_event(json const j, std::string event_name) {
-    const json data = j["d"];
-    if (j.contains("s")) {
-        last_sequence_data = j["s"].is_number() ? j["s"].get<int>() : -1;
-    }
+void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) {
+    const nlohmann::json data = j["d"];
+    last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
 
     if (event_name == "HELLO") {
     } else if (event_name == "READY") {
         this->session_id = data["session_id"].get<std::string>();
-        ready = true;
         heartbeat_thread = std::thread{ &Bot::handle_heartbeat, this };
         initialize_variables(data.dump());
-        func_holder.call<events::ready>();
+        ready_packet = data;
     } else if (event_name == "RESUMED") {
     } else if (event_name == "INVALID_SESSION") {
     } else if (event_name == "CHANNEL_CREATE") {
@@ -104,25 +100,7 @@ void discord::Bot::handle_event(json const j, std::string event_name) {
     } else if (event_name == "CHANNEL_DELETE") {
     } else if (event_name == "CHANNEL_PINS_UPDATE") {
     } else if (event_name == "GUILD_CREATE") {
-        snowflake guild_id = std::stoul(data["id"].get<std::string>());
-        for (auto const &member : data["members"]) {
-            for (auto const &each : this->users) {
-                if (*each == std::stoul(member["user"]["id"].get<std::string>())) {
-                    break;
-                }
-            }
-            users.emplace_back(
-                std::make_unique<discord::User>(member["user"]));
-        }
-
-        auto guild = discord::Guild(j["d"]);
-        guilds.push_back(std::make_unique<discord::Guild>(j["d"]));
-
-        for (auto const &channel : data["channels"]) {
-            channels.emplace_back(
-                std::make_unique<discord::Channel>(channel, guild_id));
-        }
-        func_holder.call<events::guild_create>(guild);
+        guild_create_event(j);
     } else if (event_name == "GUILD_UPDATE") {
     } else if (event_name == "GUILD_DELETE") {
         snowflake to_remove = std::stoul(data["id"].get<std::string>());
@@ -131,6 +109,7 @@ void discord::Bot::handle_event(json const j, std::string event_name) {
                 return g->id == to_remove;
             }),
             guilds.end());
+        // func_holder.call<events::guild_delete>(ready);
     } else if (event_name == "GUILD_BAN_ADD") {
     } else if (event_name == "GUILD_BAN_REMOVE") {
     } else if (event_name == "GUILD_EMOJIS_UPDATE") {
@@ -144,10 +123,10 @@ void discord::Bot::handle_event(json const j, std::string event_name) {
     } else if (event_name == "GUILD_ROLE_DELETE") {
     } else if (event_name == "MESSAGE_CREATE") {
         auto message = Message::from_sent_message(data);
-        if (!message.author.bot) {
+        if (!(message.author.id == this->id)) {
             fire_commands(message);
         }
-        func_holder.call<events::message_create>(message);
+        func_holder.call<events::message_create>(ready, message);
     } else if (event_name == "MESSAGE_UPDATE") {
     } else if (event_name == "MESSAGE_DELETE") {
     } else if (event_name == "MESSAGE_DELETE_BULK") {
@@ -164,15 +143,15 @@ void discord::Bot::handle_event(json const j, std::string event_name) {
 }
 
 std::string discord::Bot::get_identify_packet() {
-    json obj = { { "op", 2 },
-                 { "d",
-                   { { "token", token },
-                     { "properties",
-                       { { "$os", "Linux" },
-                         { "$browser", "DiscordPP" },
-                         { "$device", "DiscordPP" } } },
-                     { "compress", false },
-                     { "large_threshold", 250 } } } };
+    nlohmann::json obj = { { "op", 2 },
+                           { "d",
+                             { { "token", token },
+                               { "properties",
+                                 { { "$os", "Linux" },
+                                   { "$browser", "DiscordPP" },
+                                   { "$device", "DiscordPP" } } },
+                               { "compress", false },
+                               { "large_threshold", 250 } } } };
     return obj.dump();
 }
 
@@ -193,7 +172,7 @@ void discord::Bot::await_events() {
 }
 
 std::string discord::Bot::get_gateway_url() {
-    auto r = send_request<request_method::Get>(json({}), get_basic_header(), format("%/gateway/bot", get_api()));
+    auto r = send_request<request_method::Get>(nlohmann::json({}), get_basic_header(), format("%/gateway/bot", get_api()));
     if (!r.contains("url")) {
         throw discord::ImproperToken();
     }
@@ -219,7 +198,7 @@ void discord::Bot::fire_commands(discord::Message &m) const {
 }
 
 void discord::Bot::initialize_variables(const std::string raw) {
-    json j = json::parse(raw);
+    nlohmann::json j = nlohmann::json::parse(raw);
     auto user = j["user"];
     std::string temp_id = user["id"];
     std::string temp_discrim = user["discriminator"];
@@ -242,36 +221,68 @@ cpr::Header discord::Bot::get_basic_header() {
 
 void discord::Bot::handle_heartbeat() {
     while (true) {
-        json data;
+        nlohmann::json data;
         if (last_sequence_data == -1) {
-            data = json({ { "op", 1 }, { "d", nullptr } });
+            data = nlohmann::json({ { "op", 1 }, { "d", nullptr } });
         } else {
-            data = json({ { "op", 1 }, { "d", last_sequence_data } });
+            data = nlohmann::json({ { "op", 1 }, { "d", last_sequence_data } });
         }
         con->send(data.dump());
         heartbeat_acked = false;
         std::this_thread::sleep_for(std::chrono::milliseconds(hello_packet["d"]["heartbeat_interval"].get<int>()));
         if (!heartbeat_acked) {
-            data = json({ { "token", token },
-                          { "session_id", session_id },
-                          { "seq", last_sequence_data } });
+            data = nlohmann::json({ { "token", token },
+                                    { "session_id", session_id },
+                                    { "seq", last_sequence_data } });
             con->send(data.dump());
         }
     }
 }
 
 discord::Guild discord::Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
-    const json data = json({ { "name", name },
-                             { "region", region },
-                             { "icon", "" },
-                             { "verification_level", verification_level },
-                             { "default_message_notifications", default_message_notifications },
-                             { "explicit_content_filter", explicit_content_filter },
-                             { "roles", {} },
-                             { "channels", {} } });
+    const nlohmann::json data = nlohmann::json({ { "name", name },
+                                                 { "region", region },
+                                                 { "icon", "" },
+                                                 { "verification_level", verification_level },
+                                                 { "default_message_notifications", default_message_notifications },
+                                                 { "explicit_content_filter", explicit_content_filter },
+                                                 { "roles", {} },
+                                                 { "channels", {} } });
     return discord::Guild{
         send_request<request_method::Post>(data, get_default_headers(), get_create_guild_url())
     };
+}
+
+void discord::Bot::guild_create_event(nlohmann::json j) {
+    const nlohmann::json data = j["d"];
+    snowflake guild_id = std::stoul(data["id"].get<std::string>());
+    for (auto const &member : data["members"]) {
+        for (auto const &each : this->users) {
+            if (*each == std::stoul(member["user"]["id"].get<std::string>())) {
+                break;
+            }
+        }
+        users.emplace_back(std::make_unique<discord::User>(member["user"]));
+    }
+
+    auto guild = discord::Guild(j["d"]);
+    guilds.push_back(std::make_unique<discord::Guild>(j["d"]));
+
+    for (auto const &channel : data["channels"]) {
+        channels.emplace_back(std::make_unique<discord::Channel>(channel, guild_id));
+    }
+
+    if (!ready) {
+        for (auto const &unavail_guild : ready_packet["guilds"]) {
+            snowflake g_id = std::stoul(unavail_guild["id"].get<std::string>());
+            if (std::find_if(guilds.begin(), guilds.end(), [&unavail_guild, &g_id](std::unique_ptr<discord::Guild> &g) { return g_id == g->id; }) == guilds.end()) {
+                return;
+            }
+        }
+        ready = true;
+        func_holder.call<events::ready>(true);
+    }
+    func_holder.call<events::guild_create>(ready, guild);
 }
 
 std::string discord::Bot::get_create_guild_url() {
