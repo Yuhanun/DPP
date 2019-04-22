@@ -51,6 +51,10 @@ namespace discord {
         return "https://discordapp.com/api/v6";
     }
 
+    inline std::string get_image_base_url(){
+        return "https://cdn.discordapp.com/";
+    }
+
     template <typename T>
     T get_value(nlohmann::json const &j, const char *s, T default_value) {
         return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<T>()) : default_value;
@@ -111,8 +115,8 @@ namespace discord {
     inline cpr::Header get_default_headers() {
         return cpr::Header{
             { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
-            { "Content-Type", "application/nlohmann::json" },
-            { "User-Agent", "DiscordPP (C++ discord library)" },
+            { "Content-Type", "application/json" },
+            { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
             { "Connection", "keep-alive" }
         };
     }

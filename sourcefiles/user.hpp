@@ -13,7 +13,7 @@ discord::User::User(nlohmann::json const j) {
     bot = j.contains("bot");
     avatar = discord::get_value(j, "avatar", "");
     discriminator = j["discriminator"];
-    id = std::stoul(j["id"].get<std::string>());
+    id = to_sf(j["id"]);
     name = j["username"];
     mention = "<@" + std::to_string(id) + ">";
 }

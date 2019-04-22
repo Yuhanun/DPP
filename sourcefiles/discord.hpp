@@ -292,23 +292,7 @@ namespace discord {
         discord::Guild* guild;
         std::vector<discord::PermissionOverwrites> overwrites;
     };
-
-    class Emoji : public Object {
-        Emoji() = default;
-        Emoji(std::string const& event);
-
-    public:
-        bool managed;
-        bool animated;
-        bool require_colons;
-
-        snowflake id;
-        std::string name;
-        // discord::User user;
-        // std::vector<discord::Role> roles;
-    };
-
-
+    
     class User : public Object {
     public:
         User() = default;
@@ -325,6 +309,26 @@ namespace discord {
         std::string discriminator;
     };
 
+    class Emoji : public Object {
+    public:
+        Emoji() = default;
+        Emoji(nlohmann::json);
+        operator std::string();
+
+    public:
+        bool managed;
+        bool animated;
+        bool require_colons;
+
+        snowflake id;
+        std::string url;
+        std::string name;
+        discord::User user;
+        std::vector<discord::Role> roles;
+    };
+
+
+
     class Member : public User {
     public:
         Member() = default;
@@ -335,7 +339,7 @@ namespace discord {
         bool deaf;
         bool muted;
 
-        // std::vector<discord::Role> roles;
+        std::vector<discord::Role> roles;
 
         std::string nick;
         std::string joined_at;
@@ -387,8 +391,8 @@ namespace discord {
         std::string vanity_url_code;
 
         std::vector<int> features;
-        // std::vector<discord::Role> roles;
-        // std::vector<discord::Emoji> emojis;
+        std::vector<discord::Role> roles;
+        std::vector<discord::Emoji> emojis;
         std::vector<discord::Member> members;
         std::vector<discord::Channel> channels;
 
@@ -436,19 +440,17 @@ namespace discord {
         discord::Channel channel;
 
         std::vector<discord::Member> mentions;
-        // std::vector<discord::Role> mentioned_roles;
-        // std::vector<type> attachments;
-        // std::vector<embed> embeds;
+        std::vector<discord::Role> mentioned_roles;
+        // TODO std::vector<type> attachments;
+        std::vector<discord::EmbedBuilder> embeds;
 
     private:
         std::string token;
     };
 
-    class Role : public Object {
-    };
-
     class EmbedBuilder {
     public:
+        EmbedBuilder(nlohmann::json);
         EmbedBuilder();
         EmbedBuilder& set_title(std::string const&);
         EmbedBuilder& set_description(std::string const&);
@@ -462,11 +464,12 @@ namespace discord {
         EmbedBuilder& set_author(std::string const&, std::string const&, std::string const&);
         EmbedBuilder& add_field(std::string const&, std::string const&, const bool = false);
         nlohmann::json& to_json();
+        operator nlohmann::json();
 
     private:
         nlohmann::json embed;
     };
-
+    
     class Color {
     public:
         Color() = default;
@@ -512,6 +515,23 @@ namespace discord {
 
         PermissionOverwrite allow_perms;
         PermissionOverwrite deny_perms;
+    };
+
+    class Role : public Object {
+    public:
+        Role() = default;
+        Role(snowflake);
+        Role(nlohmann::json);
+
+    public:
+        bool hoist;
+        bool managed;
+        bool mentionable;
+
+        std::string name;
+
+        Color color;
+        PermissionOverwrites permissions;
     };
 
     class ImproperToken : public std::exception {

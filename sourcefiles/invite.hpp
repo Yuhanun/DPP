@@ -10,12 +10,12 @@ discord::Invite::Invite(nlohmann::json const data) {
     max_uses = get_value(data, "max_uses", 0);
     created_at = get_value(data, "created_at", "");
 
-    snowflake temp_guild_id = std::stoul(data["guild"]["id"].get<std::string>());
+    snowflake temp_guild_id = to_sf(data["guild"]["id"]);
     auto guild = discord::utils::get(discord::detail::bot_instance->guilds, [temp_guild_id](std::unique_ptr<discord::Guild> &g) {
         return g->id == temp_guild_id;
     });
 
-    snowflake temp_channel_id = std::stoul(data["channel"]["id"].get<std::string>());
+    snowflake temp_channel_id = to_sf(data["channel"]["id"]);
     for (auto const &c : guild->channels) {
         if (c.id != temp_channel_id) {
             continue;

@@ -22,13 +22,13 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
             type = channel_type::CategoryChannel;
         } else {
             type = channel_type::VoiceChannel;
-            parent_id = std::stoul(get_value(data, "parent_id", "0"));
+            parent_id = to_sf(get_value(data, "parent_id", "0"));
         }
         bitrate = data["bitrate"];
         user_limit = data["user_limit"];
     } else {
         type = channel_type::TextChannel;
-        parent_id = std::stoul(get_value(data, "parent_id", "0"));
+        parent_id = to_sf(get_value(data, "parent_id", "0"));
         rate_limit_per_user = get_value(data, "rate_limit_per_user", 0);
         topic = discord::get_value(data, "topic", "");
     }
@@ -46,11 +46,11 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
         int t = each["type"].get<std::string>() == "role" ? role : member;
         overwrites.push_back(discord::PermissionOverwrites{
             each["allow"].get<int>(), each["deny"].get<int>(),
-            std::stoul(each["id"].get<std::string>()), t });
+            to_sf(each["id"]), t });
     }
     name = data["name"];
     position = data["position"];
-    id = std::stoul(data["id"].get<std::string>());
+    id = to_sf(data["id"]);
 }
 
 discord::Message discord::Channel::send(std::string content, bool tts) const {

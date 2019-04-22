@@ -2,6 +2,11 @@
 
 #include "discord.hpp"
 
+
+discord::EmbedBuilder::EmbedBuilder(nlohmann::json event) {
+    embed = event;
+}
+
 discord::EmbedBuilder::EmbedBuilder() {
     embed = nlohmann::json({});
 }
@@ -120,5 +125,9 @@ discord::EmbedBuilder::add_field(std::string const &name,
 }
 
 nlohmann::json &discord::EmbedBuilder::to_json() {
+    return embed;
+}
+
+discord::EmbedBuilder::operator nlohmann::json() {
     return embed;
 }

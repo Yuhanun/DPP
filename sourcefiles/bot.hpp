@@ -97,7 +97,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     } else if (event_name == "INVALID_SESSION") {
         func_holder.call<events::invalid_session>(packet_handling, true);
     } else if (event_name == "CHANNEL_CREATE") {
-        auto channel = Channel{ data, std::stoul(data["guild_id"].get<std::string>()) };
+        auto channel = Channel{ data, to_sf(data["guild_id"]) };
         for (auto &guild : this->guilds) {
             if (guild->id != channel.guild->id) {
                 continue;
@@ -107,7 +107,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
         }
         func_holder.call<events::channel_create>(packet_handling, true, channel);
     } else if (event_name == "CHANNEL_UPDATE") {
-        auto channel = Channel{ data, std::stoul(data["guild_id"].get<std::string>()) };
+        auto channel = Channel{ data, to_sf(data["guild_id"]) };
         for (auto &guild : this->guilds) {
             if (guild->id != channel.guild->id) {
                 continue;
@@ -122,7 +122,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     found_chan_update:
         func_holder.call<events::channel_create>(packet_handling, true, channel);
     } else if (event_name == "CHANNEL_DELETE") {
-        snowflake chan_id = std::stoul(data["id"].get<std::string>());
+        snowflake chan_id = to_sf(data["id"]);
         discord::Channel event_chan;
         for (auto &guild : this->guilds) {
             for (std::size_t i = 0; i < guild->channels.size(); i++) {
@@ -175,8 +175,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
         }
         func_holder.call<events::message_create>(packet_handling, ready, message);
     } else if (event_name == "MESSAGE_UPDATE") {
-        auto message = Message::from_sent_message(data);
-        func_holder.call<events::message_update>(packet_handling, ready, message);
+        func_holder.call<events::message_update>(packet_handling, ready, Message::from_sent_message(data));
     } else if (event_name == "MESSAGE_DELETE") {
     } else if (event_name == "MESSAGE_DELETE_BULK") {
     } else if (event_name == "MESSAGE_REACTION_ADD") {
@@ -251,10 +250,8 @@ void discord::Bot::fire_commands(discord::Message &m) const {
 void discord::Bot::initialize_variables(const std::string raw) {
     nlohmann::json j = nlohmann::json::parse(raw);
     auto user = j["user"];
-    std::string temp_id = user["id"];
     discriminator = user["discriminator"];
-    id = std::stoul(temp_id);
-
+    id = to_sf(user["id"]);
     verified = user["verified"];
     mfa_enabled = user["mfa_enabled"];
     bot = user["bot"];
@@ -305,10 +302,11 @@ discord::Guild discord::Bot::create_guild(std::string const &name, std::string c
 
 void discord::Bot::guild_create_event(nlohmann::json j) {
     const nlohmann::json data = j["d"];
-    snowflake guild_id = std::stoul(data["id"].get<std::string>());
+    snowflake guild_id = to_sf(data["id"]);
     for (auto const &member : data["members"]) {
+        auto mem_id = to_sf(member["user"]["id"]);
         for (auto const &each : this->users) {
-            if (*each == std::stoul(member["user"]["id"].get<std::string>())) {
+            if (*each == mem_id) {
                 break;
             }
         }
@@ -324,7 +322,7 @@ void discord::Bot::guild_create_event(nlohmann::json j) {
 
     if (!ready) {
         for (auto const &unavail_guild : ready_packet["guilds"]) {
-            snowflake g_id = std::stoul(unavail_guild["id"].get<std::string>());
+            snowflake g_id = to_sf(unavail_guild["id"]);
             if (std::find_if(guilds.begin(), guilds.end(), [&unavail_guild, &g_id](std::unique_ptr<discord::Guild> &g) { return g_id == g->id; }) == guilds.end()) {
                 return;
             }

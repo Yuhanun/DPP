@@ -11,14 +11,18 @@ discord::Message::Message(snowflake id)
 discord::Message discord::Message::from_sent_message(nlohmann::json j) {
     auto m = Message{};
     m.token = discord::detail::bot_instance->token;
-    snowflake sender_id = std::stoul(get_value(j["author"], "id", "0"));
+    snowflake sender_id = to_sf(get_value(j["author"], "id", "0"));
     m.sent = true;
     m.pinned = j["pinned"];
     m.tts = j["tts"];
     m.timestamp = j["timestamp"];
     m.mention_everyone = j["mention_everyone"];
-    m.id = std::stoul(j["id"].get<std::string>());
-    snowflake channel_id = std::stoul(j["channel_id"].get<std::string>());
+    m.id = to_sf(j["id"]);
+    snowflake channel_id = to_sf(j["channel_id"]);
+
+    for (auto const &mention : j["mention_roles"]) {
+        m.mentioned_roles.push_back(discord::Role{ to_sf(mention) });
+    }
 
     for (auto const &chan : discord::detail::bot_instance->channels) {
         if (chan->id != channel_id) {
@@ -36,7 +40,7 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
     }
 
     for (auto const &mention : j["mentions"]) {
-        snowflake mention_id = std::stoul(mention["id"].get<std::string>());
+        snowflake mention_id = to_sf(mention["id"]);
         for (auto const &member : m.channel.guild->members) {
             if (member.id != mention_id) {
                 continue;
@@ -44,6 +48,10 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
             m.mentions.push_back(member);
             break;
         }
+    }
+
+    for (auto const &embed : j["embeds"]) {
+        m.embeds.push_back(discord::EmbedBuilder{ embed });
     }
 
     m.edited_timestamp = get_value(j, "edited_timestamp", "");

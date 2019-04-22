@@ -14,6 +14,10 @@ discord::Guild::Guild(snowflake id)
 }
 
 discord::Guild::Guild(nlohmann::json const guild) {
+    for (auto &each : guild["roles"]) {
+        roles.emplace_back(discord::Role{ each });
+    }
+
     for (auto &each : guild["members"]) {
         discord::Member member{ each, discord::User(each["user"]) };
         members.push_back(member);
@@ -21,8 +25,12 @@ discord::Guild::Guild(nlohmann::json const guild) {
             owner = member;
         }
     }
-    std::string temp_id = guild["id"];
-    id = std::stoul(temp_id);
+
+    for (auto const &emoji : guild["emojis"]) {
+        emojis.push_back(discord::Emoji{ emoji });
+    }
+
+    id = to_sf(guild["id"]);
 
     for (auto &channel : guild["channels"]) {
         discord::Channel c{ channel, id };
@@ -39,10 +47,9 @@ discord::Guild::Guild(nlohmann::json const guild) {
     large = get_value(guild, "large", true);
     unavailable = get_value(guild, "unavailable", false);
 
-    std::string temp_app_id = get_value(guild, "application_id", "0");
-    application_id = std::stoul(temp_app_id);
+    application_id = to_sf(get_value(guild, "application_id", "0"));
 
-    name = guild["name"];
+        name = guild["name"];
     icon = get_value(guild, "icon", "");
     region = guild["region"];
     banner = get_value(guild, "banner", "");

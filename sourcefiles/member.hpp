@@ -6,8 +6,7 @@ discord::Member::Member(snowflake id)
     : discord::User(id) {
 }
 
-discord::Member::Member(nlohmann::json const j, discord::User const &user)
-{
+discord::Member::Member(nlohmann::json const j, discord::User const& user) {
     deaf = j["deaf"];
     muted = j["mute"];
     nick = get_value(j, "nick", "");
@@ -18,5 +17,7 @@ discord::Member::Member(nlohmann::json const j, discord::User const &user)
     avatar = user.avatar;
     mention = user.mention;
     discriminator = user.discriminator;
-    // roles = j["roles"];
+    for (auto const& role : j["roles"]) {
+        roles.push_back(discord::Role{ to_sf(role) });
+    }
 }

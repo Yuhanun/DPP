@@ -27,11 +27,12 @@ int main() {
     //               << "-----------------------------" << std::endl;
     // });
 
-    // bot.register_command("test", [&bot](discord::Message& m, std::vector<std::string>& args) {
-    //     for (auto const& each : m.mentions) {
-    //         std::cout << each.name << std::endl;
-    //     }
-    // });
+    bot.register_command("test", [&bot](discord::Message& m, std::vector<std::string>& args) {
+        discord::EmbedBuilder embed{};
+        embed.set_color(0x00ff00).set_description("Description");
+        auto msg = m.channel.send(embed);
+        msg.channel.send(msg.embeds[0]);
+    });
 
     bot.run();
     return 0;
