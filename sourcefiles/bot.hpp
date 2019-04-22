@@ -38,7 +38,7 @@ void discord::Bot::on_incoming_packet(websocketpp::connection_hdl, client::messa
             break;
         default:
             std::string event_name = j["t"].is_null() ? "" : j["t"];
-            std::printf("%s\n", event_name.c_str());
+            std::cout << event_name << std::endl;
             handle_event(j, event_name);
             break;
     }
@@ -97,45 +97,11 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     } else if (event_name == "INVALID_SESSION") {
         func_holder.call<events::invalid_session>(packet_handling, true);
     } else if (event_name == "CHANNEL_CREATE") {
-        auto channel = Channel{ data, to_sf(data["guild_id"]) };
-        for (auto &guild : this->guilds) {
-            if (guild->id != channel.guild->id) {
-                continue;
-            }
-            guild->channels.push_back(channel);
-            break;
-        }
-        func_holder.call<events::channel_create>(packet_handling, true, channel);
+        channel_create_event(j);
     } else if (event_name == "CHANNEL_UPDATE") {
-        auto channel = Channel{ data, to_sf(data["guild_id"]) };
-        for (auto &guild : this->guilds) {
-            if (guild->id != channel.guild->id) {
-                continue;
-            }
-            for (auto &each : guild->channels) {
-                if (each.id == channel.id) {
-                    each = channel;
-                    goto found_chan_update;
-                }
-            }
-        }
-    found_chan_update:
-        func_holder.call<events::channel_create>(packet_handling, true, channel);
+        channel_update_event(j);
     } else if (event_name == "CHANNEL_DELETE") {
-        snowflake chan_id = to_sf(data["id"]);
-        discord::Channel event_chan;
-        for (auto &guild : this->guilds) {
-            for (std::size_t i = 0; i < guild->channels.size(); i++) {
-                if (guild->channels[i].id != chan_id) {
-                    continue;
-                }
-                event_chan = guild->channels[i];
-                guild->channels.erase(guild->channels.begin() + i);
-                goto found_chan_delete;
-            }
-        }
-    found_chan_delete:
-        func_holder.call<events::channel_delete>(packet_handling, true, event_chan);
+        channel_delete_event(j);
     } else if (event_name == "CHANNEL_PINS_UPDATE") {
         func_holder.call<events::channel_pins_update>(packet_handling, true, Channel{ to_sf(data["channel_id"]) });
     } else if (event_name == "GUILD_CREATE") {
@@ -300,9 +266,60 @@ discord::Guild discord::Bot::create_guild(std::string const &name, std::string c
     };
 }
 
+void discord::Bot::channel_create_event(nlohmann::json j) {
+    const auto data = j["d"];
+    auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
+    if (channel.guild) {
+        for (auto &guild : this->guilds) {
+            if (guild->id != channel.guild->id) {
+                continue;
+            }
+            guild->channels.push_back(channel);
+            break;
+        }
+    }
+    func_holder.call<events::channel_create>(packet_handling, true, channel);
+}
+
+void discord::Bot::channel_update_event(nlohmann::json j) {
+    const nlohmann::json data = j["d"];
+    auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
+    for (auto &guild : this->guilds) {
+        if (guild->id != channel.guild->id) {
+            continue;
+        }
+        for (auto &each : guild->channels) {
+            if (each.id == channel.id) {
+                each = channel;
+                goto found_chan_update;
+            }
+        }
+    }
+found_chan_update:
+    func_holder.call<events::channel_create>(packet_handling, true, channel);
+}
+
+void discord::Bot::channel_delete_event(nlohmann::json j) {
+    const nlohmann::json data = j["d"];
+    snowflake chan_id = to_sf(data["id"]);
+    discord::Channel event_chan;
+    for (auto &guild : this->guilds) {
+        for (std::size_t i = 0; i < guild->channels.size(); i++) {
+            if (guild->channels[i].id != chan_id) {
+                continue;
+            }
+            event_chan = guild->channels[i];
+            guild->channels.erase(guild->channels.begin() + i);
+            goto found_chan_delete;
+        }
+    }
+found_chan_delete:
+    func_holder.call<events::channel_delete>(packet_handling, true, event_chan);
+}
+
 void discord::Bot::guild_create_event(nlohmann::json j) {
     const nlohmann::json data = j["d"];
-    snowflake guild_id = to_sf(data["id"]);
+    snowflake guild_id = to_sf(get_value(data, "id", "0"));
     for (auto const &member : data["members"]) {
         auto mem_id = to_sf(member["user"]["id"]);
         for (auto const &each : this->users) {

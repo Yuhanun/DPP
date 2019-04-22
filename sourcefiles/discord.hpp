@@ -170,7 +170,9 @@ namespace discord {
         void initialize_variables(const std::string);
 
         void guild_create_event(nlohmann::json);
-
+        void channel_create_event(nlohmann::json);
+        void channel_update_event(nlohmann::json);
+        void channel_delete_event(nlohmann::json);
 
         std::string get_gateway_url();
         std::string get_identify_packet();
@@ -290,6 +292,7 @@ namespace discord {
         std::string topic;
 
         discord::Guild* guild;
+        std::vector<discord::User> recipients;
         std::vector<discord::PermissionOverwrites> overwrites;
     };
     

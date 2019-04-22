@@ -4,12 +4,11 @@
 #include "permissions.hpp"
 #include "utility.hpp"
 
-discord::Channel::Channel(snowflake id)
-{
+discord::Channel::Channel(snowflake id) {
     this->id = id;
-    for (auto const& guild : discord::detail::bot_instance->guilds){
-        for (auto const& channel : guild->channels){
-            if (channel.id == id){
+    for (auto const &guild : discord::detail::bot_instance->guilds) {
+        for (auto const &channel : guild->channels) {
+            if (channel.id == id) {
                 *this = channel;
             }
         }
@@ -17,39 +16,50 @@ discord::Channel::Channel(snowflake id)
 }
 
 discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
+    type = data["type"];
     if (data.contains("bitrate")) {
-        if (!data.contains("parent_id")) {
-            type = channel_type::CategoryChannel;
-        } else {
-            type = channel_type::VoiceChannel;
+        if (data.contains("parent_id")) {
             parent_id = to_sf(get_value(data, "parent_id", "0"));
         }
         bitrate = data["bitrate"];
         user_limit = data["user_limit"];
     } else {
-        type = channel_type::TextChannel;
         parent_id = to_sf(get_value(data, "parent_id", "0"));
         rate_limit_per_user = get_value(data, "rate_limit_per_user", 0);
         topic = discord::get_value(data, "topic", "");
     }
 
     guild = nullptr;
-    for (auto const &v_guild : discord::detail::bot_instance->guilds) {
-        if (v_guild->id != guild_id) {
-            continue;
+    if (guild_id) {
+        for (auto const &v_guild : discord::detail::bot_instance->guilds) {
+            if (v_guild->id != guild_id) {
+                continue;
+            }
+            guild = v_guild.get();
+            break;
         }
-        guild = v_guild.get();
-        break;
     }
 
-    for (auto &each : data["permission_overwrites"]) {
-        int t = each["type"].get<std::string>() == "role" ? role : member;
-        overwrites.push_back(discord::PermissionOverwrites{
-            each["allow"].get<int>(), each["deny"].get<int>(),
-            to_sf(each["id"]), t });
+    if (type == channel_type::dm_channel || type == channel_type::group_dm_channel) {
+        for (auto const &each : data["recipients"]) {
+            recipients.push_back(discord::User{ each });
+        }
+    } 
+
+    if (data.contains("permission_overwrites")) {
+        for (auto &each : data["permission_overwrites"]) {
+            int t = each["type"].get<std::string>() == "role" ? role : member;
+            overwrites.push_back(discord::PermissionOverwrites{
+                each["allow"].get<int>(), each["deny"].get<int>(),
+                to_sf(each["id"]), t });
+        }
     }
-    name = data["name"];
-    position = data["position"];
+    if (data.contains("name")) {
+        name = data["name"];
+    }
+    if (data.contains("position")){
+        position = data["position"];
+    }
     id = to_sf(data["id"]);
 }
 

@@ -12,9 +12,8 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
     auto m = Message{};
     m.token = discord::detail::bot_instance->token;
     snowflake sender_id = to_sf(get_value(j["author"], "id", "0"));
-    m.sent = true;
-    m.pinned = j["pinned"];
-    m.tts = j["tts"];
+    m.pinned = get_value(j, "pinned", false);
+    m.tts = get_value(j, "tts", false);
     m.timestamp = j["timestamp"];
     m.mention_everyone = j["mention_everyone"];
     m.id = to_sf(j["id"]);

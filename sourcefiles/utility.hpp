@@ -19,7 +19,7 @@ namespace discord {
         }
     };  // namespace utils
 
-    inline snowflake to_sf(nlohmann::json const& sf){
+    inline snowflake to_sf(nlohmann::json const &sf) {
         return std::stoul(sf.get<std::string>());
     }
 
@@ -51,7 +51,7 @@ namespace discord {
         return "https://discordapp.com/api/v6";
     }
 
-    inline std::string get_image_base_url(){
+    inline std::string get_image_base_url() {
         return "https://cdn.discordapp.com/";
     }
 
@@ -121,16 +121,26 @@ namespace discord {
         };
     }
 
-    enum object_type { role,
-                       member };
+    enum object_type {
+        role,
+        member
+    };
 
-    enum permission_type { deny,
-                           allow,
-                           neutral };
+    enum permission_type {
+        deny,
+        allow,
+        neutral
+    };
 
-    enum channel_type { TextChannel,
-                        VoiceChannel,
-                        CategoryChannel };
+    enum channel_type {
+        guild_text_channel,
+        dm_channel,
+        guild_voice_channel,
+        group_dm_channel,
+        guild_category_channel,
+        guild_news_channel,
+        guild_store_channel
+    };
 
     enum request_method {
         Get,

@@ -1,6 +1,6 @@
+#include <fstream>
 #include <iostream>
 #include <thread>
-#include <fstream>
 
 #include "activity.hpp"
 #include "embedbuilder.hpp"
@@ -30,13 +30,15 @@ int main() {
     //               << "-----------------------------" << std::endl;
     // });
 
-    bot.register_command("test", [&bot](discord::Message& m, std::vector<std::string>& args) {
-        discord::EmbedBuilder embed{};
-        embed.set_color(0x00ff00).set_description("Description");
-        auto msg = m.channel.send(embed);
-        msg.channel.send(msg.embeds[0]);
-    });
-
+    auto l = [&bot](discord::Message m) {
+        std::cout << "Content: " << m.content << std::endl
+                  << "Created at: " << m.timestamp << std::endl
+                  << "Edited at: " << m.edited_timestamp << std::endl
+                  << "Author: " << m.author.name << "#" << m.author.discriminator << std::endl
+                  << "-----------------------------" << std::endl;
+    };
+    bot.register_callback<discord::events::message_create>(l);
+    bot.register_callback<discord::events::message_update>(l);
     bot.run();
     return 0;
 }
