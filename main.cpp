@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <fstream>
 
 #include "activity.hpp"
 #include "embedbuilder.hpp"
@@ -9,7 +10,9 @@
 
 
 int main() {
-
+    std::ifstream file("token.txt");
+    std::string token;
+    std::getline(file, token);
     discord::Bot bot{ token, "." };
 
     bot.register_callback<discord::events::ready>([&bot]() {
