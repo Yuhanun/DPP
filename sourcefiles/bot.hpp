@@ -27,23 +27,21 @@ discord::Message discord::Bot::send_message(snowflake channel_id, nlohmann::json
 }
 
 void discord::Bot::on_incoming_packet(websocketpp::connection_hdl, client::message_ptr msg) {
-    auto t_handle = [=]() {
-        nlohmann::json j = nlohmann::json::parse(msg->get_payload());
-        switch (j["op"].get<int>()) {
-            case (10):
-                hello_packet = j;
-                con->send(get_identify_packet());
-                break;
-            case (11):
-                heartbeat_acked = true;
-                break;
-            default:
-                std::string event_name = j["t"].is_null() ? "" : j["t"];
-                handle_event(j, event_name);
-                break;
-        }
-    };
-    ready ? packet_handling.push_back(std::async(std::launch::async, t_handle)) : t_handle();
+    nlohmann::json j = nlohmann::json::parse(msg->get_payload());
+    switch (j["op"].get<int>()) {
+        case (10):
+            hello_packet = j;
+            con->send(get_identify_packet());
+            break;
+        case (11):
+            heartbeat_acked = true;
+            break;
+        default:
+            std::string event_name = j["t"].is_null() ? "" : j["t"];
+            std::printf("%s\n", event_name.c_str());
+            handle_event(j, event_name);
+            break;
+    }
     packet_counter++;
 }
 
@@ -88,18 +86,18 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
 
     if (event_name == "HELLO") {
-        func_holder.call<events::hello>(true);
+        func_holder.call<events::hello>(packet_handling, true);
     } else if (event_name == "READY") {
         this->session_id = data["session_id"].get<std::string>();
         heartbeat_thread = std::thread{ &Bot::handle_heartbeat, this };
         initialize_variables(data.dump());
         ready_packet = data;
     } else if (event_name == "RESUMED") {
-        func_holder.call<events::resumed>(true);
+        func_holder.call<events::resumed>(packet_handling, true);
     } else if (event_name == "INVALID_SESSION") {
-        func_holder.call<events::invalid_session>(true);
+        func_holder.call<events::invalid_session>(packet_handling, true);
     } else if (event_name == "CHANNEL_CREATE") {
-        auto channel = Channel{ data };
+        auto channel = Channel{ data, std::stoul(data["guild_id"].get<std::string>()) };
         for (auto &guild : this->guilds) {
             if (guild->id != channel.guild->id) {
                 continue;
@@ -107,9 +105,9 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
             guild->channels.push_back(channel);
             break;
         }
-        func_holder.call<events::channel_create>(true, channel);
+        func_holder.call<events::channel_create>(packet_handling, true, channel);
     } else if (event_name == "CHANNEL_UPDATE") {
-        auto channel = Channel{ data };
+        auto channel = Channel{ data, std::stoul(data["guild_id"].get<std::string>()) };
         for (auto &guild : this->guilds) {
             if (guild->id != channel.guild->id) {
                 continue;
@@ -122,9 +120,9 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
             }
         }
     found_chan_update:
-        func_holder.call<events::channel_create>(true, channel);
+        func_holder.call<events::channel_create>(packet_handling, true, channel);
     } else if (event_name == "CHANNEL_DELETE") {
-        snowflake chan_id = std::stoul(data["channel_id"].get<std::string>());
+        snowflake chan_id = std::stoul(data["id"].get<std::string>());
         discord::Channel event_chan;
         for (auto &guild : this->guilds) {
             for (std::size_t i = 0; i < guild->channels.size(); i++) {
@@ -137,19 +135,28 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
             }
         }
     found_chan_delete:
-        func_holder.call<events::channel_delete>(true, event_chan);
+        func_holder.call<events::channel_delete>(packet_handling, true, event_chan);
     } else if (event_name == "CHANNEL_PINS_UPDATE") {
+        func_holder.call<events::channel_pins_update>(packet_handling, true, Channel{ to_sf(data["channel_id"]) });
     } else if (event_name == "GUILD_CREATE") {
         guild_create_event(j);
     } else if (event_name == "GUILD_UPDATE") {
+        snowflake new_guild = to_sf(data["id"]);
+        Guild g;
+        for (auto &each : guilds) {
+            if (new_guild == each->id) {
+                each = std::make_unique<Guild>(data);
+                g = *(each.get());
+            }
+        }
+        func_holder.call<events::guild_update>(packet_handling, true, g);
     } else if (event_name == "GUILD_DELETE") {
-        snowflake to_remove = std::stoul(data["id"].get<std::string>());
+        snowflake to_remove = to_sf(data["id"]);
         guilds.erase(
             std::remove_if(guilds.begin(), guilds.end(), [&to_remove](std::unique_ptr<discord::Guild> const &g) {
                 return g->id == to_remove;
             }),
             guilds.end());
-        // func_holder.call<events::guild_delete>(ready);
     } else if (event_name == "GUILD_BAN_ADD") {
     } else if (event_name == "GUILD_BAN_REMOVE") {
     } else if (event_name == "GUILD_EMOJIS_UPDATE") {
@@ -166,10 +173,10 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
         if (!(message.author.id == this->id)) {
             fire_commands(message);
         }
-        func_holder.call<events::message_create>(ready, message);
+        func_holder.call<events::message_create>(packet_handling, ready, message);
     } else if (event_name == "MESSAGE_UPDATE") {
         auto message = Message::from_sent_message(data);
-        func_holder.call<events::message_update>(ready, message);
+        func_holder.call<events::message_update>(packet_handling, ready, message);
     } else if (event_name == "MESSAGE_DELETE") {
     } else if (event_name == "MESSAGE_DELETE_BULK") {
     } else if (event_name == "MESSAGE_REACTION_ADD") {
@@ -203,12 +210,11 @@ void discord::Bot::gateway_auth() {
 
 void discord::Bot::await_events() {
     event_thread = std::thread{ [&]() {
-        while (true){
+        while (true) {
             if (!packet_handling.size()){
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 continue;
             }
-            packet_handling[0].wait();
             packet_handling.erase(packet_handling.begin());
     } } };
 }
@@ -226,12 +232,15 @@ void discord::Bot::register_command(std::string const &command_name, std::functi
 }
 
 void discord::Bot::fire_commands(discord::Message &m) const {
-    std::vector<std::string> argument_vec;
-    boost::split(argument_vec, m.content, boost::is_any_of(" "));
-    if (argument_vec.size() < 1) {
+    if (!boost::starts_with(m.content, prefix)) {
         return;
     }
-    auto command_name = argument_vec[0].substr(1, argument_vec[0].size());
+    std::vector<std::string> argument_vec;
+    boost::split(argument_vec, m.content, boost::is_any_of(" "));
+    if (!argument_vec.size()) {
+        return;
+    }
+    auto command_name = argument_vec[0].erase(0, prefix.size());
     if (command_map.find(command_name) == command_map.end()) {
         return;
     }
@@ -243,16 +252,15 @@ void discord::Bot::initialize_variables(const std::string raw) {
     nlohmann::json j = nlohmann::json::parse(raw);
     auto user = j["user"];
     std::string temp_id = user["id"];
-    std::string temp_discrim = user["discriminator"];
+    discriminator = user["discriminator"];
     id = std::stoul(temp_id);
-    discriminator = std::stoi(temp_discrim);
 
     verified = user["verified"];
     mfa_enabled = user["mfa_enabled"];
     bot = user["bot"];
     username = user["username"];
-    avatar = j["avatar"].is_string() ? j["avatar"] : "Null";
-    email = j["email"].is_string() ? j["email"] : "Null";
+    avatar = get_value(j, "avatar", "");
+    email = get_value(j, "email", "");
 }
 
 cpr::Header discord::Bot::get_basic_header() {
@@ -322,9 +330,9 @@ void discord::Bot::guild_create_event(nlohmann::json j) {
             }
         }
         ready = true;
-        func_holder.call<events::ready>(true);
+        func_holder.call<events::ready>(packet_handling, true);
     }
-    func_holder.call<events::guild_create>(ready, guild);
+    func_holder.call<events::guild_create>(packet_handling, ready, guild);
 }
 
 void discord::Bot::update_presence(Activity const &act) {

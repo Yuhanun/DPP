@@ -11,7 +11,7 @@ discord::Message::Message(snowflake id)
 discord::Message discord::Message::from_sent_message(nlohmann::json j) {
     auto m = Message{};
     m.token = discord::detail::bot_instance->token;
-    snowflake sender_id = std::stoul(j["author"]["id"].get<std::string>());
+    snowflake sender_id = std::stoul(get_value(j["author"], "id", "0"));
     m.sent = true;
     m.pinned = j["pinned"];
     m.tts = j["tts"];

@@ -19,6 +19,15 @@ namespace discord {
         }
     };  // namespace utils
 
+    inline snowflake to_sf(nlohmann::json const& sf){
+        return std::stoul(sf.get<std::string>());
+    }
+
+    inline snowflake to_sf(std::string sf) {
+        return std::stoul(sf);
+    }
+
+
     template <typename S>
     inline void format_slice(std::string const &input_str, std::stringstream &output_str, int &start_index, S var) {
         long unsigned int index = input_str.find('%', start_index);
@@ -51,7 +60,7 @@ namespace discord {
         return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<std::string>()) : default_value;
     }
 
-    inline std::string get_channel_link(snowflake id) {
+    inline std::string get_channel_link(uint64_t id) {
         return format("%/channels/%/messages", get_api(), id);
     }
 

@@ -9,7 +9,7 @@
 
 
 int main() {
-    const std::string token = "";
+
     discord::Bot bot{ token, "." };
 
     bot.register_callback<discord::events::ready>([&bot]() {
@@ -20,18 +20,18 @@ int main() {
         std::cout << "-----------------------------" << std::endl;
     });
 
-    bot.register_callback<discord::events::message_update>([&bot](discord::Message m) {
-        std::cout << "Message with ID: " << m.id << std::endl
-                  << "Updated at " << m.edited_timestamp << std::endl
-                  << "New text: " << m.content << std::endl
-                  << "-----------------------------" << std::endl;
-    });
+    // bot.register_callback<discord::events::message_update>([&bot](discord::Message m) {
+    //     std::cout << "Message with ID: " << m.id << std::endl
+    //               << "Updated at " << m.edited_timestamp << std::endl
+    //               << "New text: " << m.content << std::endl
+    //               << "-----------------------------" << std::endl;
+    // });
 
-    bot.register_command("test", [&bot](discord::Message& m, std::vector<std::string>& args) {
-        for (auto const& each : m.mentions) {
-            std::cout << each.name << std::endl;
-        }
-    });
+    // bot.register_command("test", [&bot](discord::Message& m, std::vector<std::string>& args) {
+    //     for (auto const& each : m.mentions) {
+    //         std::cout << each.name << std::endl;
+    //     }
+    // });
 
     bot.run();
     return 0;

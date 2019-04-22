@@ -181,10 +181,10 @@ namespace discord {
     public:
         bool authenticated;
         std::string error_message;
+        std::string discriminator;
 
         long id;
 
-        int discriminator;
 
         bool bot;
         bool ready;

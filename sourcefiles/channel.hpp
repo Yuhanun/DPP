@@ -5,7 +5,15 @@
 #include "utility.hpp"
 
 discord::Channel::Channel(snowflake id)
-    : discord::Object(id) {
+{
+    this->id = id;
+    for (auto const& guild : discord::detail::bot_instance->guilds){
+        for (auto const& channel : guild->channels){
+            if (channel.id == id){
+                *this = channel;
+            }
+        }
+    }
 }
 
 discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
