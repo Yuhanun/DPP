@@ -4,9 +4,7 @@
 #include <discord.hpp>
 #include <utility.hpp>
 
-discord::Invite::Invite(std::string const &invite_str) {
-    auto data = nlohmann::json::parse(invite_str);
-    
+discord::Invite::Invite(nlohmann::json const data) {
     uses = get_value(data, "uses", 0);
     max_age = get_value(data, "max_age", 0);
     max_uses = get_value(data, "max_uses", 0);

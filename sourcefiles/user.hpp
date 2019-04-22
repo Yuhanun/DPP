@@ -10,9 +10,6 @@ discord::User::User(snowflake id)
 }
 
 discord::User::User(nlohmann::json const j) {
-    // string: name, avatar, mention, discriminator
-    // int id
-    // bool bot
     bot = j.contains("bot");
     avatar = discord::get_value(j, "avatar", "");
     discriminator = j["discriminator"];

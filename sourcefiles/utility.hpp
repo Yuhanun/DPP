@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 
-#include "nlohmann/json.hpp"
 #include "cpr/cpr.h"
+#include "nlohmann/json.hpp"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -18,7 +18,6 @@ namespace discord {
             return nullptr;
         }
     };  // namespace utils
-
 
     template <typename S>
     inline void format_slice(std::string const &input_str, std::stringstream &output_str, int &start_index, S var) {
@@ -45,17 +44,14 @@ namespace discord {
 
     template <typename T>
     T get_value(nlohmann::json const &j, const char *s, T default_value) {
-        if (j.contains(s)) {
-            return j[s].empty() ? default_value : j[s].get<T>();
-        }
-        return default_value;
+        return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<T>()) : default_value;
     }
 
     inline std::string get_value(nlohmann::json const &j, const char *s, const char *default_value) {
         return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<std::string>()) : default_value;
     }
 
-    inline std::string get_channel_link(long id) {
+    inline std::string get_channel_link(snowflake id) {
         return format("%/channels/%/messages", get_api(), id);
     }
 
@@ -137,12 +133,6 @@ namespace discord {
         auto url = cpr::Url{ uri };
         auto body = cpr::Body{ j.dump() };
 
-        static_assert(method != request_method::Get ||
-                      method != request_method::Post ||
-                      method != request_method::Put ||
-                      method != request_method::Delete ||
-                      method != request_method::Patch);
-
         cpr::Response response;
         if (method == request_method::Get) {
             response = cpr::Get(url, h);
@@ -155,11 +145,11 @@ namespace discord {
         } else if (method == request_method::Patch) {
             response = cpr::Patch(url, h, body);
         }
+
         auto j_resp = response.text.length() ? nlohmann::json::parse(response.text) : nlohmann::json({});
         if (j_resp.contains("message")) {
             if (j_resp["message"].get<std::string>() == "You are being rate limited.") {
                 std::this_thread::sleep_for(std::chrono::milliseconds(j_resp["retry_after"].get<int>() + 1));
-                std::cout << "Recalling function  " << std::endl;
                 return send_request<method>(j, h, uri);
             }
         }

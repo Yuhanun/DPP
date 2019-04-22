@@ -18,8 +18,8 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "gatewayhandler.hpp"
 #include "function_type.hpp"
+#include "gatewayhandler.hpp"
 
 #include "cpr/cpr.h"
 
@@ -32,8 +32,9 @@ namespace discord {
     class Guild;
     class Member;
     class Invite;
-    class Message;
     class Channel;
+    class Message;
+    class Activity;
     class EmbedBuilder;
     class PermissionOverwrite;
     class PermissionOverwrites;
@@ -66,10 +67,12 @@ namespace discord {
         void(discord::Guild),                     // GUILD_EMOJIS_UPDATE
         void(discord::Guild),                     // GUILD_INTEGRATIONS_UPDATE
         void(discord::Member),                    // GUILD_MEMBER_ADD
+        void(discord::User),                      // GUILD_MEMBER_REMOVE
+        void(discord::Member),                    // GUILD_MEMBER_UPDATE
         void(),                                   // GUILD_MEMBERS_CHUNK
-        void(),                                   //discord::Role), // GUILD_ROLE_CREATE
-        void(),                                   //discord::Role), // GUILD_ROLE_UPDATE
-        void(),                                   //discord::Role), // GUILD_ROLE_DELETE
+        void(discord::Role),                      // GUILD_ROLE_CREATE
+        void(discord::Role),                      // GUILD_ROLE_UPDATE
+        void(discord::Role),                      // GUILD_ROLE_DELETE
         void(discord::Message),                   // MESSAGE_CREATE
         void(discord::Message),                   // MESSAGE_UPDATE
         void(discord::Message),                   // MESSAGE_DELETE
@@ -88,6 +91,24 @@ namespace discord {
     using websocketpp::lib::bind;
     using websocketpp::lib::placeholders::_1;
     using websocketpp::lib::placeholders::_2;
+
+
+    namespace presence {
+        struct status {
+            inline const static std::string online = "online";
+            inline const static std::string dnd = "dnd";
+            inline const static std::string idle = "idle";
+            inline const static std::string invisible = "invisible";
+            inline const static std::string offline = "offline";
+        };
+
+        enum class activity : short {
+            playing,
+            streaming,
+            listening,
+            watching
+        };
+    };  // namespace presence
 
     class Object {
     public:
@@ -128,6 +149,8 @@ namespace discord {
         }
 
         void register_command(std::string const&, std::function<void(discord::Message&, std::vector<std::string>&)>);
+
+        void update_presence(Activity const&);
 
         discord::Message send_message(snowflake, std::string, bool = false);
         discord::Message send_message(snowflake, nlohmann::json, bool = false);
@@ -199,6 +222,23 @@ namespace discord {
 
         std::vector<std::future<void>> packet_handling;
         std::unordered_map<std::string, std::function<void(discord::Message&, std::vector<std::string>&)>> command_map;
+    };
+
+    class Activity {
+    public:
+        Activity() = default;
+        Activity(std::string const& name, presence::activity const& type, std::string const& status = "online", bool const& afk = false, std::string const& url = "");
+
+        nlohmann::json to_json() const;
+
+    private:
+        bool afk;
+
+        std::string url;
+        std::string name;
+        std::string status;
+
+        presence::activity type;
     };
 
     class Channel : public Object {
@@ -304,7 +344,7 @@ namespace discord {
     class Invite {
     public:
         Invite() = default;
-        Invite(std::string const&);
+        Invite(nlohmann::json const);
 
         int uses;
         int max_age;
@@ -380,7 +420,6 @@ namespace discord {
 
     public:
         int type;
-        int error_code;
 
         bool tts;
         bool sent;
@@ -389,10 +428,9 @@ namespace discord {
 
         snowflake id;
 
-        std::string error;
         std::string content;
         std::string timestamp;
-        // std::string edited_timestamp;
+        std::string edited_timestamp;
 
         discord::Member author;
         discord::Channel channel;

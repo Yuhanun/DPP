@@ -113,17 +113,17 @@ std::vector<discord::Invite> discord::Channel::get_invites() {
     std::vector<discord::Invite> return_vec;
     auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_channel_invites_url());
     for (auto const &each : response) {
-        return_vec.push_back(discord::Invite{ each.dump() });
+        return_vec.push_back(discord::Invite{ each });
     }
     return return_vec;
 }
 
 discord::Invite discord::Channel::create_invite(int max_age, int max_uses, bool temporary, bool unique) const {
     nlohmann::json data = nlohmann::json({ { "max_age", max_age },
-                       { "max_uses", max_uses },
-                       { "temporary", temporary },
-                       { "unique", unique } });
-    return discord::Invite{ send_request<request_method::Post>(data, get_default_headers(), get_create_invite_url()).dump() };
+                                           { "max_uses", max_uses },
+                                           { "temporary", temporary },
+                                           { "unique", unique } });
+    return discord::Invite{ send_request<request_method::Post>(data, get_default_headers(), get_create_invite_url()) };
 }
 
 std::vector<discord::Message> discord::Channel::get_pins() {

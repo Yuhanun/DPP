@@ -6,7 +6,8 @@ discord::Member::Member(snowflake id)
     : discord::User(id) {
 }
 
-discord::Member::Member(nlohmann::json const j, discord::User const &user) {
+discord::Member::Member(nlohmann::json const j, discord::User const &user)
+{
     deaf = j["deaf"];
     muted = j["mute"];
     nick = get_value(j, "nick", "");

@@ -1,14 +1,10 @@
 #pragma once
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
-
 #include <nlohmann/json.hpp>
-
 #include <atomic>
 #include <iostream>
-
 #include <utility>
-
 #include <sstream>
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;

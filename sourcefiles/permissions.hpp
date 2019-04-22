@@ -62,7 +62,7 @@ nlohmann::json discord::PermissionOverwrites::to_json() const {
     auto t = object_type == role ? "role" : "member";
     auto vals = get_values();
     return nlohmann::json({ { "allow", vals.first },
-                  { "deny", vals.second },
-                  { "type", t },
-                  { "id", object_id } });
+                            { "deny", vals.second },
+                            { "type", t },
+                            { "id", object_id } });
 }

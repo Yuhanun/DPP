@@ -13,6 +13,7 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
     m.token = discord::detail::bot_instance->token;
     snowflake sender_id = std::stoul(j["author"]["id"].get<std::string>());
     m.sent = true;
+    m.pinned = j["pinned"];
     m.tts = j["tts"];
     m.timestamp = j["timestamp"];
     m.mention_everyone = j["mention_everyone"];
@@ -27,18 +28,25 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
         break;
     }
 
-    // for (auto const &mention : j["mentions"]) {
-    //     snowflake mention_id = std::stoul(mention["id"].get<std::string>());
-    //     for (auto const &member : m.channel.guild->members) {
-    //         if (member.id == mention_id) {
-    //             m.mentions.push_back(member);    
-    //         }
+    for (auto const &member : m.channel.guild->members) {
+        if (member.id != sender_id) {
+            continue;
+        }
+        m.author = member;
+    }
 
-    //         if (member.id == sender_id) {
-    //             m.author = member;
-    //         }
-    //     }
-    // }
+    for (auto const &mention : j["mentions"]) {
+        snowflake mention_id = std::stoul(mention["id"].get<std::string>());
+        for (auto const &member : m.channel.guild->members) {
+            if (member.id != mention_id) {
+                continue;
+            }
+            m.mentions.push_back(member);
+            break;
+        }
+    }
+
+    m.edited_timestamp = get_value(j, "edited_timestamp", "");
 
     m.content = j["content"];
     m.type = j["type"];
@@ -65,7 +73,6 @@ discord::Message discord::Message::edit(std::string content) {
 
 discord::Message discord::Message::edit(EmbedBuilder embed, std::string content) {
     nlohmann::json j = nlohmann::json({ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } });
-
     auto response = send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
     return discord::Message::from_sent_message(response);
 }
