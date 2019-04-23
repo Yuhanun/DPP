@@ -50,6 +50,8 @@ namespace discord {
     typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
     typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
 
+    using websocketpp::lib::bind;
+
     typedef Events<
         void(),                                   // HELLO
         void(),                                   // READY
@@ -142,7 +144,7 @@ namespace discord {
 
     class Bot {
     public:
-        Bot(std::string const&, const std::string);
+        Bot(std::string const&, const std::string, int = 5000);
         template <size_t EVENT, typename FType>
         void register_callback(FType&& func) {
             std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
@@ -168,6 +170,8 @@ namespace discord {
         void handle_heartbeat();
         void handle_event(nlohmann::json const, std::string);
         void initialize_variables(const std::string);
+        template <std::size_t event_type>
+        discord::Message process_message_cache(discord::Message* m, bool&);
 
         void guild_create_event(nlohmann::json);
         void channel_create_event(nlohmann::json);
@@ -205,6 +209,7 @@ namespace discord {
         std::vector<std::unique_ptr<discord::Channel>> channels;
 
     private:
+        int message_cache_count;
         nlohmann::json hello_packet;
         nlohmann::json ready_packet;
 
@@ -222,6 +227,7 @@ namespace discord {
         std::thread heartbeat_thread;
         std::future<void> client_future;
 
+        std::vector<discord::Message> messages;
         std::vector<std::future<void>> packet_handling;
         std::unordered_map<std::string, std::function<void(discord::Message&, std::vector<std::string>&)>> command_map;
     };
@@ -295,7 +301,7 @@ namespace discord {
         std::vector<discord::User> recipients;
         std::vector<discord::PermissionOverwrites> overwrites;
     };
-    
+
     class User : public Object {
     public:
         User() = default;
@@ -329,7 +335,6 @@ namespace discord {
         discord::User user;
         std::vector<discord::Role> roles;
     };
-
 
 
     class Member : public User {
@@ -472,7 +477,7 @@ namespace discord {
     private:
         nlohmann::json embed;
     };
-    
+
     class Color {
     public:
         Color() = default;

@@ -1,19 +1,12 @@
 #pragma once
-#include <websocketpp/client.hpp>
-#include <websocketpp/config/asio_client.hpp>
-#include <nlohmann/json.hpp>
 #include <atomic>
 #include <iostream>
-#include <utility>
+#include <nlohmann/json.hpp>
 #include <sstream>
+#include <utility>
+#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio_client.hpp>
 
-typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
-typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context>
-    context_ptr;
-
-using websocketpp::lib::bind;
-using websocketpp::lib::placeholders::_1;
-using websocketpp::lib::placeholders::_2;
 
 bool verify_subject_alternative_name(const char *hostname, X509 *cert) {
     STACK_OF(GENERAL_NAME) *san_names = NULL;
@@ -93,9 +86,8 @@ bool verify_certificate(const char *hostname, bool preverified, boost::asio::ssl
     return preverified;
 }
 
-context_ptr on_tls_init(const char *hostname, websocketpp::connection_hdl) {
-    context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(
-        boost::asio::ssl::context::sslv23);
+websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> on_tls_init(const char *hostname, websocketpp::connection_hdl) {
+    auto ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
 
     try {
         ctx->set_options(boost::asio::ssl::context::default_workarounds |
@@ -104,9 +96,9 @@ context_ptr on_tls_init(const char *hostname, websocketpp::connection_hdl) {
                          boost::asio::ssl::context::single_dh_use);
 
         ctx->set_verify_mode(boost::asio::ssl::verify_peer);
-        ctx->set_verify_callback(bind(&verify_certificate, hostname, ::_1, ::_2));
-
+        ctx->set_verify_callback(bind(&verify_certificate, hostname, websocketpp::lib::placeholders::_1, websocketpp::lib::placeholders::_2));
         ctx->load_verify_file("ca-chain.cert.pem");
+        
     } catch (std::exception &e) {
         std::cout << e.what() << std::endl;
     }

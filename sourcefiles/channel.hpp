@@ -13,6 +13,12 @@ discord::Channel::Channel(snowflake id) {
             }
         }
     }
+
+    for (auto const &channel : discord::detail::bot_instance->channels) {
+        if (channel->id == id){
+            *this = *(channel.get());
+        }
+    }
 }
 
 discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {

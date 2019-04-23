@@ -9,8 +9,8 @@
 #include "guild.hpp"
 #include "message.hpp"
 
-discord::Bot::Bot(const std::string &token, const std::string prefix)
-    : prefix{ prefix }, token{ token }, ready{ false } {
+discord::Bot::Bot(const std::string &token, const std::string prefix, int message_cache_count)
+    : prefix{ prefix }, token{ token }, ready{ false }, message_cache_count{ message_cache_count } {
     discord::detail::bot_instance = this;
 }
 
@@ -38,7 +38,6 @@ void discord::Bot::on_incoming_packet(websocketpp::connection_hdl, client::messa
             break;
         default:
             std::string event_name = j["t"].is_null() ? "" : j["t"];
-            std::cout << event_name << std::endl;
             handle_event(j, event_name);
             break;
     }
@@ -56,8 +55,8 @@ void discord::Bot::handle_gateway() {
 
         c.init_asio();
 
-        c.set_message_handler(bind(&Bot::on_incoming_packet, this, ::_1, ::_2));
-        c.set_tls_init_handler(bind(&on_tls_init, hostname.c_str(), ::_1));
+        c.set_message_handler(bind(&Bot::on_incoming_packet, this, websocketpp::lib::placeholders::_1, websocketpp::lib::placeholders::_2));
+        c.set_tls_init_handler(bind(&on_tls_init, hostname.c_str(), websocketpp::lib::placeholders::_1));
 
         websocketpp::lib::error_code ec;
         con = c.get_connection(uri, ec);
@@ -84,6 +83,7 @@ void discord::Bot::run() {
 void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) {
     const nlohmann::json data = j["d"];
     last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
+    bool found = false;
 
     if (event_name == "HELLO") {
         func_holder.call<events::hello>(packet_handling, true);
@@ -118,11 +118,10 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
         func_holder.call<events::guild_update>(packet_handling, true, g);
     } else if (event_name == "GUILD_DELETE") {
         snowflake to_remove = to_sf(data["id"]);
-        guilds.erase(
-            std::remove_if(guilds.begin(), guilds.end(), [&to_remove](std::unique_ptr<discord::Guild> const &g) {
-                return g->id == to_remove;
-            }),
-            guilds.end());
+        guilds.erase(std::remove_if(guilds.begin(), guilds.end(), [&to_remove](std::unique_ptr<discord::Guild> const &g) {
+                         return g->id == to_remove;
+                     }),
+                     guilds.end());
     } else if (event_name == "GUILD_BAN_ADD") {
     } else if (event_name == "GUILD_BAN_REMOVE") {
     } else if (event_name == "GUILD_EMOJIS_UPDATE") {
@@ -136,14 +135,26 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     } else if (event_name == "GUILD_ROLE_DELETE") {
     } else if (event_name == "MESSAGE_CREATE") {
         auto message = Message::from_sent_message(data);
+        process_message_cache<0>(&message, found);
         if (!(message.author.id == this->id)) {
             fire_commands(message);
         }
         func_holder.call<events::message_create>(packet_handling, ready, message);
     } else if (event_name == "MESSAGE_UPDATE") {
-        func_holder.call<events::message_update>(packet_handling, ready, Message::from_sent_message(data));
+        auto message = Message::from_sent_message(data);
+        process_message_cache<1>(&message, found);
+        func_holder.call<events::message_update>(packet_handling, ready, message);
     } else if (event_name == "MESSAGE_DELETE") {
+        // TODO RAW_MESSAGE_DELETE EVENT
+        auto message = Message::from_sent_message(data);
+        message = process_message_cache<2>(&message, found);
+        func_holder.call<events::message_delete>(packet_handling, found, message);
     } else if (event_name == "MESSAGE_DELETE_BULK") {
+        for (auto const &each : data) {
+            auto message = Message::from_sent_message(data);
+            message = process_message_cache<2>(&message, found);
+            func_holder.call<events::message_delete>(packet_handling, found, message);
+        }
     } else if (event_name == "MESSAGE_REACTION_ADD") {
     } else if (event_name == "MESSAGE_REACTION_REMOVE") {
     } else if (event_name == "MESSAGE_REACTION_REMOVE_ALL") {
@@ -261,9 +272,7 @@ discord::Guild discord::Bot::create_guild(std::string const &name, std::string c
                                                  { "explicit_content_filter", explicit_content_filter },
                                                  { "roles", {} },
                                                  { "channels", {} } });
-    return discord::Guild{
-        send_request<request_method::Post>(data, get_default_headers(), get_create_guild_url())
-    };
+    return discord::Guild{ send_request<request_method::Post>(data, get_default_headers(), get_create_guild_url()) };
 }
 
 void discord::Bot::channel_create_event(nlohmann::json j) {
@@ -278,6 +287,7 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
             break;
         }
     }
+    channels.emplace_back(std::make_unique<discord::Channel>(channel));
     func_holder.call<events::channel_create>(packet_handling, true, channel);
 }
 
@@ -310,9 +320,18 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
             }
             event_chan = guild->channels[i];
             guild->channels.erase(guild->channels.begin() + i);
-            goto found_chan_delete;
         }
     }
+
+    for (int i = 0; i < channels.size(); i++) {
+        if (channels[i]->id != chan_id){
+            continue;
+        }    
+        event_chan = *(channels[i].get());
+        channels.erase(channels.begin() + i);
+        goto found_chan_delete;
+    }
+
 found_chan_delete:
     func_holder.call<events::channel_delete>(packet_handling, true, event_chan);
 }
@@ -349,6 +368,36 @@ void discord::Bot::guild_create_event(nlohmann::json j) {
     }
     func_holder.call<events::guild_create>(packet_handling, ready, guild);
 }
+
+template <std::size_t event_type>
+discord::Message discord::Bot::process_message_cache(discord::Message *m, bool &found) {
+    static_assert(event_type >= 0 && event_type < 3);
+    auto return_m = *m;
+    if (event_type == 0) {  // create
+        if (messages.size() >= message_cache_count) {
+            messages.erase(messages.begin());
+        }
+        messages.push_back(*m);
+    } else if (event_type == 1) {  // update
+        for (int i = 0; i < messages.size(); i++) {
+            if (messages[i].id != m->id) {
+                continue;
+            }
+            messages[i] = *m;
+        }
+    } else if (event_type == 2) {
+        for (int i = 0; i < messages.size(); i++) {
+            if (messages[i].id != m->id) {
+                continue;
+            }
+            return_m = messages[i];
+            found = true;
+            messages.erase(messages.begin() + i);
+        }
+    }
+    return return_m;
+}
+
 
 void discord::Bot::update_presence(Activity const &act) {
     con->send(nlohmann::json({ { "op", 3 }, { "d", act.to_json() } }).dump());

@@ -14,8 +14,8 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
     snowflake sender_id = to_sf(get_value(j["author"], "id", "0"));
     m.pinned = get_value(j, "pinned", false);
     m.tts = get_value(j, "tts", false);
-    m.timestamp = j["timestamp"];
-    m.mention_everyone = j["mention_everyone"];
+    m.timestamp = get_value(j, "timestamp", "");
+    m.mention_everyone = get_value(j, "mention_everyone", false);
     m.id = to_sf(j["id"]);
     snowflake channel_id = to_sf(j["channel_id"]);
 
@@ -31,21 +31,27 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
         break;
     }
 
-    for (auto const &member : m.channel.guild->members) {
-        if (member.id != sender_id) {
-            continue;
+    if (m.channel.guild) {
+        for (auto const &member : m.channel.guild->members) {
+            if (member.id != sender_id) {
+                continue;
+            }
+            m.author = member;
         }
-        m.author = member;
     }
 
     for (auto const &mention : j["mentions"]) {
         snowflake mention_id = to_sf(mention["id"]);
-        for (auto const &member : m.channel.guild->members) {
-            if (member.id != mention_id) {
-                continue;
+        if (m.channel.guild) {
+            for (auto const &member : m.channel.guild->members) {
+                if (member.id != mention_id) {
+                    continue;
+                }
+                m.mentions.push_back(member);
+                break;
             }
-            m.mentions.push_back(member);
-            break;
+        } else {
+            m.mentions.push_back(discord::Member{ mention });
         }
     }
 
@@ -55,8 +61,8 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
 
     m.edited_timestamp = get_value(j, "edited_timestamp", "");
 
-    m.content = j["content"];
-    m.type = j["type"];
+    m.content = get_value(j, "content", "");
+    m.type = get_value(j, "type", 0);
     return m;
 }
 
