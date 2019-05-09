@@ -1,13 +1,13 @@
 #pragma once
-#include <discord.hpp>
+#include "discord.hpp"
 #include <nlohmann/json.hpp>
 
 #include "utility.hpp"
 
-#include <channel.hpp>
-#include <emoji.hpp>
-#include <member.hpp>
-#include <role.hpp>
+#include "channel.hpp"
+#include "emoji.hpp"
+#include "member.hpp"
+#include "role.hpp"
 
 discord::Guild::Guild(snowflake id)
     : discord::Object(id) {

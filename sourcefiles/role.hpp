@@ -1,8 +1,8 @@
 #pragma once
-#include <color.hpp>
-#include <discord.hpp>
-#include <permissions.hpp>
-#include <utility.hpp>
+#include "color.hpp"
+#include "discord.hpp"
+#include "permissions.hpp"
+#include "utility.hpp"
 
 discord::Role::Role(snowflake id) {
     for (auto const& guild : discord::detail::bot_instance->guilds) {
