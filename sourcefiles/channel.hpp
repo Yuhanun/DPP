@@ -1,6 +1,6 @@
 #pragma once
-#include <discord.hpp>
-#include <invite.hpp>
+#include "discord.hpp"
+#include "invite.hpp"
 #include "permissions.hpp"
 #include "utility.hpp"
 

@@ -40,7 +40,7 @@ namespace discord {
     class PermissionOverwrites;
 
     namespace detail {
-        // inline discord::Bot* bot_instance;
+        inline discord::Bot* bot_instance;
     }  // namespace detail
 
     typedef uint64_t snowflake;
@@ -158,7 +158,7 @@ namespace discord {
         discord::Message send_message(snowflake, nlohmann::json, bool = false);
         discord::Guild create_guild(std::string const&, std::string const& = "us-east", int const& = 0, int const& = 0, int const& = 0);
 
-        void on_incoming_packet(const websocketpp::connection_hdl&, client::message_ptr);
+        void on_incoming_packet(const websocketpp::connection_hdl&, const client::message_ptr&);
         void handle_gateway();
 
         void run();
@@ -188,8 +188,6 @@ namespace discord {
         bool authenticated;
         std::string error_message;
         std::string discriminator;
-
-	    static inline Bot* bot_instance;
 
         long id;
 

@@ -1,6 +1,6 @@
 #pragma once
-#include <discord.hpp>
-#include <user.hpp>
+#include "discord.hpp"
+#include "user.hpp"
 
 discord::Member::Member(snowflake id)
     : discord::User(id) {

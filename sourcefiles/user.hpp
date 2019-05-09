@@ -1,6 +1,6 @@
 #pragma once
-#include <color.hpp>
-#include <discord.hpp>
+#include "color.hpp"
+#include "discord.hpp"
 #include <string>
 #include "utility.hpp"
 

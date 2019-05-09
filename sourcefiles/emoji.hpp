@@ -1,6 +1,6 @@
 #pragma once
-#include <discord.hpp>
-#include <role.hpp>
+#include "discord.hpp"
+#include "role.hpp"
 
 discord::Emoji::Emoji(nlohmann::json event) {
     id = to_sf(event["id"]);

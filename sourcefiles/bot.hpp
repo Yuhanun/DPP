@@ -11,7 +11,7 @@
 
 discord::Bot::Bot(const std::string &token, const std::string prefix, int message_cache_count)
     : prefix{ prefix }, token{ token }, ready{ false }, message_cache_count{ message_cache_count } {
-    discord::detail::bot_instance = this;
+	discord::detail::bot_instance = this;
 }
 
 discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
@@ -26,7 +26,7 @@ discord::Message discord::Bot::send_message(snowflake channel_id, nlohmann::json
     return discord::Message::from_sent_message(response);
 }
 
-void discord::Bot::on_incoming_packet(websocketpp::connection_hdl, client::message_ptr msg) {
+void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl&, const client::message_ptr& msg) {
     nlohmann::json j = nlohmann::json::parse(msg->get_payload());
     switch (j["op"].get<int>()) {
         case (10):
@@ -55,8 +55,8 @@ void discord::Bot::handle_gateway() {
 
         c.init_asio();
 
-        c.set_message_handler(bind(&Bot::on_incoming_packet, this, websocketpp::lib::placeholders::_1, websocketpp::lib::placeholders::_2));
-        c.set_tls_init_handler(bind(&on_tls_init, hostname.c_str(), websocketpp::lib::placeholders::_1));
+        c.set_message_handler(std::bind(&Bot::on_incoming_packet, this, websocketpp::lib::placeholders::_1, websocketpp::lib::placeholders::_2));
+        c.set_tls_init_handler(std::bind(&on_tls_init, hostname.c_str(), websocketpp::lib::placeholders::_1));
 
         websocketpp::lib::error_code ec;
         con = c.get_connection(uri, ec);
@@ -136,7 +136,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     } else if (event_name == "MESSAGE_CREATE") {
         auto message = Message::from_sent_message(data);
         process_message_cache<0>(&message, found);
-        if (!(message.author.id == this->id)) {
+        if (message.author.id != this->id) {
             fire_commands(message);
         }
         func_holder.call<events::message_create>(packet_handling, ready, message);

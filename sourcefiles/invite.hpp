@@ -1,8 +1,8 @@
 #pragma once
 
-#include <bot.hpp>
-#include <discord.hpp>
-#include <utility.hpp>
+#include "bot.hpp"
+#include "discord.hpp"
+#include "utility.hpp"
 
 discord::Invite::Invite(nlohmann::json const data) {
     uses = get_value(data, "uses", 0);

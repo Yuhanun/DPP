@@ -99,7 +99,7 @@ discord::EmbedBuilder::set_author(std::string const &name,
                                   std::string const &url,
                                   std::string const &icon_url) {
     embed["author"] = nlohmann::json({});
-    if (icon_url != "") {
+    if (!icon_url.empty()) {
         embed["author"]["icon_url"] = icon_url;
     }
     if (url != "") {
