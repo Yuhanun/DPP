@@ -17,11 +17,7 @@ namespace discord {
             }
             return nullptr;
         }
-    }
-
-
-
-    // namespace utils
+    } // namespace utils
 
     inline snowflake to_sf(nlohmann::json const &sf) {
         return std::stoul(sf.get<std::string>());
