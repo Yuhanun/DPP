@@ -112,7 +112,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
         for (auto &each : guilds) {
             if (new_guild == each->id) {
                 each = std::make_unique<Guild>(data);
-                g = *(each.get());
+                g = *(each);
             }
         }
         func_holder.call<events::guild_update>(packet_handling, true, g);
@@ -327,7 +327,7 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
         if (channels[i]->id != chan_id){
             continue;
         }    
-        event_chan = *(channels[i].get());
+        event_chan = *(channels[i]);
         channels.erase(channels.begin() + i);
         goto found_chan_delete;
     }

@@ -94,7 +94,6 @@ namespace discord {
     using websocketpp::lib::placeholders::_1;
     using websocketpp::lib::placeholders::_2;
 
-
     namespace presence {
         struct status {
             inline const static std::string online = "online";
