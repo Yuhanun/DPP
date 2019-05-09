@@ -9,8 +9,8 @@
 #include "guild.hpp"
 #include "message.hpp"
 
-discord::Bot::Bot(const std::string &token, const std::string prefix, int message_cache_count)
-    : prefix{ prefix }, token{ token }, ready{ false }, message_cache_count{ message_cache_count } {
+discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
+    : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
     discord::detail::bot_instance = this;
 }
 
@@ -151,7 +151,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
         func_holder.call<events::message_delete>(packet_handling, found, message);
     } else if (event_name == "MESSAGE_DELETE_BULK") {
         for (auto const &each : data) {
-            auto message = Message::from_sent_message(data);
+            auto message = Message::from_sent_message(each);
             message = process_message_cache<2>(&message, found);
             func_holder.call<events::message_delete>(packet_handling, found, message);
         }
@@ -323,7 +323,7 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
         }
     }
 
-    for (int i = 0; i < channels.size(); i++) {
+    for (std::size_t i = 0; i < channels.size(); i++) {
         if (channels[i]->id != chan_id){
             continue;
         }    
@@ -359,7 +359,7 @@ void discord::Bot::guild_create_event(nlohmann::json j) {
     if (!ready) {
         for (auto const &unavail_guild : ready_packet["guilds"]) {
             snowflake g_id = to_sf(unavail_guild["id"]);
-            if (std::find_if(guilds.begin(), guilds.end(), [&unavail_guild, &g_id](std::unique_ptr<discord::Guild> &g) { return g_id == g->id; }) == guilds.end()) {
+            if (std::find_if(guilds.begin(), guilds.end(), [&g_id](std::unique_ptr<discord::Guild> &g) { return g_id == g->id; }) == guilds.end()) {
                 return;
             }
         }
@@ -379,14 +379,14 @@ discord::Message discord::Bot::process_message_cache(discord::Message *m, bool &
         }
         messages.push_back(*m);
     } else if (event_type == 1) {  // update
-        for (int i = 0; i < messages.size(); i++) {
+        for (std::size_t i = 0; i < messages.size(); i++) {
             if (messages[i].id != m->id) {
                 continue;
             }
             messages[i] = *m;
         }
     } else if (event_type == 2) {
-        for (int i = 0; i < messages.size(); i++) {
+        for (std::size_t i = 0; i < messages.size(); i++) {
             if (messages[i].id != m->id) {
                 continue;
             }

@@ -53,7 +53,7 @@ discord::EmbedBuilder::set_footer(std::string const &text,
 discord::EmbedBuilder &discord::EmbedBuilder::set_image(std::string const &url,
                                                         int w,
                                                         int h) {
-    embed["image"] = nlohmann::json({ { "image", "url" } });
+    embed["image"] = nlohmann::json({ { "image", { "url", url } } });
     if (w != -1) {
         embed["image"]["width"] = w;
     }
@@ -65,7 +65,8 @@ discord::EmbedBuilder &discord::EmbedBuilder::set_image(std::string const &url,
 
 discord::EmbedBuilder &
 discord::EmbedBuilder::set_thumbnail(std::string const &url, int w, int h) {
-    embed["thumbnail"] = nlohmann::json({ { "thumbnail", "url" } });
+    embed["thumbnail"] = nlohmann::json({ { "thumbnail",
+                                            { "url", url } } });
     if (w != -1) {
         embed["thumbnail"]["width"] = w;
     }
@@ -103,7 +104,7 @@ discord::EmbedBuilder::set_author(std::string const &name,
         embed["author"]["url"] = url;
     }
 
-    embed["author"]["name"] = url;
+    embed["author"]["name"] = name;
     return *this;
 }
 
@@ -115,7 +116,8 @@ discord::EmbedBuilder::add_field(std::string const &name,
         embed["fields"] = nlohmann::json::array();
     }
     embed["fields"].push_back(nlohmann::json({ { "name", name },
-                                               { "value", value } }));
+                                               { "value", value },
+                                               { "inline", in_line } }));
     return *this;
 }
 

@@ -4,7 +4,7 @@
 #include "utility.hpp"
 
 discord::PermissionOverwrite::PermissionOverwrite(int value, int allow_type)
-    : allow_type{ allow_type }, value{ value } {
+    : value{ value }, allow_type{ allow_type } {
 }
 
 void discord::PermissionOverwrite::calculate_value() {
@@ -32,7 +32,7 @@ discord::PermissionOverwrite& discord::PermissionOverwrite::add_permission(std::
 }
 
 discord::PermissionOverwrites::PermissionOverwrites(int allow_value, int deny_value, snowflake object_id, int object_type)
-    : object_id{ object_id }, object_type{ object_type } {
+    : object_type{ object_type }, object_id{ object_id } {
     allow_perms = PermissionOverwrite(allow_value, allow);
     deny_perms = PermissionOverwrite(deny_value, deny);
     allow_perms.set_table();
@@ -40,7 +40,7 @@ discord::PermissionOverwrites::PermissionOverwrites(int allow_value, int deny_va
 }
 
 discord::PermissionOverwrites::PermissionOverwrites(snowflake object_id, int object_type)
-    : object_id{ object_id }, object_type{ object_type } {
+    : object_type{ object_type }, object_id{ object_id } {
     allow_perms = PermissionOverwrite(0, permission_type::allow);
     deny_perms = PermissionOverwrite(0, permission_type::deny);
 }

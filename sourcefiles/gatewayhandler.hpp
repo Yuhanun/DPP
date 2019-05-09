@@ -17,11 +17,11 @@ bool verify_subject_alternative_name(const char *hostname, X509 *cert) {
         return false;
     }
 
-    int san_names_count = sk_GENERAL_NAME_num(san_names);
+    std::size_t san_names_count = sk_GENERAL_NAME_num(san_names);
 
     bool result = false;
 
-    for (int i = 0; i < san_names_count; i++) {
+    for (std::size_t i = 0; i < san_names_count; i++) {
         const GENERAL_NAME *current_name = sk_GENERAL_NAME_value(san_names, i);
 
         if (current_name->type != GEN_DNS) {
@@ -31,7 +31,7 @@ bool verify_subject_alternative_name(const char *hostname, X509 *cert) {
         const char *dns_name =
             (char *)ASN1_STRING_get0_data(current_name->d.dNSName);
 
-        if (ASN1_STRING_length(current_name->d.dNSName) != strlen(dns_name)) {
+        if (static_cast<std::size_t>(ASN1_STRING_length(current_name->d.dNSName)) != strlen(dns_name)) {
             break;
         }
         result = (strcasecmp(hostname, dns_name) == 0);
@@ -61,7 +61,7 @@ bool verify_common_name(const char *hostname, X509 *cert) {
 
     const char *common_name_str = (char *)ASN1_STRING_get0_data(common_name_asn1);
 
-    if (ASN1_STRING_length(common_name_asn1) != strlen(common_name_str)) {
+    if (static_cast<std::size_t>(ASN1_STRING_length(common_name_asn1)) != strlen(common_name_str)) {
         return false;
     }
 

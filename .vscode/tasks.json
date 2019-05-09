@@ -23,6 +23,8 @@
             "-O0",
             "-std=c++17",
             "-I./sourcefiles",
+            "-Wall",
+            "-Wextra",
             "&&",
             "clear",
             "&&",
@@ -70,6 +72,8 @@
             "-lpthread",
             "-O0",
             "-I./sourcefiles",
+            "-Wall",
+            "-Wextra"
          ],
          "group": {
             "kind": "build",

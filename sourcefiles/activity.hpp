@@ -4,7 +4,7 @@
 
 
 discord::Activity::Activity(std::string const& name, presence::activity const& type, std::string const& status, bool const& afk, std::string const& url)
-    : name{ name }, type{ type }, url{ url }, status{ status }, afk{ afk } {
+    : afk{ afk }, url{ url }, name{ name }, status{ status }, type{ type } {
 }
 
 nlohmann::json discord::Activity::to_json() const {
