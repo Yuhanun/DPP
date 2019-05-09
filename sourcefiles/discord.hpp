@@ -94,7 +94,6 @@ namespace discord {
     using websocketpp::lib::placeholders::_1;
     using websocketpp::lib::placeholders::_2;
 
-
     namespace presence {
         struct status {
             inline const static std::string online = "online";
@@ -144,7 +143,7 @@ namespace discord {
 
     class Bot {
     public:
-        Bot(std::string const&, const std::string, int = 5000);
+        Bot(std::string const&, const std::string, std::size_t = 5000);
         template <size_t EVENT, typename FType>
         void register_callback(FType&& func) {
             std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
@@ -189,7 +188,7 @@ namespace discord {
         std::string error_message;
         std::string discriminator;
 
-        long id;
+        snowflake id;
 
 
         bool bot;
@@ -209,9 +208,9 @@ namespace discord {
         std::vector<std::unique_ptr<discord::Channel>> channels;
 
     private:
-        int message_cache_count;
         nlohmann::json hello_packet;
         nlohmann::json ready_packet;
+        std::size_t message_cache_count;
 
         bool heartbeat_acked;
         int last_sequence_data;

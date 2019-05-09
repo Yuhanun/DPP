@@ -3,12 +3,12 @@
 #include "discord.hpp"
 
 
-discord::EmbedBuilder::EmbedBuilder(nlohmann::json event) {
-    embed = event;
+discord::EmbedBuilder::EmbedBuilder(nlohmann::json event)
+    : embed{ event } {
 }
 
-discord::EmbedBuilder::EmbedBuilder() {
-    embed = nlohmann::json({});
+discord::EmbedBuilder::EmbedBuilder()
+    : embed{ nlohmann::json({}) } {
 }
 
 discord::EmbedBuilder &
@@ -53,21 +53,20 @@ discord::EmbedBuilder::set_footer(std::string const &text,
 discord::EmbedBuilder &discord::EmbedBuilder::set_image(std::string const &url,
                                                         int w,
                                                         int h) {
-    embed["image"] = nlohmann::json({});
+    embed["image"] = nlohmann::json({ { "image", { "url", url } } });
     if (w != -1) {
         embed["image"]["width"] = w;
     }
     if (h != -1) {
         embed["image"]["height"] = h;
     }
-
-    embed["image"]["url"] = url;
     return *this;
 }
 
 discord::EmbedBuilder &
 discord::EmbedBuilder::set_thumbnail(std::string const &url, int w, int h) {
-    embed["thumbnail"] = nlohmann::json({});
+    embed["thumbnail"] = nlohmann::json({ { "thumbnail",
+                                            { "url", url } } });
     if (w != -1) {
         embed["thumbnail"]["width"] = w;
     }
@@ -75,7 +74,6 @@ discord::EmbedBuilder::set_thumbnail(std::string const &url, int w, int h) {
         embed["thumbnail"]["height"] = h;
     }
 
-    embed["thumbnail"]["url"] = url;
     return *this;
 }
 
@@ -106,7 +104,7 @@ discord::EmbedBuilder::set_author(std::string const &name,
         embed["author"]["url"] = url;
     }
 
-    embed["author"]["name"] = url;
+    embed["author"]["name"] = name;
     return *this;
 }
 
@@ -117,10 +115,9 @@ discord::EmbedBuilder::add_field(std::string const &name,
     if (!embed.contains("fields")) {
         embed["fields"] = nlohmann::json::array();
     }
-    nlohmann::json field{};
-    field["name"] = name;
-    field["value"] = value;
-    embed["fields"].push_back(field);
+    embed["fields"].push_back(nlohmann::json({ { "name", name },
+                                               { "value", value },
+                                               { "inline", in_line } }));
     return *this;
 }
 

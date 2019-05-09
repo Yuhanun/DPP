@@ -16,7 +16,7 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
     m.tts = get_value(j, "tts", false);
     m.timestamp = get_value(j, "timestamp", "");
     m.mention_everyone = get_value(j, "mention_everyone", false);
-    m.id = to_sf(j["id"]);
+    m.id = to_sf(get_value(j, "id", "0"));
     snowflake channel_id = to_sf(j["channel_id"]);
 
     for (auto const &mention : j["mention_roles"]) {
@@ -27,7 +27,7 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
         if (chan->id != channel_id) {
             continue;
         }
-        m.channel = *(chan.get());
+        m.channel = *(chan);
         break;
     }
 

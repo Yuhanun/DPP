@@ -16,7 +16,7 @@ discord::Channel::Channel(snowflake id) {
 
     for (auto const &channel : discord::detail::bot_instance->channels) {
         if (channel->id == id){
-            *this = *(channel.get());
+            *this = *(channel);
         }
     }
 }

@@ -23,7 +23,7 @@ int main() {
         std::cout << "-----------------------------" << std::endl;
     });
 
-    auto l = [&bot](discord::Message m) {
+    auto l = [](discord::Message m) {
         std::stringstream s;
         s << "Content: " << m.content << std::endl
           << "Created at: " << m.timestamp << std::endl
