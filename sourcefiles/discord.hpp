@@ -39,9 +39,9 @@ namespace discord {
     class PermissionOverwrite;
     class PermissionOverwrites;
 
-    namespace detail {
+    /* namespace detail {
         inline discord::Bot* bot_instance;
-    }  // namespace detail
+    }  // namespace detail */
 
     typedef uint64_t snowflake;
 
@@ -148,7 +148,6 @@ namespace discord {
         void register_callback(FType&& func) {
             std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
         }
-
         void register_command(std::string const&, std::function<void(discord::Message&, std::vector<std::string>&)>);
 
         void update_presence(Activity const&);
@@ -250,13 +249,14 @@ namespace discord {
 
     class Channel : public Object {
     public:
+    	discord::Bot* b_instance;
         Channel() = default;
-        Channel(snowflake id);
+        Channel(snowflake id, discord::Bot* bot_instance);
 
-        Channel(nlohmann::json const, snowflake);
+        Channel(discord::Bot* bot_instance, nlohmann::json const, snowflake);
 
-        discord::Message send(std::string, bool = false) const;
-        discord::Message send(EmbedBuilder, bool = false, std::string = "") const;
+        discord::Message send(discord::Bot* bot_instance, std::string, bool = false) const;
+        discord::Message send(discord::Bot* bot_instance, EmbedBuilder, bool = false, std::string = "") const;
         discord::Message get_message(snowflake);
         discord::Invite create_invite(int = 86400, int = 0, bool = false, bool = false) const;
         std::vector<discord::Invite> get_invites();
@@ -355,7 +355,7 @@ namespace discord {
     class Invite {
     public:
         Invite() = default;
-        Invite(nlohmann::json const);
+        Invite(discord::Bot* bot_instance, nlohmann::json const);
 
         int uses;
         int max_age;
@@ -377,6 +377,7 @@ namespace discord {
         Guild(nlohmann::json const);
 
     public:
+	    discord::Bot* b_instance;
         int splash;
         int mfa_level;
         int afk_timeout;
@@ -415,8 +416,8 @@ namespace discord {
     public:
         Message() = default;
         Message(snowflake);
-
-        inline static Message from_sent_message(nlohmann::json);
+	    discord::Bot* b_instance;
+        inline static Message from_sent_message(discord::Bot* bot_instance, nlohmann::json);
         discord::Message edit(std::string);
         discord::Message edit(EmbedBuilder, std::string = "");
         void pin();
@@ -527,7 +528,7 @@ namespace discord {
     class Role : public Object {
     public:
         Role() = default;
-        Role(snowflake);
+        Role(discord::Bot* bot_instance, snowflake);
         Role(nlohmann::json);
 
     public:

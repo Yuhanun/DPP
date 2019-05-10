@@ -8,9 +8,9 @@ discord::Message::Message(snowflake id)
     : id{ id } {
 }
 
-discord::Message discord::Message::from_sent_message(nlohmann::json j) {
+discord::Message discord::Message::from_sent_message(discord::Bot* bot_instance, nlohmann::json j) {
     auto m = Message{};
-    m.token = discord::detail::bot_instance->token;
+    m.token = bot_instance->token;
     snowflake sender_id = to_sf(get_value(j["author"], "id", "0"));
     m.pinned = get_value(j, "pinned", false);
     m.tts = get_value(j, "tts", false);
@@ -23,7 +23,7 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
         m.mentioned_roles.push_back(discord::Role{ to_sf(mention) });
     }
 
-    for (auto const &chan : discord::detail::bot_instance->channels) {
+    for (auto const &chan : bot_instance->channels) {
         if (chan->id != channel_id) {
             continue;
         }
@@ -71,7 +71,7 @@ std::string discord::Message::get_delete_url() {
 }
 
 void discord::Message::remove() {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_delete_url());
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(b_instance), get_delete_url());
 }
 
 std::string discord::Message::get_edit_url() {
@@ -80,14 +80,14 @@ std::string discord::Message::get_edit_url() {
 
 discord::Message discord::Message::edit(std::string content) {
     nlohmann::json j = nlohmann::json({ { "content", content }, { "tts", tts } });
-    auto response = send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
-    return discord::Message::from_sent_message(response);
+    auto response = send_request<request_method::Patch>(j, get_default_headers(b_instance), get_edit_url());
+    return discord::Message::from_sent_message(b_instance, response);
 }
 
 discord::Message discord::Message::edit(EmbedBuilder embed, std::string content) {
     nlohmann::json j = nlohmann::json({ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } });
-    auto response = send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
-    return discord::Message::from_sent_message(response);
+    auto response = send_request<request_method::Patch>(j, get_default_headers(b_instance), get_edit_url());
+    return discord::Message::from_sent_message(b_instance, response);
 }
 
 std::string discord::Message::get_pin_url() {
@@ -99,9 +99,9 @@ std::string discord::Message::get_unpin_url() {
 }
 
 void discord::Message::unpin() {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_pin_url());
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(b_instance), get_pin_url());
 }
 
 void discord::Message::pin() {
-    send_request<request_method::Put>(nlohmann::json({}), get_default_headers(), get_pin_url());
+    send_request<request_method::Put>(nlohmann::json({}), get_default_headers(b_instance), get_pin_url());
 }

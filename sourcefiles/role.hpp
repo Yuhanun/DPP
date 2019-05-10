@@ -4,8 +4,8 @@
 #include "permissions.hpp"
 #include "utility.hpp"
 
-discord::Role::Role(snowflake id) {
-    for (auto const& guild : discord::detail::bot_instance->guilds) {
+discord::Role::Role(discord::Bot* bot_instance, snowflake id) {
+    for (auto const& guild : bot_instance->guilds) {
         for (auto const& role : guild->roles) {
             if (role.id != id) {
                 continue;

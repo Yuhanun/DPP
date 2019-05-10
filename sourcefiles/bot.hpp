@@ -11,19 +11,18 @@
 
 discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
     : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
-    discord::detail::bot_instance = this;
 }
 
 discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
     nlohmann::json j = nlohmann::json({ { "content", message_content }, { "tts", tts } });
-    auto response = send_request<request_method::Post>(j, get_default_headers(), get_channel_link(channel_id));
-    return discord::Message::from_sent_message(response);
+    auto response = send_request<request_method::Post>(j, get_default_headers(this), get_channel_link(channel_id));
+    return discord::Message::from_sent_message(this, response);
 }
 
 discord::Message discord::Bot::send_message(snowflake channel_id, nlohmann::json message_content, bool tts) {
     message_content["tts"] = tts;
-    auto response = send_request<request_method::Post>(message_content, get_default_headers(), get_channel_link(channel_id));
-    return discord::Message::from_sent_message(response);
+    auto response = send_request<request_method::Post>(message_content, get_default_headers(this), get_channel_link(channel_id));
+    return discord::Message::from_sent_message(this, response);
 }
 
 void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl&, const client::message_ptr& msg) {
@@ -103,7 +102,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     } else if (event_name == "CHANNEL_DELETE") {
         channel_delete_event(j);
     } else if (event_name == "CHANNEL_PINS_UPDATE") {
-        func_holder.call<events::channel_pins_update>(packet_handling, true, Channel{ to_sf(data["channel_id"]) });
+        func_holder.call<events::channel_pins_update>(packet_handling, true, Channel{ to_sf(data["channel_id"]), this });
     } else if (event_name == "GUILD_CREATE") {
         guild_create_event(j);
     } else if (event_name == "GUILD_UPDATE") {
@@ -134,24 +133,24 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     } else if (event_name == "GUILD_ROLE_UPDATE") {
     } else if (event_name == "GUILD_ROLE_DELETE") {
     } else if (event_name == "MESSAGE_CREATE") {
-        auto message = Message::from_sent_message(data);
+        auto message = Message::from_sent_message(this, data);
         process_message_cache<0>(&message, found);
         if (message.author.id != this->id) {
             fire_commands(message);
         }
         func_holder.call<events::message_create>(packet_handling, ready, message);
     } else if (event_name == "MESSAGE_UPDATE") {
-        auto message = Message::from_sent_message(data);
+        auto message = Message::from_sent_message(this, data);
         process_message_cache<1>(&message, found);
         func_holder.call<events::message_update>(packet_handling, ready, message);
     } else if (event_name == "MESSAGE_DELETE") {
         // TODO RAW_MESSAGE_DELETE EVENT
-        auto message = Message::from_sent_message(data);
+        auto message = Message::from_sent_message(this, data);
         message = process_message_cache<2>(&message, found);
         func_holder.call<events::message_delete>(packet_handling, found, message);
     } else if (event_name == "MESSAGE_DELETE_BULK") {
         for (auto const &each : data) {
-            auto message = Message::from_sent_message(each);
+            auto message = Message::from_sent_message(this, each);
             message = process_message_cache<2>(&message, found);
             func_holder.call<events::message_delete>(packet_handling, found, message);
         }
@@ -272,12 +271,12 @@ discord::Guild discord::Bot::create_guild(std::string const &name, std::string c
                                                  { "explicit_content_filter", explicit_content_filter },
                                                  { "roles", {} },
                                                  { "channels", {} } });
-    return discord::Guild{ send_request<request_method::Post>(data, get_default_headers(), get_create_guild_url()) };
+    return discord::Guild{ send_request<request_method::Post>(data, get_default_headers(this), get_create_guild_url()) };
 }
 
 void discord::Bot::channel_create_event(nlohmann::json j) {
     const auto data = j["d"];
-    auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
+    auto channel = Channel{ this, data, to_sf(get_value(data, "guild_id", "0")) };
     if (channel.guild) {
         for (auto &guild : this->guilds) {
             if (guild->id != channel.guild->id) {
@@ -293,7 +292,7 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
 
 void discord::Bot::channel_update_event(nlohmann::json j) {
     const nlohmann::json data = j["d"];
-    auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
+    auto channel = Channel{ this, data, to_sf(get_value(data, "guild_id", "0")) };
     for (auto &guild : this->guilds) {
         if (guild->id != channel.guild->id) {
             continue;
@@ -353,7 +352,7 @@ void discord::Bot::guild_create_event(nlohmann::json j) {
     guilds.push_back(std::make_unique<discord::Guild>(j["d"]));
 
     for (auto const &channel : data["channels"]) {
-        channels.emplace_back(std::make_unique<discord::Channel>(channel, guild_id));
+        channels.emplace_back(std::make_unique<discord::Channel>(this, channel, guild_id));
     }
 
     if (!ready) {

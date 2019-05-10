@@ -112,9 +112,9 @@ namespace discord {
     };
 
 
-    inline cpr::Header get_default_headers() {
+    inline cpr::Header get_default_headers(discord::Bot* bot_instance) {
         return cpr::Header{
-            { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
+            { "Authorization", format("Bot %", bot_instance->token) },
             { "Content-Type", "application/json" },
             { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
             { "Connection", "keep-alive" }
