@@ -112,9 +112,9 @@ namespace discord {
     };
 
 
-    inline cpr::Header get_default_headers(discord::Bot* bot_instance) {
+    inline cpr::Header get_default_headers() {
         return cpr::Header{
-            { "Authorization", format("Bot %", bot_instance->token) },
+            { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
             { "Content-Type", "application/json" },
             { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
             { "Connection", "keep-alive" }
@@ -149,6 +149,29 @@ namespace discord {
         Patch,
         Delete
     };
+
+    boost::local_time::local_date_time time_from_discord_string(const std::string& tempstr) {
+    	std::string fstr;
+	    std::stringstream ss;
+	    auto ptr = new boost::local_time::local_time_input_facet("%Y-%m-%d %H:%M:%S %Q");
+	    ss.imbue(std::locale(ss.getloc(), ptr));
+	    std::for_each(tempstr.begin(), tempstr.begin() + 19, [&tempstr, &fstr](const auto& ch) {
+		    if (isdigit(ch) || ch == ':') fstr += ch;
+		    if (ch == '-') fstr += '-'; if (ch == 'T') fstr += ' ';
+		    if (*((&ch) + 1) == '.') {
+			    auto it = tempstr.begin() + 26;
+			    fstr += ' ';
+			    while (it != tempstr.end())
+				    fstr += *it++;
+		    }
+	    });
+	    std::cout << fstr << "\n";
+	    ss.str(fstr);
+	    boost::local_time::local_date_time ldt(boost::local_time::not_a_date_time);
+	    ss >> ldt;
+	    return ldt;
+	    delete ptr;
+    }
 
     template <size_t method>
     inline nlohmann::json send_request(const nlohmann::json &j, const cpr::Header &h, const std::string &uri) {

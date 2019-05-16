@@ -33,7 +33,7 @@ discord::Guild::Guild(nlohmann::json const guild) {
     id = to_sf(guild["id"]);
 
     for (auto &channel : guild["channels"]) {
-        discord::Channel c{ b_instance, channel, id };
+        discord::Channel c{ channel, id };
         channels.push_back(c);
     }
 
