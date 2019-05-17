@@ -143,6 +143,11 @@ namespace discord {
         }
     };
 
+    // class Attachment : public Object{
+    //     Attachment();
+    // };
+
+
     class Bot {
     public:
         Bot(std::string const&, const std::string, std::size_t = 5000);
