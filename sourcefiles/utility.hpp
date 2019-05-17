@@ -150,6 +150,29 @@ namespace discord {
         Delete
     };
 
+    boost::local_time::local_date_time time_from_discord_string(const std::string& tempstr) {
+    	std::string fstr;
+	    std::stringstream ss;
+	    auto ptr = new boost::local_time::local_time_input_facet("%Y-%m-%d %H:%M:%S %Q");
+	    ss.imbue(std::locale(ss.getloc(), ptr));
+	    std::for_each(tempstr.begin(), tempstr.begin() + 19, [&tempstr, &fstr](const auto& ch) {
+		    if (isdigit(ch) || ch == ':') fstr += ch;
+		    if (ch == '-') fstr += '-'; if (ch == 'T') fstr += ' ';
+		    if (*((&ch) + 1) == '.') {
+			    auto it = tempstr.begin() + 26;
+			    fstr += ' ';
+			    while (it != tempstr.end())
+				    fstr += *it++;
+		    }
+	    });
+	    std::cout << fstr << "\n";
+	    ss.str(fstr);
+	    boost::local_time::local_date_time ldt(boost::local_time::not_a_date_time);
+	    ss >> ldt;
+	    return ldt;
+	    delete ptr;
+    }
+
     template <size_t method>
     inline nlohmann::json send_request(const nlohmann::json &j, const cpr::Header &h, const std::string &uri) {
         auto session = cpr::Session();

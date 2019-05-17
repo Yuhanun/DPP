@@ -97,7 +97,7 @@ websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> on_tls_init(c
 
         ctx->set_verify_mode(boost::asio::ssl::verify_peer);
         ctx->set_verify_callback(bind(&verify_certificate, hostname, websocketpp::lib::placeholders::_1, websocketpp::lib::placeholders::_2));
-        ctx->load_verify_file("ca-chain.cert.pem");
+        ctx->load_verify_file("../ca-chain.cert.pem");
         
     } catch (std::exception &e) {
         std::cout << e.what() << std::endl;

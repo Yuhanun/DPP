@@ -1,6 +1,8 @@
 #pragma once
 #include "discord.hpp"
+#include <locale>
 #include <nlohmann/json.hpp>
+#include <boost/date_time.hpp>
 #include "channel.hpp"
 #include "member.hpp"
 
@@ -14,7 +16,7 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
     snowflake sender_id = to_sf(get_value(j["author"], "id", "0"));
     m.pinned = get_value(j, "pinned", false);
     m.tts = get_value(j, "tts", false);
-    m.timestamp = get_value(j, "timestamp", "");
+	m.timestamp = discord::time_from_discord_string(get_value(j, "timestamp", ""));
     m.mention_everyone = get_value(j, "mention_everyone", false);
     m.id = to_sf(get_value(j, "id", "0"));
     snowflake channel_id = to_sf(j["channel_id"]);

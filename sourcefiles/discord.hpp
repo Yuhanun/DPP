@@ -11,6 +11,7 @@
 #include <unordered_map>
 
 #include <boost/asio.hpp>
+#include <boost/date_time/local_time/local_time.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <websocketpp/client.hpp>
@@ -440,7 +441,7 @@ namespace discord {
         snowflake id;
 
         std::string content;
-        std::string timestamp;
+	    boost::local_time::local_date_time timestamp{ boost::local_time::not_a_date_time };
         std::string edited_timestamp;
 
         discord::Member author;
