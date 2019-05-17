@@ -8,7 +8,7 @@ discord::Invite::Invite(nlohmann::json const data) {
     uses = get_value(data, "uses", 0);
     max_age = get_value(data, "max_age", 0);
     max_uses = get_value(data, "max_uses", 0);
-    created_at = get_value(data, "created_at", "");
+    created_at = time_from_discord_string(get_value(data, "created_at", ""));
 
     snowflake temp_guild_id = to_sf(data["guild"]["id"]);
     auto guild = discord::utils::get(discord::detail::bot_instance->guilds, [temp_guild_id](std::unique_ptr<discord::Guild> &g) {

@@ -10,7 +10,7 @@ discord::Member::Member(nlohmann::json const j, discord::User const& user) {
     deaf = get_value(j, "deaf", false);
     muted = get_value(j, "mute", false);
     nick = get_value(j, "nick", "");
-    joined_at = get_value(j, "joined_at", "");
+    joined_at = time_from_discord_string(get_value(j, "joined_at", ""));
     id = user.id;
     bot = user.bot;
     name = user.name;

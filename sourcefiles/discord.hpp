@@ -11,9 +11,9 @@
 #include <unordered_map>
 
 #include <boost/asio.hpp>
-#include <boost/date_time/local_time/local_time.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/date_time/local_time/local_time.hpp>
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
 
@@ -45,6 +45,8 @@ namespace discord {
     }  // namespace detail
 
     typedef uint64_t snowflake;
+    typedef boost::local_time::local_date_time datetime;
+
 
     using namespace boost;
 
@@ -140,7 +142,6 @@ namespace discord {
             return stream;
         }
     };
-
 
     class Bot {
     public:
@@ -350,7 +351,7 @@ namespace discord {
         std::vector<discord::Role> roles;
 
         std::string nick;
-        std::string joined_at;
+        datetime joined_at{ boost::local_time::not_a_date_time };
     };
 
     class Invite {
@@ -364,7 +365,7 @@ namespace discord {
         bool temporary;
 
         std::string code;
-        std::string created_at;
+        datetime created_at{ boost::local_time::not_a_date_time };
         discord::Member inviter;
         discord::Channel channel;
     };
@@ -395,7 +396,7 @@ namespace discord {
         std::string icon;
         std::string region;
         std::string banner;
-        std::string created_at;
+        datetime created_at{ boost::local_time::not_a_date_time };
         std::string vanity_url_code;
 
         std::vector<int> features;
@@ -441,8 +442,8 @@ namespace discord {
         snowflake id;
 
         std::string content;
-	    boost::local_time::local_date_time timestamp{ boost::local_time::not_a_date_time };
-        std::string edited_timestamp;
+        datetime timestamp{ boost::local_time::not_a_date_time };
+        datetime edited_timestamp{ boost::local_time::not_a_date_time };
 
         discord::Member author;
         discord::Channel channel;

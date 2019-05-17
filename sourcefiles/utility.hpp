@@ -18,7 +18,7 @@ namespace discord {
             return nullptr;
         }
     } // namespace utils
-
+    
     inline snowflake to_sf(nlohmann::json const &sf) {
         return std::stoul(sf.get<std::string>());
     }
@@ -150,7 +150,7 @@ namespace discord {
         Delete
     };
 
-    boost::local_time::local_date_time time_from_discord_string(const std::string& tempstr) {
+    discord::datetime time_from_discord_string(const std::string& tempstr) {
     	std::string fstr;
 	    std::stringstream ss;
 	    auto ptr = new boost::local_time::local_time_input_facet("%Y-%m-%d %H:%M:%S %Q");
@@ -165,12 +165,11 @@ namespace discord {
 				    fstr += *it++;
 		    }
 	    });
-	    std::cout << fstr << "\n";
 	    ss.str(fstr);
 	    boost::local_time::local_date_time ldt(boost::local_time::not_a_date_time);
 	    ss >> ldt;
+        delete ptr;
 	    return ldt;
-	    delete ptr;
     }
 
     template <size_t method>

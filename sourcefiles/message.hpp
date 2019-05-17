@@ -61,7 +61,7 @@ discord::Message discord::Message::from_sent_message(nlohmann::json j) {
         m.embeds.push_back(discord::EmbedBuilder{ embed });
     }
 
-    m.edited_timestamp = get_value(j, "edited_timestamp", "");
+    m.edited_timestamp = time_from_discord_string(get_value(j, "edited_timestamp", ""));
 
     m.content = get_value(j, "content", "");
     m.type = get_value(j, "type", 0);

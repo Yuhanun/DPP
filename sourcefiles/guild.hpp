@@ -53,6 +53,6 @@ discord::Guild::Guild(nlohmann::json const guild) {
     icon = get_value(guild, "icon", "");
     region = guild["region"];
     banner = get_value(guild, "banner", "");
-    created_at = guild["joined_at"];
+    created_at = time_from_discord_string(guild["joined_at"].get<std::string>());
     vanity_url_code = get_value(guild, "vanity_url_code", "");
 }
