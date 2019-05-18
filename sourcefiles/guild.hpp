@@ -1,6 +1,6 @@
 #pragma once
-#include "discord.hpp"
 #include <nlohmann/json.hpp>
+#include "discord.hpp"
 
 #include "utility.hpp"
 
@@ -49,7 +49,7 @@ discord::Guild::Guild(nlohmann::json const guild) {
 
     application_id = to_sf(get_value(guild, "application_id", "0"));
 
-        name = guild["name"];
+    name = guild["name"];
     icon = get_value(guild, "icon", "");
     region = guild["region"];
     banner = get_value(guild, "banner", "");

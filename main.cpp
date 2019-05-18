@@ -25,17 +25,22 @@ int main() {
 
     auto l = [](discord::Message m) {
         std::stringstream s;
-        s << "Content: " << m.content << std::endl
+        s << "Embeds: " << m.embeds.size() << std::endl
+          << "Content: " << m.content << std::endl
           << "Created at: " << m.timestamp << std::endl
           << "Edited at: " << m.edited_timestamp << std::endl
           << "Author: " << m.author.name << "#" << m.author.discriminator << std::endl
           << "-----------------------------" << std::endl;
-        std::printf("Embeds: %zu\n%s", m.embeds.size(), s.str().c_str());
+        std::printf("%s", s.str().c_str());
     };
 
     bot.register_callback<discord::events::message_create>(l);
     bot.register_callback<discord::events::message_update>(l);
     bot.register_callback<discord::events::message_delete>(l);
+
+    bot.register_command("hello", [](discord::Context const& ctx) {
+        ctx.send(discord::format("hello %!", ctx.message.author.mention));
+    });
 
     bot.run();
     return 0;

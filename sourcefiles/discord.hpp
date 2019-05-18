@@ -143,6 +143,19 @@ namespace discord {
         }
     };
 
+    struct Context {
+        const discord::Bot* bot;
+        const discord::Message& message;
+        const std::vector<std::string>& arguments;
+        const std::function<void(Context const& c)> command;
+        const std::string command_name;
+
+        template <typename...Tys>
+        discord::Message send(Tys&&...args) const{
+            return this->message.channel.send(std::forward<Tys>(args)...);
+        };
+    };
+
     // class Attachment : public Object{
     //     Attachment();
     // };
@@ -156,8 +169,7 @@ namespace discord {
             std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
         }
 
-        void register_command(std::string const&, std::function<void(discord::Message&, std::vector<std::string>&)>);
-
+        void register_command(std::string const& command_name, std::function<void(discord::Context const&)> function);
         void update_presence(Activity const&);
 
         discord::Message send_message(snowflake, std::string, bool = false);
@@ -235,7 +247,7 @@ namespace discord {
 
         std::vector<discord::Message> messages;
         std::vector<std::future<void>> packet_handling;
-        std::unordered_map<std::string, std::function<void(discord::Message&, std::vector<std::string>&)>> command_map;
+        std::unordered_map<std::string, std::function<void(discord::Context const&)>> command_map;
     };
 
     class Activity {
@@ -555,4 +567,5 @@ namespace discord {
     class UnknownChannel : public std::exception {
         const char* what() const throw();
     };
+
 };  // namespace discord

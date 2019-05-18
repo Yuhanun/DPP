@@ -203,7 +203,7 @@ std::string discord::Bot::get_gateway_url() {
     return r["url"];
 }
 
-void discord::Bot::register_command(std::string const &command_name, std::function<void(discord::Message &, std::vector<std::string> &)> function) {
+void discord::Bot::register_command(std::string const &command_name, std::function<void(discord::Context const&)> function) {
     command_map[boost::to_lower_copy(command_name)] = function;
 }
 
@@ -221,7 +221,7 @@ void discord::Bot::fire_commands(discord::Message &m) const {
         return;
     }
     argument_vec.erase(argument_vec.begin());
-    command_map.at(command_name)(m, argument_vec);
+    command_map.at(command_name)({this, m, argument_vec});
 }
 
 void discord::Bot::initialize_variables(const std::string raw) {
