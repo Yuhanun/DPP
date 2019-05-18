@@ -6,6 +6,7 @@
 
 discord::Channel::Channel(snowflake id) {
     this->id = id;
+
     for (auto const &guild : discord::detail::bot_instance->guilds) {
         for (auto const &channel : guild->channels) {
             if (channel.id == id) {
@@ -14,11 +15,13 @@ discord::Channel::Channel(snowflake id) {
         }
     }
 
-    for (auto const &channel : discord::detail::bot_instance->channels) {
-        if (channel->id == id){
-            *this = *(channel);
-        }
+    auto c = discord::utils::get(discord::detail::bot_instance->channels, [&id](auto const& c){
+        return c->id == id;
+    });
+    if (!c){
+        return;
     }
+    *this = *c;
 }
 
 discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
@@ -35,15 +38,10 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
         topic = discord::get_value(data, "topic", "");
     }
 
-    guild = nullptr;
     if (guild_id) {
-        for (auto const &v_guild : discord::detail::bot_instance->guilds) {
-            if (v_guild->id != guild_id) {
-                continue;
-            }
-            guild = v_guild.get();
-            break;
-        }
+        guild = discord::utils::get(discord::detail::bot_instance->guilds, [&guild_id](auto const& g){
+            return g->id == guild_id;
+        });
     }
 
     if (type == channel_type::dm_channel || type == channel_type::group_dm_channel) {

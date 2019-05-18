@@ -29,7 +29,7 @@ int main() {
           << "Content: " << m.content << std::endl
           << "Created at: " << m.timestamp << std::endl
           << "Edited at: " << m.edited_timestamp << std::endl
-          << "Author: " << m.author.name << "#" << m.author.discriminator << std::endl
+          << "Author: " << m.author->name << "#" << m.author->discriminator << std::endl
           << "-----------------------------" << std::endl;
         std::printf("%s", s.str().c_str());
     };
@@ -39,7 +39,7 @@ int main() {
     bot.register_callback<discord::events::message_delete>(l);
 
     bot.register_command("hello", [](discord::Context const& ctx) {
-        ctx.send(discord::format("hello %!", ctx.message.author.mention));
+        ctx.send(discord::format("hello %!", ctx.message.author->mention));
     });
 
     bot.run();

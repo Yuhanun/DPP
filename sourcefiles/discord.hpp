@@ -150,10 +150,8 @@ namespace discord {
         const std::function<void(Context const& c)> command;
         const std::string command_name;
 
-        template <typename...Tys>
-        discord::Message send(Tys&&...args) const{
-            return this->message.channel.send(std::forward<Tys>(args)...);
-        };
+        template <typename... Tys>
+        discord::Message send(Tys&&... args) const;
     };
 
     // class Attachment : public Object{
@@ -384,7 +382,7 @@ namespace discord {
         std::string code;
         datetime created_at{ boost::local_time::not_a_date_time };
         discord::Member inviter;
-        discord::Channel channel;
+        discord::Channel* channel;
     };
 
 
@@ -462,8 +460,8 @@ namespace discord {
         datetime timestamp{ boost::local_time::not_a_date_time };
         datetime edited_timestamp{ boost::local_time::not_a_date_time };
 
-        discord::Member author;
-        discord::Channel channel;
+        discord::Member* author;
+        discord::Channel* channel;
 
         std::vector<discord::Member> mentions;
         std::vector<discord::Role> mentioned_roles;

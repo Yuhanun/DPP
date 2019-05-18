@@ -11,15 +11,13 @@ discord::Invite::Invite(nlohmann::json const data) {
     created_at = time_from_discord_string(get_value(data, "created_at", ""));
 
     snowflake temp_guild_id = to_sf(data["guild"]["id"]);
-    auto guild = discord::utils::get(discord::detail::bot_instance->guilds, [temp_guild_id](std::unique_ptr<discord::Guild> &g) {
+    auto guild = discord::utils::get(discord::detail::bot_instance->guilds, [&temp_guild_id](auto const& g) {
         return g->id == temp_guild_id;
     });
 
     snowflake temp_channel_id = to_sf(data["channel"]["id"]);
-    for (auto const &c : guild->channels) {
-        if (c.id != temp_channel_id) {
-            continue;
-        }
-        channel = c;
-    }
+
+    channel = discord::utils::get(guild->channels, [&temp_channel_id](auto const& c) {
+                  return c.id == temp_channel_id;
+              });
 }

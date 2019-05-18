@@ -1,7 +1,7 @@
 #pragma once
 #include "cpr/cpr.h"
 #include "nlohmann/json.hpp"
-
+#include "context.hpp"
 #include "discord.hpp"
 #include "events.hpp"
 #include "exceptions.hpp"
@@ -26,7 +26,7 @@ discord::Message discord::Bot::send_message(snowflake channel_id, nlohmann::json
     return discord::Message::from_sent_message(response);
 }
 
-void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl&, const client::message_ptr& msg) {
+void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl &, const client::message_ptr &msg) {
     nlohmann::json j = nlohmann::json::parse(msg->get_payload());
     switch (j["op"].get<int>()) {
         case (10):
@@ -136,7 +136,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     } else if (event_name == "MESSAGE_CREATE") {
         auto message = Message::from_sent_message(data);
         process_message_cache<0>(&message, found);
-        if (message.author.id != this->id) {
+        if (message.author->id != this->id) {
             fire_commands(message);
         }
         func_holder.call<events::message_create>(packet_handling, ready, message);
@@ -203,7 +203,7 @@ std::string discord::Bot::get_gateway_url() {
     return r["url"];
 }
 
-void discord::Bot::register_command(std::string const &command_name, std::function<void(discord::Context const&)> function) {
+void discord::Bot::register_command(std::string const &command_name, std::function<void(discord::Context const &)> function) {
     command_map[boost::to_lower_copy(command_name)] = function;
 }
 
@@ -220,8 +220,17 @@ void discord::Bot::fire_commands(discord::Message &m) const {
     if (command_map.find(command_name) == command_map.end()) {
         return;
     }
+    /*
+        const discord::Bot* bot;
+        const discord::Message& message;
+        const std::vector<std::string>& arguments;
+        const std::function<void(Context const& c)> command;
+        const std::string command_name;
+
+    */
     argument_vec.erase(argument_vec.begin());
-    command_map.at(command_name)({this, m, argument_vec});
+    auto f = command_map.at(command_name);
+    f({ this, m, argument_vec, f, command_name });
 }
 
 void discord::Bot::initialize_variables(const std::string raw) {
@@ -324,9 +333,9 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
     }
 
     for (std::size_t i = 0; i < channels.size(); i++) {
-        if (channels[i]->id != chan_id){
+        if (channels[i]->id != chan_id) {
             continue;
-        }    
+        }
         event_chan = *(channels[i]);
         channels.erase(channels.begin() + i);
         goto found_chan_delete;

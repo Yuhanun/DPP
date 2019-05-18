@@ -9,16 +9,36 @@
 namespace discord {
     namespace utils {
         template <typename S, typename F>
-        S *get(std::vector<std::unique_ptr<S>> &iterable, F callable) {
-            for (auto &each : iterable) {
+        S *get(std::vector<std::unique_ptr<S>> &iterable, F const &callable) {
+            for (auto const &each : iterable) {
                 if (callable(each)) {
                     return each.get();
                 }
             }
             return nullptr;
         }
-    } // namespace utils
-    
+
+        template <template <typename...> typename T, typename S, typename F>
+        const S *get(T<S> const &iterable, F const &callable) {
+            for (auto const &each : iterable) {
+                if (callable(each)) {
+                    return &each;
+                }
+            }
+            return nullptr;
+        }
+
+        template <template <typename...> typename T, typename S, typename F>
+        S *get(T<S> &iterable, F const &callable) {
+            for (auto &each : iterable) {
+                if (callable(each)) {
+                    return &each;
+                }
+            }
+            return nullptr;
+        }
+    }  // namespace utils
+
     inline snowflake to_sf(nlohmann::json const &sf) {
         return std::stoul(sf.get<std::string>());
     }
@@ -150,26 +170,27 @@ namespace discord {
         Delete
     };
 
-    discord::datetime time_from_discord_string(const std::string& tempstr) {
-    	std::string fstr;
-	    std::stringstream ss;
-	    auto ptr = new boost::local_time::local_time_input_facet("%Y-%m-%d %H:%M:%S %Q");
-	    ss.imbue(std::locale(ss.getloc(), ptr));
-	    std::for_each(tempstr.begin(), tempstr.begin() + 19, [&tempstr, &fstr](const auto& ch) {
-		    if (isdigit(ch) || ch == ':') fstr += ch;
-		    if (ch == '-') fstr += '-'; if (ch == 'T') fstr += ' ';
-		    if (*((&ch) + 1) == '.') {
-			    auto it = tempstr.begin() + 26;
-			    fstr += ' ';
-			    while (it != tempstr.end())
-				    fstr += *it++;
-		    }
-	    });
-	    ss.str(fstr);
-	    boost::local_time::local_date_time ldt(boost::local_time::not_a_date_time);
-	    ss >> ldt;
+    discord::datetime time_from_discord_string(const std::string &tempstr) {
+        std::string fstr;
+        std::stringstream ss;
+        auto ptr = new boost::local_time::local_time_input_facet("%Y-%m-%d %H:%M:%S %Q");
+        ss.imbue(std::locale(ss.getloc(), ptr));
+        std::for_each(tempstr.begin(), tempstr.begin() + 19, [&tempstr, &fstr](const auto &ch) {
+            if (isdigit(ch) || ch == ':') fstr += ch;
+            if (ch == '-') fstr += '-';
+            if (ch == 'T') fstr += ' ';
+            if (*((&ch) + 1) == '.') {
+                auto it = tempstr.begin() + 26;
+                fstr += ' ';
+                while (it != tempstr.end())
+                    fstr += *it++;
+            }
+        });
+        ss.str(fstr);
+        boost::local_time::local_date_time ldt(boost::local_time::not_a_date_time);
+        ss >> ldt;
         delete ptr;
-	    return ldt;
+        return ldt;
     }
 
     template <size_t method>
