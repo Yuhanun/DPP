@@ -1,7 +1,7 @@
 #pragma once
+#include <string>
 #include "color.hpp"
 #include "discord.hpp"
-#include <string>
 #include "utility.hpp"
 
 

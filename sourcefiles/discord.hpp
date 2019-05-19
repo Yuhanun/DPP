@@ -357,11 +357,13 @@ namespace discord {
     public:
         Member() = default;
         Member(snowflake);
-        Member(nlohmann::json const, discord::User const&);
+        Member(nlohmann::json const, discord::User const&, discord::Guild*);
 
     public:
         bool deaf;
         bool muted;
+
+        discord::Guild* guild;
 
         std::vector<discord::Role> roles;
 

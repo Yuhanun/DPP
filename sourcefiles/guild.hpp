@@ -19,7 +19,7 @@ discord::Guild::Guild(nlohmann::json const guild) {
     }
 
     for (auto &each : guild["members"]) {
-        discord::Member member{ each, discord::User(each["user"]) };
+        discord::Member member{ each, discord::User(each["user"]), this };
         members.push_back(member);
         if (each["user"]["id"] == guild["owner_id"]) {
             owner = member;

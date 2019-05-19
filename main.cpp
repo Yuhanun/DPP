@@ -39,7 +39,10 @@ int main() {
     bot.register_callback<discord::events::message_delete>(l);
 
     bot.register_command("hello", [](discord::Context const& ctx) {
-        ctx.send(discord::format("hello %!", ctx.message.author->mention));
+        ctx.send(discord::format("Hello %, you are in a guild called % with ID %",
+                                 ctx.message.author->mention,
+                                 ctx.message.author->guild->name,
+                                 ctx.message.author->guild->id));
     });
 
     bot.run();

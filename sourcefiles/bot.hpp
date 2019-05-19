@@ -219,14 +219,7 @@ void discord::Bot::fire_commands(discord::Message &m) const {
     if (command_map.find(command_name) == command_map.end()) {
         return;
     }
-    /*
-        const discord::Bot* bot;
-        const discord::Message& message;
-        const std::vector<std::string>& arguments;
-        const std::function<void(Context const& c)> command;
-        const std::string command_name;
 
-    */
     argument_vec.erase(argument_vec.begin());
     auto f = command_map.at(command_name);
     f({ this, m, argument_vec, f, command_name });
@@ -285,12 +278,11 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
     const auto data = j["d"];
     auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
     if (channel.guild) {
-        for (auto &guild : this->guilds) {
-            if (guild->id != channel.guild->id) {
-                continue;
-            }
+        auto guild = discord::utils::get(this->guilds, [&channel](auto &guild) {
+            return channel.guild->id == guild->id;
+        });
+        if (guild) {
             guild->channels.push_back(channel);
-            break;
         }
     }
     channels.emplace_back(std::make_unique<discord::Channel>(channel));
