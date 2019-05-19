@@ -1,13 +1,13 @@
 #pragma once
-#include "cpr/cpr.h"
-#include "nlohmann/json.hpp"
 #include "context.hpp"
+#include "cpr/cpr.h"
 #include "discord.hpp"
 #include "events.hpp"
 #include "exceptions.hpp"
 #include "gatewayhandler.hpp"
 #include "guild.hpp"
 #include "message.hpp"
+#include "nlohmann/json.hpp"
 
 discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
     : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
@@ -37,7 +37,7 @@ void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl &, const
             heartbeat_acked = true;
             break;
         default:
-            std::string event_name = j["t"].is_null() ? "" : j["t"];
+            std::string event_name = get_value(j, "t", "");
             handle_event(j, event_name);
             break;
     }
@@ -111,8 +111,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
         Guild g;
         for (auto &each : guilds) {
             if (new_guild == each->id) {
-                each = std::make_unique<Guild>(data);
-                g = *(each);
+                g = *(std::make_unique<Guild>(data));
             }
         }
         func_holder.call<events::guild_update>(packet_handling, true, g);
@@ -254,11 +253,9 @@ cpr::Header discord::Bot::get_basic_header() {
 
 void discord::Bot::handle_heartbeat() {
     while (true) {
-        nlohmann::json data;
-        if (last_sequence_data == -1) {
-            data = nlohmann::json({ { "op", 1 }, { "d", nullptr } });
-        } else {
-            data = nlohmann::json({ { "op", 1 }, { "d", last_sequence_data } });
+        nlohmann::json data = { { "op", 1 }, { "d", nullptr } };
+        if (last_sequence_data != -1) {
+            data["d"] = last_sequence_data;
         }
         con->send(data.dump());
         heartbeat_acked = false;
@@ -303,18 +300,17 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
 void discord::Bot::channel_update_event(nlohmann::json j) {
     const nlohmann::json data = j["d"];
     auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
-    for (auto &guild : this->guilds) {
-        if (guild->id != channel.guild->id) {
-            continue;
-        }
-        for (auto &each : guild->channels) {
-            if (each.id == channel.id) {
-                each = channel;
-                goto found_chan_update;
-            }
+    auto g = discord::utils::get(this->guilds, [&channel](auto const &g) {
+        return channel.guild->id == g->id;
+    });
+
+    for (auto &each : g->channels) {
+        if (each.id == channel.id) {
+            each = channel;
+            return;
         }
     }
-found_chan_update:
+
     func_holder.call<events::channel_create>(packet_handling, true, channel);
 }
 
@@ -338,10 +334,8 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
         }
         event_chan = *(channels[i]);
         channels.erase(channels.begin() + i);
-        goto found_chan_delete;
+        break;
     }
-
-found_chan_delete:
     func_holder.call<events::channel_delete>(packet_handling, true, event_chan);
 }
 
@@ -394,7 +388,7 @@ discord::Message discord::Bot::process_message_cache(discord::Message *m, bool &
             }
             messages[i] = *m;
         }
-    } else if (event_type == 2) {
+    } else if (event_type == 2) {  // delete
         for (std::size_t i = 0; i < messages.size(); i++) {
             if (messages[i].id != m->id) {
                 continue;

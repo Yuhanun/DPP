@@ -15,31 +15,25 @@ discord::Channel::Channel(snowflake id) {
         }
     }
 
-    auto c = discord::utils::get(discord::detail::bot_instance->channels, [&id](auto const& c){
+    auto c = discord::utils::get(discord::detail::bot_instance->channels, [&id](auto const &c) {
         return c->id == id;
     });
-    if (!c){
+    if (!c) {
         return;
     }
     *this = *c;
 }
 
 discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
-    type = data["type"];
-    if (data.contains("bitrate")) {
-        if (data.contains("parent_id")) {
-            parent_id = to_sf(get_value(data, "parent_id", "0"));
-        }
-        bitrate = data["bitrate"];
-        user_limit = data["user_limit"];
-    } else {
-        parent_id = to_sf(get_value(data, "parent_id", "0"));
-        rate_limit_per_user = get_value(data, "rate_limit_per_user", 0);
-        topic = discord::get_value(data, "topic", "");
-    }
+    type = get_value(data, "type", 0);
+    bitrate = get_value(data, "bitrate", 0);
+    user_limit = get_value(data, "user_limit", 0);
+    parent_id = to_sf(get_value(data, "parent_id", "0"));
+    rate_limit_per_user = get_value(data, "rate_limit_per_user", 0);
+    topic = discord::get_value(data, "topic", "");
 
     if (guild_id) {
-        guild = discord::utils::get(discord::detail::bot_instance->guilds, [&guild_id](auto const& g){
+        guild = discord::utils::get(discord::detail::bot_instance->guilds, [&guild_id](auto const &g) {
             return g->id == guild_id;
         });
     }
@@ -48,7 +42,7 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
         for (auto const &each : data["recipients"]) {
             recipients.push_back(discord::User{ each });
         }
-    } 
+    }
 
     if (data.contains("permission_overwrites")) {
         for (auto &each : data["permission_overwrites"]) {
@@ -58,12 +52,8 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
                 to_sf(each["id"]), t });
         }
     }
-    if (data.contains("name")) {
-        name = data["name"];
-    }
-    if (data.contains("position")){
-        position = data["position"];
-    }
+    name = get_value(data, "name", "");
+    position = get_value(data, "position", 0);
     id = to_sf(data["id"]);
 }
 

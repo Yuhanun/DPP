@@ -16,11 +16,11 @@ int main() {
     discord::Bot bot{ token, "." };
 
     bot.register_callback<discord::events::ready>([&bot]() {
-        std::cout << "Ready!" << std::endl;
-        std::cout << "Logged in as: " << bot.username << "#" << bot.discriminator
-                  << std::endl;
-        std::cout << "ID: " << bot.id << std::endl;
-        std::cout << "-----------------------------" << std::endl;
+        std::cout << "Ready!" << std::endl
+                  << "Logged in as: " << bot.username << "#" << bot.discriminator
+                  << std::endl
+                  << "ID: " << bot.id << std::endl
+                  << "-----------------------------" << std::endl;
     });
 
     auto l = [](discord::Message m) {
