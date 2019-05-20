@@ -26,6 +26,7 @@ int main() {
     auto l = [](discord::Message m) {
         std::stringstream s;
         s << "Embeds: " << m.embeds.size() << std::endl
+          << "Attachments: " << m.attachments.size() << std::endl
           << "Content: " << m.content << std::endl
           << "Created at: " << m.timestamp << std::endl
           << "Edited at: " << m.edited_timestamp << std::endl

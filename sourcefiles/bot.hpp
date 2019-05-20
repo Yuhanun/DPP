@@ -17,13 +17,13 @@ discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_
 discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
     nlohmann::json j = nlohmann::json({ { "content", message_content }, { "tts", tts } });
     auto response = send_request<request_method::Post>(j, get_default_headers(), get_channel_link(channel_id));
-    return discord::Message::from_sent_message(response);
+    return discord::Message{ response };
 }
 
 discord::Message discord::Bot::send_message(snowflake channel_id, nlohmann::json message_content, bool tts) {
     message_content["tts"] = tts;
     auto response = send_request<request_method::Post>(message_content, get_default_headers(), get_channel_link(channel_id));
-    return discord::Message::from_sent_message(response);
+    return discord::Message{ response };
 }
 
 void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl &, const client::message_ptr &msg) {
@@ -133,24 +133,24 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     } else if (event_name == "GUILD_ROLE_UPDATE") {
     } else if (event_name == "GUILD_ROLE_DELETE") {
     } else if (event_name == "MESSAGE_CREATE") {
-        auto message = Message::from_sent_message(data);
+        auto message = Message{ data };
         process_message_cache<0>(&message, found);
         if (message.author->id != this->id) {
             fire_commands(message);
         }
         func_holder.call<events::message_create>(packet_handling, ready, message);
     } else if (event_name == "MESSAGE_UPDATE") {
-        auto message = Message::from_sent_message(data);
+        auto message = Message{ data };
         process_message_cache<1>(&message, found);
         func_holder.call<events::message_update>(packet_handling, ready, message);
     } else if (event_name == "MESSAGE_DELETE") {
         // TODO RAW_MESSAGE_DELETE EVENT
-        auto message = Message::from_sent_message(data);
+        auto message = Message{ data };
         message = process_message_cache<2>(&message, found);
         func_holder.call<events::message_delete>(packet_handling, found, message);
     } else if (event_name == "MESSAGE_DELETE_BULK") {
         for (auto const &each : data) {
-            auto message = Message::from_sent_message(each);
+            auto message = Message{ each };
             message = process_message_cache<2>(&message, found);
             func_holder.call<events::message_delete>(packet_handling, found, message);
         }

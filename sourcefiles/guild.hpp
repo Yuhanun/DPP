@@ -15,7 +15,7 @@ discord::Guild::Guild(snowflake id)
 
 discord::Guild::Guild(nlohmann::json const guild) {
     for (auto &each : guild["roles"]) {
-        roles.emplace_back(discord::Role{ each });
+        roles.emplace_back(each);
     }
 
     for (auto &each : guild["members"]) {
@@ -27,14 +27,13 @@ discord::Guild::Guild(nlohmann::json const guild) {
     }
 
     for (auto const &emoji : guild["emojis"]) {
-        emojis.push_back(discord::Emoji{ emoji });
+        emojis.emplace_back(emoji);
     }
 
     id = to_sf(guild["id"]);
 
     for (auto &channel : guild["channels"]) {
-        discord::Channel c{ channel, id };
-        channels.push_back(c);
+        channels.emplace_back(channel, id);
     }
 
     splash = get_value(guild, "splash", 0);

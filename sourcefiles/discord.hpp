@@ -154,9 +154,18 @@ namespace discord {
         discord::Message send(Tys&&... args) const;
     };
 
-    // class Attachment : public Object{
-    //     Attachment();
-    // };
+    class Attachment : public Object {
+    public:
+        Attachment() = default;
+        Attachment(nlohmann::json const&);
+
+        std::string url;
+        std::size_t size;
+        std::size_t width;
+        std::size_t height;
+        std::string filename;
+        std::string proxy_url;
+    };
 
 
     class Bot {
@@ -434,8 +443,8 @@ namespace discord {
     public:
         Message() = default;
         Message(snowflake);
+        Message(nlohmann::json const&);
 
-        inline static Message from_sent_message(nlohmann::json);
         discord::Message edit(std::string);
         discord::Message edit(EmbedBuilder, std::string = "");
         void pin();
@@ -467,7 +476,7 @@ namespace discord {
 
         std::vector<discord::Member> mentions;
         std::vector<discord::Role> mentioned_roles;
-        // TODO std::vector<type> attachments;
+        std::vector<discord::Attachment> attachments;
         std::vector<discord::EmbedBuilder> embeds;
 
     private:

@@ -18,10 +18,10 @@ discord::Member::Member(nlohmann::json const j, discord::User const& user, disco
     avatar = user.avatar;
     mention = user.mention;
     discriminator = user.discriminator;
-    if (!j.contains("roles")){
+    if (!j.contains("roles")) {
         return;
     }
     for (auto const& role : j["roles"]) {
-        roles.push_back(discord::Role{ to_sf(role) });
+        roles.emplace_back(to_sf(role));
     }
 }
