@@ -29,9 +29,11 @@ int main() {
           << "Attachments: " << m.attachments.size() << std::endl
           << "Content: " << m.content << std::endl
           << "Created at: " << m.timestamp << std::endl
-          << "Edited at: " << m.edited_timestamp << std::endl
-          << "Author: " << m.author->name << "#" << m.author->discriminator << std::endl
-          << "-----------------------------" << std::endl;
+          << "Edited at: " << m.edited_timestamp << std::endl;
+        if (m.author) {
+            std::cout << "Author: " << m.author->name << "#" << m.author->discriminator << std::endl;
+        }
+        std::cout << "-----------------------------" << std::endl;
         std::printf("%s", s.str().c_str());
     };
 

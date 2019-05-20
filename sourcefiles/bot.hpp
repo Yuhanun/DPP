@@ -135,7 +135,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     } else if (event_name == "MESSAGE_CREATE") {
         auto message = Message{ data };
         process_message_cache<0>(&message, found);
-        if (message.author->id != this->id) {
+        if (message.author && message.author->id != this->id) {
             fire_commands(message);
         }
         func_holder.call<events::message_create>(packet_handling, ready, message);
@@ -345,7 +345,7 @@ void discord::Bot::guild_create_event(nlohmann::json j) {
     }
 
     auto guild = discord::Guild(j["d"]);
-    guilds.push_back(std::make_unique<discord::Guild>(j["d"]));
+    guilds.emplace_back(std::make_unique<discord::Guild>(j["d"]));
 
     for (auto const &channel : data["channels"]) {
         channels.emplace_back(std::make_unique<discord::Channel>(channel, guild_id));

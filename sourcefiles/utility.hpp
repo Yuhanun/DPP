@@ -39,6 +39,23 @@ namespace discord {
         }
     }  // namespace utils
 
+    template <typename T>
+    inline std::vector<T> &from_json_array(nlohmann::json const &j, std::vector<T> &vec) {
+        for (auto const &each : j) {
+            vec.emplace_back(each);
+        }
+        return vec;
+    }
+
+    template <typename T>
+    inline std::vector<T> from_json_array(nlohmann::json const &j){
+        std::vector<T> return_vec = {};
+        for (auto const& each : j){
+            return_vec.emplace_back(each);
+        }
+        return return_vec;
+    }
+
     inline snowflake to_sf(nlohmann::json const &sf) {
         return std::stoul(sf.get<std::string>());
     }
@@ -46,7 +63,6 @@ namespace discord {
     inline snowflake to_sf(std::string sf) {
         return std::stoul(sf);
     }
-
 
     template <typename S>
     inline void format_slice(std::string const &input_str, std::stringstream &output_str, int &start_index, S var) {
@@ -82,6 +98,10 @@ namespace discord {
 
     inline std::string get_value(nlohmann::json const &j, const char *s, const char *default_value) {
         return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<std::string>()) : default_value;
+    }
+
+    inline nlohmann::json get_value(nlohmann::json const &j, const char *s) {
+        return j.contains(s) ? j[s] : nlohmann::json{};
     }
 
     inline std::string get_channel_link(uint64_t id) {
@@ -171,6 +191,9 @@ namespace discord {
     };
 
     discord::datetime time_from_discord_string(const std::string &tempstr) {
+        if (tempstr.empty()) {
+            return boost::local_time::local_date_time{ boost::local_time::not_a_date_time };
+        }
         std::string fstr;
         std::stringstream ss;
         auto ptr = new boost::local_time::local_time_input_facet("%Y-%m-%d %H:%M:%S %Q");
@@ -179,7 +202,7 @@ namespace discord {
             if (isdigit(ch) || ch == ':') fstr += ch;
             if (ch == '-') fstr += '-';
             if (ch == 'T') fstr += ' ';
-            if (*((&ch) + 1) == '.') {
+            if (((&ch)[1]) == '.') {
                 auto it = tempstr.begin() + 26;
                 fstr += ' ';
                 while (it != tempstr.end())

@@ -157,7 +157,7 @@ namespace discord {
     class Attachment : public Object {
     public:
         Attachment() = default;
-        Attachment(nlohmann::json const&);
+        Attachment(nlohmann::json const);
 
         std::string url;
         std::size_t size;
@@ -443,12 +443,14 @@ namespace discord {
     public:
         Message() = default;
         Message(snowflake);
-        Message(nlohmann::json const&);
+        Message(nlohmann::json const);
 
         discord::Message edit(std::string);
         discord::Message edit(EmbedBuilder, std::string = "");
         void pin();
         void unpin();
+        discord::Message& update(nlohmann::json const);
+
 
         std::string get_edit_url();
         std::string get_delete_url();

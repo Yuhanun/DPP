@@ -30,7 +30,7 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
     user_limit = get_value(data, "user_limit", 0);
     parent_id = to_sf(get_value(data, "parent_id", "0"));
     rate_limit_per_user = get_value(data, "rate_limit_per_user", 0);
-    topic = discord::get_value(data, "topic", "");
+    topic = get_value(data, "topic", "");
 
     if (guild_id) {
         guild = discord::utils::get(discord::detail::bot_instance->guilds, [&guild_id](auto const &g) {

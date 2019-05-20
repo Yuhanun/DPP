@@ -1,7 +1,7 @@
 #pragma once
 #include <discord.hpp>
 
-discord::Attachment::Attachment(nlohmann::json const& data) {
+discord::Attachment::Attachment(nlohmann::json const data) {
     id = to_sf(data["id"]);
     filename = data["filename"];
     size = data["size"];
