@@ -4,8 +4,8 @@
 #include "permissions.hpp"
 #include "utility.hpp"
 
-discord::Channel::Channel(snowflake id) {
-    this->id = id;
+discord::Channel::Channel(snowflake id)
+    : id{ id } {
 
     for (auto const &guild : discord::detail::bot_instance->guilds) {
         for (auto const &channel : guild->channels) {

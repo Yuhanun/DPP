@@ -1,13 +1,12 @@
 #pragma once
 #include <discord.hpp>
 
-discord::Attachment::Attachment(nlohmann::json const data) {
-    id = to_sf(data["id"]);
-    filename = data["filename"];
-    size = data["size"];
-    url = data["url"];
-    proxy_url = data["proxy_url"];
-
-    height = get_value(data, "height", -1);
-    width = get_value(data, "width", -1);
+discord::Attachment::Attachment(nlohmann::json const data)
+    : size{ data["size"] },
+      width{ get_value(data, "width", 0) },
+      height{ get_value(data, "height", 0) },
+      id{ to_sf(data["id"]) },
+      url{ data["url"] },
+      filename{ data["filename"] },
+      proxy_url{ data["proxy_url"] } {
 }
