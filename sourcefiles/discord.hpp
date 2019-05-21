@@ -33,6 +33,7 @@ namespace discord {
     class Guild;
     class Member;
     class Invite;
+    class Webhook;
     class Channel;
     class Message;
     class Activity;
@@ -298,6 +299,10 @@ namespace discord {
         void edit(nlohmann::json&);
         void remove();
 
+        // TODO: avatar
+        discord::Webhook create_webhook(std::string const&);
+        std::vector<discord::Webhook> get_webhooks();
+
     private:
         std::string get_bulk_delete_url();
         std::string get_get_messages_url(int);
@@ -309,6 +314,9 @@ namespace discord {
         std::string get_delete_channel_permission_url(discord::Object const&);
         std::string get_typing_url();
         std::string get_pins_url();
+
+        std::string get_create_webhook_url();
+        std::string get_webhooks_url();
 
     public:
         int type;
@@ -436,8 +444,36 @@ namespace discord {
         discord::Channel afk_channel;
         discord::Channel system_channel;
 
+        std::vector<discord::Webhook> get_webhooks();
 
     private:
+        std::string get_webhooks_url();
+    };
+
+    class Webhook : public Object {
+    public:
+        Webhook() = default;
+        Webhook(snowflake);
+        Webhook(snowflake, std::string const&);
+        Webhook(nlohmann::json const);
+
+        snowflake id;
+        discord::Guild guild;
+        discord::Channel channel;
+        std::optional<discord::User> user;
+        std::string name;
+        std::string avatar;
+        std::string token;
+
+        // TODO: avatar edit for both
+        void edit(std::string const& = "", snowflake = 0);
+        void edit(std::string const& = "");
+        
+        // TODO: void send(); // Execute Webhook
+
+    private:
+        std::string get_edit_webhook_url();
+        std::string get_edit_webhook_token_url();
     };
 
     class Message : public Object {

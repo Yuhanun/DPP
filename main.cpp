@@ -7,6 +7,7 @@
 #include "message.hpp"
 #include "sourcefiles/bot.hpp"
 #include "utility.hpp"
+#include "webhook.hpp"
 
 
 int main() {
@@ -31,9 +32,9 @@ int main() {
           << "Created at: " << m.timestamp << std::endl
           << "Edited at: " << m.edited_timestamp << std::endl;
         if (m.author) {
-            std::cout << "Author: " << m.author->name << "#" << m.author->discriminator << std::endl;
+            s << "Author: " << m.author->name << "#" << m.author->discriminator << std::endl;
         }
-        std::cout << "-----------------------------" << std::endl;
+        s << "-----------------------------" << std::endl;
         std::printf("%s", s.str().c_str());
     };
 

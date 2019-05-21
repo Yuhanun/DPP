@@ -14,7 +14,7 @@ discord::Guild::Guild(snowflake id)
     auto g = discord::utils::get(discord::detail::bot_instance->guilds, [&id](auto const& guild) {
         return guild->id == id;
     });
-    if (g){
+    if (g) {
         *this = *g;
     }
 }
@@ -36,14 +36,25 @@ discord::Guild::Guild(nlohmann::json const guild)
       banner{ get_value(guild, "banner", "") },
       created_at{ time_from_discord_string(guild["joined_at"]) },
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
-      roles{ from_json_array<discord::Role>(guild["roles"]) },
-      emojis{ from_json_array<discord::Emoji>(guild["emojis"]) },
-      channels{ from_json_array<discord::Channel>(guild["channels"]) } {
-      for (auto& each : guild["members"]) {
+      roles{ from_json_array<discord::Role>(guild, "roles") },
+      emojis{ from_json_array<discord::Emoji>(guild, "emojis") },
+      channels{ from_json_array<discord::Channel>(guild, "channels") } {
+    for (auto& each : guild["members"]) {
         discord::Member member{ each, discord::User(each["user"]), this };
         members.push_back(member);
         if (each["user"]["id"] == guild["owner_id"]) {
             owner = member;
         }
     }
+}
+
+std::vector<discord::Webhook> discord::Guild::get_webhooks() {
+    return from_json_array<discord::Webhook>(
+        send_request<request_method::Get>(nlohmann::json(),
+                                          get_default_headers(),
+                                          get_webhooks_url()));
+}
+
+std::string discord::Guild::get_webhooks_url() {
+    return format("%/guilds/%/webhooks", get_api(), id);
 }

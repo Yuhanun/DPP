@@ -139,6 +139,22 @@ std::vector<discord::Message> discord::Channel::get_pins() {
     return message_vec;
 }
 
+discord::Webhook discord::Channel::create_webhook(std::string const &name) {
+    return discord::Webhook{
+        send_request<request_method::Post>(
+            nlohmann::json({ { "name", name } }),
+            get_default_headers(),
+            get_create_webhook_url())
+    };
+}
+
+std::vector<discord::Webhook> discord::Channel::get_webhooks() {
+    return from_json_array<discord::Webhook>(
+        send_request<request_method::Get>(nlohmann::json(),
+                                          get_default_headers(),
+                                          get_webhooks_url()));
+}
+
 void discord::Channel::remove_permissions(discord::Object const &obj) {
     send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_delete_channel_permission_url(obj));
 }
@@ -170,4 +186,12 @@ std::string discord::Channel::get_typing_url() {
 
 std::string discord::Channel::get_pins_url() {
     return format("%/channels/%/pins", get_api(), id);
+}
+
+std::string discord::Channel::get_create_webhook_url() {
+    return format("%/channels/%/webhooks", get_api(), id);
+}
+
+std::string discord::Channel::get_webhooks_url(){
+    return format("%/channels/%/webhooks", get_api(), id);
 }
