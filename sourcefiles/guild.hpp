@@ -39,7 +39,7 @@ discord::Guild::Guild(nlohmann::json const guild)
       roles{ from_json_array<discord::Role>(guild["roles"]) },
       emojis{ from_json_array<discord::Emoji>(guild["emojis"]) },
       channels{ from_json_array<discord::Channel>(guild["channels"]) } {
-    for (auto& each : guild["members"]) {
+      for (auto& each : guild["members"]) {
         discord::Member member{ each, discord::User(each["user"]), this };
         members.push_back(member);
         if (each["user"]["id"] == guild["owner_id"]) {

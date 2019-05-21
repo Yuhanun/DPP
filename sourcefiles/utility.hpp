@@ -47,13 +47,15 @@ namespace discord {
         return vec;
     }
 
-    template <typename T>
-    inline std::vector<T> from_json_array(nlohmann::json const &j){
-        std::vector<T> return_vec = {};
-        for (auto const& each : j){
-            return_vec.emplace_back(each);
-        }
-        return return_vec;
+    template <typename T, typename Uy>
+    inline std::vector<T> from_json_array(nlohmann::json const& j, Uy&& key) {
+    	if (j.is_null() or not j.contains(key))
+		    return std::vector<T>{};
+    	std::vector<T> return_vec{};
+    	for (const auto& it : j[key]) {
+    		return_vec.emplace_back(it);
+    	}
+    	return return_vec;
     }
 
     inline snowflake to_sf(nlohmann::json const &sf) {
