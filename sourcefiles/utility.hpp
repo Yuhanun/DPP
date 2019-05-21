@@ -9,15 +9,54 @@
 namespace discord {
     namespace utils {
         template <typename S, typename F>
-        S *get(std::vector<std::unique_ptr<S>> &iterable, F callable) {
-            for (auto &each : iterable) {
+        S *get(std::vector<std::unique_ptr<S>> &iterable, F const &callable) {
+            for (auto const &each : iterable) {
                 if (callable(each)) {
                     return each.get();
                 }
             }
             return nullptr;
         }
-    } // namespace utils
+
+        template <template <typename...> typename T, typename S, typename F>
+        const S *get(T<S> const &iterable, F const &callable) {
+            for (auto const &each : iterable) {
+                if (callable(each)) {
+                    return &each;
+                }
+            }
+            return nullptr;
+        }
+
+        template <template <typename...> typename T, typename S, typename F>
+        S *get(T<S> &iterable, F const &callable) {
+            for (auto &each : iterable) {
+                if (callable(each)) {
+                    return &each;
+                }
+            }
+            return nullptr;
+        }
+    }  // namespace utils
+
+    template <typename T>
+    inline std::vector<T> &from_json_array(nlohmann::json const &j, std::vector<T> &vec) {
+        for (auto const &each : j) {
+            vec.emplace_back(each);
+        }
+        return vec;
+    }
+
+    template <typename T, typename Uy>
+    inline std::vector<T> from_json_array(nlohmann::json const& j, Uy&& key) {
+    	if (j.is_null() or not j.contains(key))
+		    return std::vector<T>{};
+    	std::vector<T> return_vec{};
+    	for (const auto& it : j[key]) {
+    		return_vec.emplace_back(it);
+    	}
+    	return return_vec;
+    }
 
     inline snowflake to_sf(nlohmann::json const &sf) {
         return std::stoul(sf.get<std::string>());
@@ -26,7 +65,6 @@ namespace discord {
     inline snowflake to_sf(std::string sf) {
         return std::stoul(sf);
     }
-
 
     template <typename S>
     inline void format_slice(std::string const &input_str, std::stringstream &output_str, int &start_index, S var) {
@@ -62,6 +100,10 @@ namespace discord {
 
     inline std::string get_value(nlohmann::json const &j, const char *s, const char *default_value) {
         return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<std::string>()) : default_value;
+    }
+
+    inline nlohmann::json get_value(nlohmann::json const &j, const char *s) {
+        return j.contains(s) ? j[s] : nlohmann::json{};
     }
 
     inline std::string get_channel_link(uint64_t id) {
@@ -150,27 +192,30 @@ namespace discord {
         Delete
     };
 
-    boost::local_time::local_date_time time_from_discord_string(const std::string& tempstr) {
-    	std::string fstr;
-	    std::stringstream ss;
-	    auto ptr = new boost::local_time::local_time_input_facet("%Y-%m-%d %H:%M:%S %Q");
-	    ss.imbue(std::locale(ss.getloc(), ptr));
-	    std::for_each(tempstr.begin(), tempstr.begin() + 19, [&tempstr, &fstr](const auto& ch) {
-		    if (isdigit(ch) || ch == ':') fstr += ch;
-		    if (ch == '-') fstr += '-'; if (ch == 'T') fstr += ' ';
-		    if (*((&ch) + 1) == '.') {
-			    auto it = tempstr.begin() + 26;
-			    fstr += ' ';
-			    while (it != tempstr.end())
-				    fstr += *it++;
-		    }
-	    });
-	    std::cout << fstr << "\n";
-	    ss.str(fstr);
-	    boost::local_time::local_date_time ldt(boost::local_time::not_a_date_time);
-	    ss >> ldt;
-	    return ldt;
-	    delete ptr;
+    discord::datetime time_from_discord_string(const std::string &tempstr) {
+        if (tempstr.empty()) {
+            return boost::local_time::local_date_time{ boost::local_time::not_a_date_time };
+        }
+        std::string fstr;
+        std::stringstream ss;
+        auto ptr = new boost::local_time::local_time_input_facet("%Y-%m-%d %H:%M:%S %Q");
+        ss.imbue(std::locale(ss.getloc(), ptr));
+        std::for_each(tempstr.begin(), tempstr.begin() + 19, [&tempstr, &fstr](const auto &ch) {
+            if (isdigit(ch) || ch == ':') fstr += ch;
+            if (ch == '-') fstr += '-';
+            if (ch == 'T') fstr += ' ';
+            if (((&ch)[1]) == '.') {
+                auto it = tempstr.begin() + 26;
+                fstr += ' ';
+                while (it != tempstr.end())
+                    fstr += *it++;
+            }
+        });
+        ss.str(fstr);
+        boost::local_time::local_date_time ldt(boost::local_time::not_a_date_time);
+        ss >> ldt;
+        delete ptr;
+        return ldt;
     }
 
     template <size_t method>

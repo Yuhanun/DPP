@@ -64,6 +64,7 @@ discord::Message::Message(nlohmann::json const j) {
             embeds.emplace_back(embed);
         }
     }
+
     edited_timestamp = time_from_discord_string(get_value(j, "edited_timestamp", ""));
 
     content = get_value(j, "content", "");

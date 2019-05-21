@@ -5,15 +5,15 @@
 #include "utility.hpp"
 
 discord::Role::Role(snowflake id) {
-    for (auto const& guild : discord::detail::bot_instance->guilds) {
-        for (auto const& role : guild->roles) {
-            if (role.id != id) {
-                continue;
+    discord::utils::get(discord::detail::bot_instance->guilds, [&id, this](auto const& g) {
+        for (auto const& role : g->roles) {
+            if (role.id == id) {
+                *this = role;
+                return true;
             }
-            *this = role;
-            return;
         }
-    }
+        return false;
+    });
 }
 
 discord::Role::Role(nlohmann::json data) {
