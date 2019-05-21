@@ -4,6 +4,13 @@
 
 discord::Member::Member(snowflake id)
     : discord::User(id) {
+    for (auto const& guild : discord::detail::bot_instance->guilds) {
+        for (auto const& mem : guild->members) {
+            if (id == mem.id) {
+                *this = mem;
+            }
+        }
+    }
 }
 
 discord::Member::Member(nlohmann::json const j, discord::User const& user, discord::Guild* g) {

@@ -8,7 +8,7 @@ discord::Emoji::Emoji(nlohmann::json event) {
 
     if (event.contains("roles")) {
         for (auto const& each : event["roles"]) {
-            roles.push_back(discord::Role{ to_sf(each) });
+            roles.emplace_back(to_sf(each));
         }
     }
 
