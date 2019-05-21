@@ -4,8 +4,7 @@
 #include "permissions.hpp"
 #include "utility.hpp"
 
-discord::Channel::Channel(snowflake id) {
-    this->id = id;
+discord::Channel::Channel(snowflake id): Object(id) {
     for (auto const &guild : discord::detail::bot_instance->guilds) {
         for (auto const &channel : guild->channels) {
             if (channel.id == id) {
@@ -14,58 +13,45 @@ discord::Channel::Channel(snowflake id) {
         }
     }
 
-    for (auto const &channel : discord::detail::bot_instance->channels) {
-        if (channel->id == id){
-            *this = *(channel);
-        }
+    auto c = discord::utils::get(discord::detail::bot_instance->channels, [&id](auto const &c) {
+        return c->id == id;
+    });
+    if (!c) {
+        return;
     }
+    *this = *c;
 }
 
 discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
-    type = data["type"];
-    if (data.contains("bitrate")) {
-        if (data.contains("parent_id")) {
-            parent_id = to_sf(get_value(data, "parent_id", "0"));
-        }
-        bitrate = data["bitrate"];
-        user_limit = data["user_limit"];
-    } else {
-        parent_id = to_sf(get_value(data, "parent_id", "0"));
-        rate_limit_per_user = get_value(data, "rate_limit_per_user", 0);
-        topic = discord::get_value(data, "topic", "");
-    }
+    type = get_value(data, "type", 0);
+    bitrate = get_value(data, "bitrate", 0);
+    user_limit = get_value(data, "user_limit", 0);
+    parent_id = to_sf(get_value(data, "parent_id", "0"));
+    rate_limit_per_user = get_value(data, "rate_limit_per_user", 0);
+    topic = get_value(data, "topic", "");
 
-    guild = nullptr;
     if (guild_id) {
-        for (auto const &v_guild : discord::detail::bot_instance->guilds) {
-            if (v_guild->id != guild_id) {
-                continue;
-            }
-            guild = v_guild.get();
-            break;
-        }
+        guild = discord::utils::get(discord::detail::bot_instance->guilds, [&guild_id](auto const &g) {
+            return g->id == guild_id;
+        });
     }
 
     if (type == channel_type::dm_channel || type == channel_type::group_dm_channel) {
         for (auto const &each : data["recipients"]) {
-            recipients.push_back(discord::User{ each });
+            recipients.emplace_back(each);
         }
-    } 
+    }
 
     if (data.contains("permission_overwrites")) {
         for (auto &each : data["permission_overwrites"]) {
             int t = each["type"].get<std::string>() == "role" ? role : member;
-            overwrites.push_back(discord::PermissionOverwrites{
-                each["allow"].get<int>(), each["deny"].get<int>(),
-                to_sf(each["id"]), t });
+            overwrites.emplace_back(each["allow"].get<int>(),
+                                    each["deny"].get<int>(),
+                                    to_sf(each["id"]), t);
         }
     }
-    if (data.contains("name")) {
-        name = data["name"];
-    }
-    if (data.contains("position")){
-        position = data["position"];
-    }
+    name = get_value(data, "name", "");
+    position = get_value(data, "position", 0);
     id = to_sf(data["id"]);
 }
 
@@ -107,7 +93,7 @@ std::vector<discord::Message> discord::Channel::get_messages(int limit) {
 
     auto data = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_get_messages_url(limit));
     for (auto &each : data) {
-        return_vec.push_back(discord::Message::from_sent_message(each));
+        return_vec.emplace_back(each);
     }
     return return_vec;
 }
@@ -129,15 +115,16 @@ void discord::Channel::remove() {
 }
 
 discord::Message discord::Channel::get_message(snowflake id) {
-    return discord::Message::from_sent_message(
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_get_message_url(id)));
+    return discord::Message{
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_get_message_url(id))
+    };
 }
 
 std::vector<discord::Invite> discord::Channel::get_invites() {
     std::vector<discord::Invite> return_vec;
     auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_channel_invites_url());
     for (auto const &each : response) {
-        return_vec.push_back(discord::Invite{ each });
+        return_vec.emplace_back(each);
     }
     return return_vec;
 }
@@ -154,7 +141,7 @@ std::vector<discord::Message> discord::Channel::get_pins() {
     std::vector<discord::Message> message_vec;
     auto reply = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_pins_url());
     for (auto const &each : reply) {
-        message_vec.push_back(discord::Message::from_sent_message(each));
+        message_vec.emplace_back(each);
     }
     return message_vec;
 }

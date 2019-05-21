@@ -11,9 +11,9 @@
 #include <unordered_map>
 
 #include <boost/asio.hpp>
-#include <boost/date_time/local_time/local_time.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/date_time/local_time/local_time.hpp>
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
 
@@ -45,6 +45,8 @@ namespace discord {
     }  // namespace detail
 
     typedef uint64_t snowflake;
+    typedef boost::local_time::local_date_time datetime;
+
 
     using namespace boost;
 
@@ -141,6 +143,31 @@ namespace discord {
         }
     };
 
+    struct Context {
+        const discord::Bot* bot;
+        const discord::Message& message;
+        const std::vector<std::string>& arguments;
+        const std::function<void(Context const& c)> command;
+        const std::string command_name;
+
+        template <typename... Tys>
+        discord::Message send(Tys&&... args) const;
+    };
+
+    class Attachment {
+    public:
+        Attachment() = default;
+        Attachment(nlohmann::json const);
+
+        int size;
+        int width;
+        int height;
+        snowflake id;
+        std::string url;
+        std::string filename;
+        std::string proxy_url;
+    };
+
 
     class Bot {
     public:
@@ -150,8 +177,7 @@ namespace discord {
             std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
         }
 
-        void register_command(std::string const&, std::function<void(discord::Message&, std::vector<std::string>&)>);
-
+        void register_command(std::string const& command_name, std::function<void(discord::Context const&)> function);
         void update_presence(Activity const&);
 
         discord::Message send_message(snowflake, std::string, bool = false);
@@ -229,7 +255,7 @@ namespace discord {
 
         std::vector<discord::Message> messages;
         std::vector<std::future<void>> packet_handling;
-        std::unordered_map<std::string, std::function<void(discord::Message&, std::vector<std::string>&)>> command_map;
+        std::unordered_map<std::string, std::function<void(discord::Context const&)>> command_map;
     };
 
     class Activity {
@@ -341,16 +367,18 @@ namespace discord {
     public:
         Member() = default;
         Member(snowflake);
-        Member(nlohmann::json const, discord::User const&);
+        Member(nlohmann::json const, discord::User const&, discord::Guild*);
 
     public:
         bool deaf;
         bool muted;
 
+        discord::Guild* guild;
+
         std::vector<discord::Role> roles;
 
         std::string nick;
-        std::string joined_at;
+        datetime joined_at{ boost::local_time::not_a_date_time };
     };
 
     class Invite {
@@ -364,9 +392,9 @@ namespace discord {
         bool temporary;
 
         std::string code;
-        std::string created_at;
+        datetime created_at{ boost::local_time::not_a_date_time };
         discord::Member inviter;
-        discord::Channel channel;
+        discord::Channel* channel;
     };
 
 
@@ -395,7 +423,7 @@ namespace discord {
         std::string icon;
         std::string region;
         std::string banner;
-        std::string created_at;
+        datetime created_at{ boost::local_time::not_a_date_time };
         std::string vanity_url_code;
 
         std::vector<int> features;
@@ -416,12 +444,14 @@ namespace discord {
     public:
         Message() = default;
         Message(snowflake);
+        Message(nlohmann::json const);
 
-        inline static Message from_sent_message(nlohmann::json);
         discord::Message edit(std::string);
         discord::Message edit(EmbedBuilder, std::string = "");
         void pin();
         void unpin();
+        discord::Message& update(nlohmann::json const);
+
 
         std::string get_edit_url();
         std::string get_delete_url();
@@ -441,15 +471,15 @@ namespace discord {
         snowflake id;
 
         std::string content;
-	    boost::local_time::local_date_time timestamp{ boost::local_time::not_a_date_time };
-        std::string edited_timestamp;
+        datetime timestamp{ boost::local_time::not_a_date_time };
+        datetime edited_timestamp{ boost::local_time::not_a_date_time };
 
-        discord::Member author;
-        discord::Channel channel;
+        discord::Member* author;
+        discord::Channel* channel;
 
         std::vector<discord::Member> mentions;
         std::vector<discord::Role> mentioned_roles;
-        // TODO std::vector<type> attachments;
+        std::vector<discord::Attachment> attachments;
         std::vector<discord::EmbedBuilder> embeds;
 
     private:
@@ -549,4 +579,5 @@ namespace discord {
     class UnknownChannel : public std::exception {
         const char* what() const throw();
     };
+
 };  // namespace discord
