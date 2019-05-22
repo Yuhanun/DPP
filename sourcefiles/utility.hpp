@@ -47,15 +47,15 @@ namespace discord {
         return vec;
     }
 
-    template <typename T, typename Uy>
-    inline std::vector<T> from_json_array(nlohmann::json const& j, Uy&& key) {
-    	if (j.is_null() or not j.contains(key))
-		    return std::vector<T>{};
-    	std::vector<T> return_vec{};
-    	for (const auto& it : j[key]) {
-    		return_vec.emplace_back(it);
-    	}
-    	return return_vec;
+    template <typename T, typename Uy, typename... Tys>
+    inline std::vector<T> from_json_array(nlohmann::json const &j, Uy &&key, Tys &&... args) {
+        std::vector<T> return_vec{};
+        if (j.is_null() or not j.contains(key))
+            return return_vec;
+        for (const auto &it : j[key]) {
+            return_vec.emplace_back(it, std::forward<Tys>(args)...);
+        }
+        return return_vec;
     }
 
     template <typename T>
@@ -87,6 +87,7 @@ namespace discord {
 
     template <typename... T>
     inline std::string format(std::string const &str, T... args) {
+        assert(sizeof...(args) == std::count(str.begin(), str.end(), '%') && "Amount of % does not match amount of arguments");
         std::stringstream output_str;
         int start_index = 0;
         ((format_slice(str, output_str, start_index, args)), ...);
@@ -246,6 +247,7 @@ namespace discord {
             response = cpr::Patch(url, h, body);
         }
 
+        std::cout << response.text << std::endl;
         auto j_resp = response.text.length() ? nlohmann::json::parse(response.text) : nlohmann::json({});
         if (j_resp.contains("message")) {
             if (j_resp["message"].get<std::string>() == "You are being rate limited.") {
@@ -254,6 +256,24 @@ namespace discord {
             }
         }
         return j_resp;
+    }
+
+    inline std::string get_os_name() {
+#ifdef _WIN32
+        return "Windows 32-bit";
+#elif _WIN64
+        return "Windows 64-bit";
+#elif __unix || __unix__
+        return "Unix";
+#elif __APPLE__ || __MACH__
+        return "Mac OSX";
+#elif __linux__
+        return "Linux";
+#elif __FreeBSD__
+        return "FreeBSD";
+#else
+        return "Other";
+#endif
     }
 
 }  // namespace discord

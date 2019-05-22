@@ -71,7 +71,7 @@ discord::Message::Message(nlohmann::json const j) {
     type = get_value(j, "type", 0);
 }
 
-discord::Message& discord::Message::update(nlohmann::json const j){
+discord::Message& discord::Message::update(nlohmann::json const j) {
     snowflake sender_id = to_sf(get_value(get_value(j, "author", nlohmann::json({ { "id", "0" } })), "id", "0"));
     pinned = get_value(j, "pinned", false);
     tts = get_value(j, "tts", false);
@@ -130,7 +130,7 @@ discord::Message& discord::Message::update(nlohmann::json const j){
     return *this;
 }
 
-std::string discord::Message::get_delete_url() {
+std::string discord::Message::get_delete_url() const {
     return format("%/%/messages/%", get_api(), channel->id, id);
 }
 
@@ -138,7 +138,7 @@ void discord::Message::remove() {
     send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_delete_url());
 }
 
-std::string discord::Message::get_edit_url() {
+std::string discord::Message::get_edit_url() const {
     return format("%/channels/%/messages/%", get_api(), channel->id, id);
 }
 
@@ -154,11 +154,11 @@ discord::Message discord::Message::edit(EmbedBuilder embed, std::string content)
     return discord::Message{ response };
 }
 
-std::string discord::Message::get_pin_url() {
+std::string discord::Message::get_pin_url() const {
     return format("%/channels/%/pins/%", get_api(), channel->id, id);
 }
 
-std::string discord::Message::get_unpin_url() {
+std::string discord::Message::get_unpin_url() const {
     return format("%/channels/%/pins/%", get_api(), channel->id, id);
 }
 

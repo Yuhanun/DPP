@@ -1,5 +1,5 @@
 Gateway:
-    Finish gateway logic
+    Caching
 
 REST:
     Audit logs:
@@ -74,9 +74,7 @@ REST:
         Get User DMs // not usable for bots
         Create DM
         Create Group DM 
-
-    Voice:
-        List voice regions
     
     Webhook:
-        Everything, including structs
+        Slack webhook
+        GitHub webhook

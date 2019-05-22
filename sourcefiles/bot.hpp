@@ -29,6 +29,12 @@ discord::Message discord::Bot::send_message(snowflake channel_id, nlohmann::json
 void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl &, const client::message_ptr &msg) {
     nlohmann::json j = nlohmann::json::parse(msg->get_payload());
     switch (j["op"].get<int>()) {
+        case (9):
+            if (disconnected) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+                con->send(get_identify_packet());
+            }
+            break;
         case (10):
             hello_packet = j;
             con->send(get_identify_packet());
@@ -122,12 +128,48 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
                      }),
                      guilds.end());
     } else if (event_name == "GUILD_BAN_ADD") {
+        discord::Guild banned_guild{ to_sf(data["guild_id"]) };
+        discord::User user{ data["user"] };
+        func_holder.call<events::guild_ban_add>(packet_handling, ready, banned_guild, user);
     } else if (event_name == "GUILD_BAN_REMOVE") {
+        discord::Guild banned_guild{ to_sf(data["guild_id"]) };
+        discord::User user{ data["user"] };
+        func_holder.call<events::guild_ban_remove>(packet_handling, ready, banned_guild, user);
     } else if (event_name == "GUILD_EMOJIS_UPDATE") {
+        discord::Guild emote_guild{ to_sf(data["guild"]) };
+        auto emote_vec = from_json_array<discord::Emoji>(data["emojis"]);
+        func_holder.call<events::guild_emojis_update>(packet_handling, ready, emote_guild, emote_vec);
     } else if (event_name == "GUILD_INTEGRATIONS_UPDATE") {
+        func_holder.call<events::guild_integrations_update>(
+            packet_handling, ready, discord::Guild{ to_sf(data["guild_id"]) });
     } else if (event_name == "GUILD_MEMBER_ADD") {
+        discord::Member mem{ data };
+        snowflake guild_id = to_sf(data["guild_id"]);
+        auto guild = discord::utils::get(this->guilds, [&guild_id](auto &g) {
+            return g->id == guild_id;
+        });
+        guild->members.push_back(mem);
+        func_holder.call<events::guild_member_add>(packet_handling, ready, mem);
     } else if (event_name == "GUILD_MEMBER_REMOVE") {
+        discord::User user{ data["user"] };
+        snowflake guild_id = to_sf(data["guild_id"]);
+        auto guild = discord::utils::get(this->guilds, [&guild_id](auto &g) {
+            return g->id == guild_id;
+        });
+        guild->members.erase(std::remove(guild->members.begin(), guild->members.end(), user), guild->members.end());
+        func_holder.call<events::guild_member_remove>(packet_handling, ready, user);
     } else if (event_name == "GUILD_MEMBER_UPDATE") {
+        discord::User user{ data["user"] };
+        snowflake guild_id = to_sf(data["guild_id"]);
+        auto guild = discord::utils::get(this->guilds, [&guild_id](auto &g) {
+            return g->id == guild_id;
+        });
+        auto member = discord::utils::get(guild->members, [&user](auto &usr) {
+            return usr.id == user.id;
+        });
+        member->nick = data["nick"];
+        member->roles = from_json_array<discord::Role>(data["roles"]);
+        func_holder.call<events::guild_member_update>(packet_handling, ready, *member);
     } else if (event_name == "GUILD_MEMBERS_CHUNK") {
     } else if (event_name == "GUILD_ROLE_CREATE") {
     } else if (event_name == "GUILD_ROLE_UPDATE") {
@@ -171,7 +213,7 @@ std::string discord::Bot::get_identify_packet() {
                            { "d",
                              { { "token", token },
                                { "properties",
-                                 { { "$os", "Linux" },
+                                 { { "$os", get_os_name() },
                                    { "$browser", "DiscordPP" },
                                    { "$device", "DiscordPP" } } },
                                { "compress", false },
@@ -194,7 +236,7 @@ void discord::Bot::await_events() {
     } } };
 }
 
-std::string discord::Bot::get_gateway_url() {
+std::string discord::Bot::get_gateway_url() const {
     auto r = send_request<request_method::Get>(nlohmann::json({}), get_basic_header(), format("%/gateway/bot", get_api()));
     if (!r.contains("url")) {
         throw discord::ImproperToken();
@@ -238,7 +280,7 @@ void discord::Bot::initialize_variables(const std::string raw) {
     email = get_value(j, "email", "");
 }
 
-cpr::Header discord::Bot::get_basic_header() {
+cpr::Header discord::Bot::get_basic_header() const {
     return cpr::Header{
         { "Authorization", format("Bot %", token) }
     };
@@ -250,10 +292,12 @@ void discord::Bot::handle_heartbeat() {
         if (last_sequence_data != -1) {
             data["d"] = last_sequence_data;
         }
+
         con->send(data.dump());
         heartbeat_acked = false;
         std::this_thread::sleep_for(std::chrono::milliseconds(hello_packet["d"]["heartbeat_interval"].get<int>()));
         if (!heartbeat_acked) {
+            disconnected = true;
             data = nlohmann::json({ { "token", token },
                                     { "session_id", session_id },
                                     { "seq", last_sequence_data } });
@@ -393,11 +437,28 @@ discord::Message discord::Bot::process_message_cache(discord::Message *m, bool &
     return return_m;
 }
 
+std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
+    std::vector<VoiceRegion> return_vec = {};
+    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_voice_regions_url());
+    for (auto const &each : response) {
+        return_vec.push_back({ get_value(each, "id", ""),
+                               get_value(each, "name", ""),
+                               get_value(each, "vip", false),
+                               get_value(each, "optimal", false),
+                               get_value(each, "deprecated", false),
+                               get_value(each, "custom", false) });
+    }
+    return return_vec;
+}
 
 void discord::Bot::update_presence(Activity const &act) {
     con->send(nlohmann::json({ { "op", 3 }, { "d", act.to_json() } }).dump());
 }
 
-std::string discord::Bot::get_create_guild_url() {
+std::string discord::Bot::get_create_guild_url() const {
     return format("%/guilds", get_api());
+}
+
+std::string discord::Bot::get_voice_regions_url() const {
+    return format("%/voice/regions", get_api());
 }

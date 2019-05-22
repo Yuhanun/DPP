@@ -105,7 +105,7 @@ discord::EmbedBuilder &discord::EmbedBuilder::add_field(std::string const &name,
     return *this;
 }
 
-nlohmann::json &discord::EmbedBuilder::to_json() {
+nlohmann::json discord::EmbedBuilder::to_json() const {
     return embed;
 }
 

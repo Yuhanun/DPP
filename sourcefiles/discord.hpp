@@ -30,6 +30,7 @@ namespace discord {
     class User;
     class Role;
     class Color;
+    class Emoji;
     class Guild;
     class Member;
     class Invite;
@@ -57,41 +58,41 @@ namespace discord {
     using websocketpp::lib::bind;
 
     typedef Events<
-        void(),                                   // HELLO
-        void(),                                   // READY
-        void(),                                   // RESUMED
-        void(),                                   // INVALID_SESSION,
-        void(discord::Channel),                   // CHANNEL_CREATE
-        void(discord::Channel),                   // CHANNEL_UPDATE
-        void(discord::Channel),                   // CHANNEL_DELETE
-        void(discord::Channel),                   // CHANNEL_PINS_UPDATE
-        void(discord::Guild),                     // GUILD_CREATE
-        void(discord::Guild),                     // GUILD_UPDATE
-        void(discord::Guild),                     // GUILD_DELETE
-        void(discord::User),                      // GUILD_BAN_ADD,
-        void(discord::User),                      // GUILD_BAN_REMOVE,
-        void(discord::Guild),                     // GUILD_EMOJIS_UPDATE
-        void(discord::Guild),                     // GUILD_INTEGRATIONS_UPDATE
-        void(discord::Member),                    // GUILD_MEMBER_ADD
-        void(discord::User),                      // GUILD_MEMBER_REMOVE
-        void(discord::Member),                    // GUILD_MEMBER_UPDATE
-        void(),                                   // GUILD_MEMBERS_CHUNK
-        void(discord::Role),                      // GUILD_ROLE_CREATE
-        void(discord::Role),                      // GUILD_ROLE_UPDATE
-        void(discord::Role),                      // GUILD_ROLE_DELETE
-        void(discord::Message),                   // MESSAGE_CREATE
-        void(discord::Message),                   // MESSAGE_UPDATE
-        void(discord::Message),                   // MESSAGE_DELETE
-        void(std::vector<discord::Message>),      // MESSAGE_DELETE_BULK
-        void(discord::Message),                   // MESSAGE_REACTION_ADD
-        void(discord::Message),                   // MESSAGE_REACTION_REMOVE
-        void(discord::Message),                   // MESSAGE_REACTION_REMOVE_ALL
-        void(discord::User),                      // PRECENSE_UPDATE
-        void(discord::Member, discord::Channel),  // PRESENCE_UPDATE
-        void(discord::User),                      // USER_UPDATE
-        void(discord::Member, discord::Channel),  // VOICE_STATE_UPDATE
-        void(discord::Guild),                     // VOICE_SERVER_UPDATE
-        void(discord::Guild)>                     // WEBHOOKS_UPDATE
+        void(),                                            // HELLO
+        void(),                                            // READY
+        void(),                                            // RESUMED
+        void(),                                            // INVALID_SESSION,
+        void(discord::Channel),                            // CHANNEL_CREATE
+        void(discord::Channel),                            // CHANNEL_UPDATE
+        void(discord::Channel),                            // CHANNEL_DELETE
+        void(discord::Channel),                            // CHANNEL_PINS_UPDATE
+        void(discord::Guild),                              // GUILD_CREATE
+        void(discord::Guild),                              // GUILD_UPDATE
+        void(discord::Guild),                              // GUILD_DELETE
+        void(discord::Guild, discord::User),               // GUILD_BAN_ADD,
+        void(discord::Guild, discord::User),               // GUILD_BAN_REMOVE,
+        void(discord::Guild, std::vector<discord::Emoji>), // GUILD_EMOJIS_UPDATE
+        void(discord::Guild),                              // GUILD_INTEGRATIONS_UPDATE
+        void(discord::Member),                             // GUILD_MEMBER_ADD
+        void(discord::User),                               // GUILD_MEMBER_REMOVE
+        void(discord::Member),                             // GUILD_MEMBER_UPDATE
+        void(),                                            // GUILD_MEMBERS_CHUNK
+        void(discord::Role),                               // GUILD_ROLE_CREATE
+        void(discord::Role),                               // GUILD_ROLE_UPDATE
+        void(discord::Role),                               // GUILD_ROLE_DELETE
+        void(discord::Message),                            // MESSAGE_CREATE
+        void(discord::Message),                            // MESSAGE_UPDATE
+        void(discord::Message),                            // MESSAGE_DELETE
+        void(std::vector<discord::Message>),               // MESSAGE_DELETE_BULK
+        void(discord::Message),                            // MESSAGE_REACTION_ADD
+        void(discord::Message),                            // MESSAGE_REACTION_REMOVE
+        void(discord::Message),                            // MESSAGE_REACTION_REMOVE_ALL
+        void(discord::User),                               // PRECENSE_UPDATE
+        void(discord::Member, discord::Channel),           // PRESENCE_UPDATE
+        void(discord::User),                               // USER_UPDATE
+        void(discord::Member, discord::Channel),           // VOICE_STATE_UPDATE
+        void(discord::Guild),                              // VOICE_SERVER_UPDATE
+        void(discord::Guild)>                              // WEBHOOKS_UPDATE
         function_handler;
 
     using websocketpp::lib::bind;
@@ -155,6 +156,15 @@ namespace discord {
         discord::Message send(Tys&&... args) const;
     };
 
+    struct VoiceRegion {
+        std::string id;
+        std::string name;
+        bool vip;
+        bool optimal;
+        bool deprecated;
+        bool custom;
+    };
+
     class Attachment {
     public:
         Attachment() = default;
@@ -190,6 +200,8 @@ namespace discord {
 
         void run();
 
+        std::vector<VoiceRegion> get_voice_regions() const;
+
     private:
         void fire_commands(discord::Message&) const;
         void await_events();
@@ -205,11 +217,12 @@ namespace discord {
         void channel_update_event(nlohmann::json);
         void channel_delete_event(nlohmann::json);
 
-        std::string get_gateway_url();
+        std::string get_gateway_url() const;
         std::string get_identify_packet();
-        std::string get_create_guild_url();
+        std::string get_create_guild_url() const;
+        std::string get_voice_regions_url() const;
 
-        cpr::Header get_basic_header();
+        cpr::Header get_basic_header() const;
 
     public:
         bool authenticated;
@@ -240,6 +253,7 @@ namespace discord {
         nlohmann::json ready_packet;
         std::size_t message_cache_count;
 
+        bool disconnected;
         bool heartbeat_acked;
         int last_sequence_data;
         long long packet_counter;
@@ -283,8 +297,8 @@ namespace discord {
 
         Channel(nlohmann::json const, snowflake);
 
-        discord::Message send(std::string, bool = false) const;
-        discord::Message send(EmbedBuilder, bool = false, std::string = "") const;
+        discord::Message send(std::string const&, bool = false) const;
+        discord::Message send(EmbedBuilder const&, bool = false, std::string const& = "") const;
         discord::Message get_message(snowflake);
         discord::Invite create_invite(int = 86400, int = 0, bool = false, bool = false) const;
         std::vector<discord::Invite> get_invites();
@@ -304,19 +318,19 @@ namespace discord {
         std::vector<discord::Webhook> get_webhooks();
 
     private:
-        std::string get_bulk_delete_url();
-        std::string get_get_messages_url(int);
-        std::string get_channel_edit_url();
-        std::string get_delete_url();
-        std::string get_get_message_url(snowflake);
-        std::string get_channel_invites_url();
+        std::string get_bulk_delete_url() const;
+        std::string get_get_messages_url(int) const;
+        std::string get_channel_edit_url() const;
+        std::string get_delete_url() const;
+        std::string get_get_message_url(snowflake) const;
+        std::string get_channel_invites_url() const;
         std::string get_create_invite_url() const;
-        std::string get_delete_channel_permission_url(discord::Object const&);
-        std::string get_typing_url();
-        std::string get_pins_url();
+        std::string get_delete_channel_permission_url(discord::Object const&) const;
+        std::string get_typing_url() const;
+        std::string get_pins_url() const;
 
-        std::string get_create_webhook_url();
-        std::string get_webhooks_url();
+        std::string get_create_webhook_url() const;
+        std::string get_webhooks_url() const;
 
     public:
         int type;
@@ -447,7 +461,7 @@ namespace discord {
         std::vector<discord::Webhook> get_webhooks();
 
     private:
-        std::string get_webhooks_url();
+        std::string get_webhooks_url() const;
     };
 
     class Webhook : public Object {
@@ -468,12 +482,17 @@ namespace discord {
         // TODO: avatar edit for both
         void edit(std::string const& = "", snowflake = 0);
         void edit(std::string const& = "");
-        
-        // TODO: void send(); // Execute Webhook
+
+        void remove();
+
+        discord::Message send(std::string const&, bool = false, std::string const& = "", std::string const& = "");
+        discord::Message send(std::vector<EmbedBuilder> const&, bool = false, std::string const& = "", std::string const& = "", std::string const& = "");
 
     private:
-        std::string get_edit_webhook_url();
-        std::string get_edit_webhook_token_url();
+        std::string get_edit_webhook_url() const;
+        std::string get_edit_webhook_token_url() const;
+        std::string get_delete_webhook_url() const;
+        std::string get_execute_webhook_url() const;
     };
 
     class Message : public Object {
@@ -489,10 +508,10 @@ namespace discord {
         discord::Message& update(nlohmann::json const);
 
 
-        std::string get_edit_url();
-        std::string get_delete_url();
-        std::string get_pin_url();
-        std::string get_unpin_url();
+        std::string get_edit_url() const;
+        std::string get_delete_url() const;
+        std::string get_pin_url() const;
+        std::string get_unpin_url() const;
 
         void remove();
 
@@ -537,7 +556,7 @@ namespace discord {
         EmbedBuilder& set_video(std::string const&, const int = -1, const int = -1);
         EmbedBuilder& set_author(std::string const&, std::string const&, std::string const&);
         EmbedBuilder& add_field(std::string const&, std::string const&, const bool = false);
-        nlohmann::json& to_json();
+        nlohmann::json to_json() const;
         operator nlohmann::json();
 
     private:

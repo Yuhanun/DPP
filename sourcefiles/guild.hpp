@@ -38,7 +38,7 @@ discord::Guild::Guild(nlohmann::json const guild)
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
       roles{ from_json_array<discord::Role>(guild, "roles") },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") },
-      channels{ from_json_array<discord::Channel>(guild, "channels") } {
+      channels{ from_json_array<discord::Channel>(guild, "channels", id) } {
     for (auto& each : guild["members"]) {
         discord::Member member{ each, discord::User(each["user"]), this };
         members.push_back(member);
@@ -55,6 +55,6 @@ std::vector<discord::Webhook> discord::Guild::get_webhooks() {
                                           get_webhooks_url()));
 }
 
-std::string discord::Guild::get_webhooks_url() {
+std::string discord::Guild::get_webhooks_url() const {
     return format("%/guilds/%/webhooks", get_api(), id);
 }
