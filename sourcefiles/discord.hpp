@@ -58,41 +58,41 @@ namespace discord {
     using websocketpp::lib::bind;
 
     typedef Events<
-        void(),                                            // HELLO
-        void(),                                            // READY
-        void(),                                            // RESUMED
-        void(),                                            // INVALID_SESSION,
-        void(discord::Channel),                            // CHANNEL_CREATE
-        void(discord::Channel),                            // CHANNEL_UPDATE
-        void(discord::Channel),                            // CHANNEL_DELETE
-        void(discord::Channel),                            // CHANNEL_PINS_UPDATE
-        void(discord::Guild),                              // GUILD_CREATE
-        void(discord::Guild),                              // GUILD_UPDATE
-        void(discord::Guild),                              // GUILD_DELETE
-        void(discord::Guild, discord::User),               // GUILD_BAN_ADD,
-        void(discord::Guild, discord::User),               // GUILD_BAN_REMOVE,
-        void(discord::Guild, std::vector<discord::Emoji>), // GUILD_EMOJIS_UPDATE
-        void(discord::Guild),                              // GUILD_INTEGRATIONS_UPDATE
-        void(discord::Member),                             // GUILD_MEMBER_ADD
-        void(discord::User),                               // GUILD_MEMBER_REMOVE
-        void(discord::Member),                             // GUILD_MEMBER_UPDATE
-        void(),                                            // GUILD_MEMBERS_CHUNK
-        void(discord::Role),                               // GUILD_ROLE_CREATE
-        void(discord::Role),                               // GUILD_ROLE_UPDATE
-        void(discord::Role),                               // GUILD_ROLE_DELETE
-        void(discord::Message),                            // MESSAGE_CREATE
-        void(discord::Message),                            // MESSAGE_UPDATE
-        void(discord::Message),                            // MESSAGE_DELETE
-        void(std::vector<discord::Message>),               // MESSAGE_DELETE_BULK
-        void(discord::Message),                            // MESSAGE_REACTION_ADD
-        void(discord::Message),                            // MESSAGE_REACTION_REMOVE
-        void(discord::Message),                            // MESSAGE_REACTION_REMOVE_ALL
-        void(discord::User),                               // PRECENSE_UPDATE
-        void(discord::Member, discord::Channel),           // PRESENCE_UPDATE
-        void(discord::User),                               // USER_UPDATE
-        void(discord::Member, discord::Channel),           // VOICE_STATE_UPDATE
-        void(discord::Guild),                              // VOICE_SERVER_UPDATE
-        void(discord::Guild)>                              // WEBHOOKS_UPDATE
+        void(),                                             // HELLO
+        void(),                                             // READY
+        void(),                                             // RESUMED
+        void(),                                             // INVALID_SESSION,
+        void(discord::Channel),                             // CHANNEL_CREATE
+        void(discord::Channel),                             // CHANNEL_UPDATE
+        void(discord::Channel),                             // CHANNEL_DELETE
+        void(discord::Channel),                             // CHANNEL_PINS_UPDATE
+        void(discord::Guild),                               // GUILD_CREATE
+        void(discord::Guild),                               // GUILD_UPDATE
+        void(discord::Guild),                               // GUILD_DELETE
+        void(discord::Guild, discord::User),                // GUILD_BAN_ADD,
+        void(discord::Guild, discord::User),                // GUILD_BAN_REMOVE,
+        void(discord::Guild, std::vector<discord::Emoji>),  // GUILD_EMOJIS_UPDATE
+        void(discord::Guild),                               // GUILD_INTEGRATIONS_UPDATE
+        void(discord::Member),                              // GUILD_MEMBER_ADD
+        void(discord::User),                                // GUILD_MEMBER_REMOVE
+        void(discord::Member),                              // GUILD_MEMBER_UPDATE
+        void(),                                             // GUILD_MEMBERS_CHUNK
+        void(discord::Role),                                // GUILD_ROLE_CREATE
+        void(discord::Role),                                // GUILD_ROLE_UPDATE
+        void(discord::Role),                                // GUILD_ROLE_DELETE
+        void(discord::Message),                             // MESSAGE_CREATE
+        void(discord::Message),                             // MESSAGE_UPDATE
+        void(discord::Message),                             // MESSAGE_DELETE
+        void(std::vector<discord::Message>),                // MESSAGE_DELETE_BULK
+        void(discord::Message),                             // MESSAGE_REACTION_ADD
+        void(discord::Message),                             // MESSAGE_REACTION_REMOVE
+        void(discord::Message),                             // MESSAGE_REACTION_REMOVE_ALL
+        void(discord::User),                                // PRECENSE_UPDATE
+        void(discord::Member, discord::Channel),            // PRESENCE_UPDATE
+        void(discord::User),                                // USER_UPDATE
+        void(discord::Member, discord::Channel),            // VOICE_STATE_UPDATE
+        void(discord::Guild),                               // VOICE_SERVER_UPDATE
+        void(discord::Guild)>                               // WEBHOOKS_UPDATE
         function_handler;
 
     using websocketpp::lib::bind;
@@ -212,11 +212,42 @@ namespace discord {
         template <std::size_t event_type>
         discord::Message process_message_cache(discord::Message* m, bool&);
 
-        void guild_create_event(nlohmann::json);
+        void hello_event(nlohmann::json);
+        void ready_event(nlohmann::json);
+        void resumed_event(nlohmann::json);
+        void invalid_session_event(nlohmann::json);
         void channel_create_event(nlohmann::json);
         void channel_update_event(nlohmann::json);
         void channel_delete_event(nlohmann::json);
-
+        void channel_pins_update_event(nlohmann::json);
+        void guild_create_event(nlohmann::json);
+        void guild_update_event(nlohmann::json);
+        void guild_delete_event(nlohmann::json);
+        void guild_ban_add_event(nlohmann::json);
+        void guild_ban_remove_event(nlohmann::json);
+        void guild_emojis_update_event(nlohmann::json);
+        void guild_integrations_update_event(nlohmann::json);
+        void guild_member_add_event(nlohmann::json);
+        void guild_member_remove_event(nlohmann::json);
+        void guild_member_update_event(nlohmann::json);
+        void guild_members_chunk_event(nlohmann::json);
+        void guild_role_create_event(nlohmann::json);
+        void guild_role_update_event(nlohmann::json);
+        void guild_role_delete_event(nlohmann::json);
+        void message_create_event(nlohmann::json);
+        void message_update_event(nlohmann::json);
+        void message_delete_event(nlohmann::json);
+        void message_delete_bulk_event(nlohmann::json);
+        void message_reaction_add_event(nlohmann::json);
+        void message_reaction_remove_event(nlohmann::json);
+        void message_reaction_remove_all_event(nlohmann::json);
+        void presence_update_event(nlohmann::json);
+        void typing_start_event(nlohmann::json);
+        void user_update_event(nlohmann::json);
+        void voice_state_update_event(nlohmann::json);
+        void voice_server_update_event(nlohmann::json);
+        void webhooks_update_event(nlohmann::json);
+        
         std::string get_gateway_url() const;
         std::string get_identify_packet();
         std::string get_create_guild_url() const;
@@ -271,6 +302,7 @@ namespace discord {
         std::vector<discord::Message> messages;
         std::vector<std::future<void>> packet_handling;
         std::unordered_map<std::string, std::function<void(discord::Context const&)>> command_map;
+        std::unordered_map<std::string, std::function<void(nlohmann::json)>> internal_event_map;
     };
 
     class Activity {
