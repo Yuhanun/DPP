@@ -66,9 +66,6 @@ REST:
         Delete invite
 
     User:
-        Get current user // cache
-        Get user // cache
-        Modify current user
         Get current user guilds // cache
         Leave guild
         Get User DMs // not usable for bots

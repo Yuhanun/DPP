@@ -544,3 +544,30 @@ void discord::Bot::voice_server_update_event(nlohmann::json) {
 }
 void discord::Bot::webhooks_update_event(nlohmann::json) {
 }
+
+discord::User discord::Bot::get_current_user() {
+    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_current_user_url()) };
+}
+
+discord::User discord::Bot::get_user(snowflake id) {
+    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_user_url(id)) };
+}
+
+discord::User discord::Bot::edit(std::string const &username) {
+    discord::User user{ send_request<request_method::Patch>(
+        nlohmann::json({ { "username", username } }),
+        get_default_headers(),
+        get_current_user_url()
+        ) };
+    this->username = user.name;
+    this->avatar = user.avatar;
+    return user;
+}
+
+std::string discord::Bot::get_current_user_url() {
+    return format("%/users/@me", get_api());
+}
+
+std::string discord::Bot::get_user_url(snowflake id) {
+    return format("%/users/%", get_api(), id);
+}

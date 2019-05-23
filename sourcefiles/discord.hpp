@@ -202,7 +202,15 @@ namespace discord {
 
         std::vector<VoiceRegion> get_voice_regions() const;
 
+        discord::User get_current_user();
+        discord::User get_user(snowflake);
+        // TODO: avatar
+        discord::User edit(std::string const&);
+
     private:
+        std::string get_current_user_url();
+        std::string get_user_url(snowflake);
+        
         void fire_commands(discord::Message&) const;
         void await_events();
         void gateway_auth();
@@ -261,7 +269,6 @@ namespace discord {
         std::string discriminator;
 
         snowflake id;
-
 
         bool bot;
         bool ready;
