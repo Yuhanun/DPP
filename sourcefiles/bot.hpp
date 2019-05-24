@@ -334,24 +334,25 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
 void discord::Bot::channel_update_event(nlohmann::json j) {
     const nlohmann::json data = j["d"];
     auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
-    auto g = discord::utils::get(this->guilds, [&channel](auto const &g) {
-        return channel.guild->id == g->id;
-    });
-
-    for (auto &each : g->channels) {
-        if (each.id == channel.id) {
-            each = channel;
-            return;
-        }
-    }
+    
+    // TODO: perfect this loop below idk what i did here
+    // for (auto &each : channel.guild->channels) {
+    //     if (each.id == channel.id) {
+    //         each = channel;
+    //         return;
+    //     }
+    // }
 
     func_holder.call<events::channel_create>(packet_handling, true, channel);
 }
 
 void discord::Bot::channel_delete_event(nlohmann::json j) {
     const nlohmann::json data = j["d"];
-    snowflake chan_id = to_sf(data["id"]);
+    snowflake chan_id = to_sf(get_value(data, "id", "0"));
     discord::Channel event_chan;
+    if (!chan_id) {
+        return func_holder.call<events::channel_delete>(packet_handling, true, event_chan);
+    }
     for (auto &guild : this->guilds) {
         for (std::size_t i = 0; i < guild->channels.size(); i++) {
             if (guild->channels[i].id != chan_id) {
@@ -441,7 +442,7 @@ void discord::Bot::guild_ban_remove_event(nlohmann::json data) {
 }
 
 void discord::Bot::guild_emojis_update_event(nlohmann::json data) {
-    discord::Guild emote_guild{ to_sf(data["guild"]) };
+    discord::Guild emote_guild{ to_sf(get_value(data, "guild", "0")) };
     auto emote_vec = from_json_array<discord::Emoji>(data["emojis"]);
     func_holder.call<events::guild_emojis_update>(packet_handling, ready, emote_guild, emote_vec);
 }
@@ -452,11 +453,12 @@ void discord::Bot::guild_integrations_update_event(nlohmann::json data) {
 }
 
 void discord::Bot::guild_member_add_event(nlohmann::json data) {
-    discord::Member mem{ data };
     snowflake guild_id = to_sf(data["guild_id"]);
     auto guild = discord::utils::get(this->guilds, [&guild_id](auto &g) {
         return g->id == guild_id;
     });
+    discord::User user{ data["user"] };
+    discord::Member mem{ data, user, guild };
     guild->members.push_back(mem);
     func_holder.call<events::guild_member_add>(packet_handling, ready, mem);
 }
@@ -480,7 +482,7 @@ void discord::Bot::guild_member_update_event(nlohmann::json data) {
     auto member = discord::utils::get(guild->members, [&user](auto &usr) {
         return usr.id == user.id;
     });
-    member->nick = data["nick"];
+    member->nick = get_value(data, "nick", member->nick);
     member->roles = from_json_array<discord::Role>(data["roles"]);
     func_holder.call<events::guild_member_update>(packet_handling, ready, *member);
 }

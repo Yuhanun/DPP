@@ -45,7 +45,7 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
     }
     name = get_value(data, "name", "");
     position = get_value(data, "position", 0);
-    id = to_sf(data["id"]);
+    id = to_sf(get_value(data, "id", "0"));
 }
 
 discord::Message discord::Channel::send(std::string const &content, bool tts) const {

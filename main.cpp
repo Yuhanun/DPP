@@ -42,7 +42,7 @@ int main() {
     bot.register_callback<discord::events::message_update>(l);
     bot.register_callback<discord::events::message_delete>(l);
 
-    bot.register_command("test", [](discord::Context const& ctx) {
+    bot.register_command("help", [](discord::Context const& ctx) {
         ctx.send(discord::EmbedBuilder{}
                      .set_color(0xFFFFFF)
                      .set_description("Currently testing a different bot module for discord.\nhttps://github.com/yuhanun/dpp")
