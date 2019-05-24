@@ -25,9 +25,9 @@ discord::User::User(nlohmann::json const j) {
 }
 
 discord::Channel discord::User::create_dm() {
-    return discord::Channel {
+    return discord::Channel{
         send_request<request_method::Post>(nlohmann::json(
-                                               { "recipient_id", id }),
+                                               { { "recipient_id", id } }),
                                            get_default_headers(), get_create_dm_url())
     };
 }

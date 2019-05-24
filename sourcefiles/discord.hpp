@@ -478,6 +478,7 @@ namespace discord {
     public:
         Invite() = default;
         Invite(nlohmann::json const);
+        Invite(std::string const&);
 
         int uses;
         int max_age;
@@ -488,6 +489,13 @@ namespace discord {
         datetime created_at{ boost::local_time::not_a_date_time };
         discord::Member inviter;
         discord::Channel* channel;
+
+        discord::Invite get_invite();
+        void remove();
+
+    private:
+        std::string get_invite_url();
+        std::string get_delete_invite_url();
     };
 
 

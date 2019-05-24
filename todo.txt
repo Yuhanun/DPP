@@ -57,10 +57,6 @@ REST:
         Get guild vanity URL // cache (?)
         Get guild widget image // cache
 
-    Invite:
-        Get invite // cache (?)
-        Delete invite
-
     Webhook:
         Slack webhook
         GitHub webhook
