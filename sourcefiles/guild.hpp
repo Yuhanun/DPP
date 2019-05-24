@@ -59,6 +59,57 @@ void discord::Guild::leave() {
     send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_leave_url());
 }
 
+std::vector<discord::Emoji> discord::Guild::list_emojis() {
+    return from_json_array<discord::Emoji>(
+        send_request<request_method::Get>(
+            nlohmann::json({}), get_default_headers(), get_list_guild_emojis_url()));
+}
+
+discord::Emoji discord::Guild::get_emoji(discord::Emoji const& e) {
+    return discord::Emoji{
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_guild_emoji(e.id))
+    };
+}
+
+discord::Emoji discord::Guild::edit_emoji(discord::Emoji const& emote, std::string name, std::vector<discord::Role> roles) {
+    nlohmann::json data(
+        { { "name", name },
+          { "roles", {} } });
+    for (auto const& each : roles) {
+        data["roles"].push_back(each.id);
+    }
+    return discord::Emoji{
+        send_request<request_method::Patch>(
+            data,
+            get_default_headers(),
+            get_modify_guild_emoji_url(emote.id))
+    };
+}
+
+void discord::Guild::remove_emoji(discord::Emoji const& emote) {
+    send_request<request_method::Delete>(
+        nlohmann::json({}),
+        get_default_headers(),
+        get_delete_emoji_url(emote.id));
+}
+
+
+std::string discord::Guild::get_list_guild_emojis_url() {
+    return format("%/guilds/%/emojis", get_api(), id);
+}
+
+std::string discord::Guild::get_guild_emoji(snowflake e_id) {
+    return format("%/guilds/%/emojis/%", get_api(), id, e_id);
+}
+
+std::string discord::Guild::get_modify_guild_emoji_url(snowflake e_id) {
+    return get_guild_emoji(e_id);
+}
+
+std::string discord::Guild::get_delete_emoji_url(snowflake e_id) {
+    return get_guild_emoji(e_id);
+}
+
 std::string discord::Guild::get_webhooks_url() const {
     return format("%/guilds/%/webhooks", get_api(), id);
 }

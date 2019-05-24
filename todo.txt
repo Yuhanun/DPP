@@ -17,11 +17,7 @@ REST:
         Group DM remove recipient
 
     Emoji:
-        List guild emojis // cache
-        Get guild emoji // cache
         Create guild emoji
-        Modify guild emoji
-        Delete guild emoji
 
     Guild:
         Get guild // cache
