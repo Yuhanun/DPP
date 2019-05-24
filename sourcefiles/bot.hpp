@@ -576,8 +576,8 @@ std::vector<discord::Guild> discord::Bot::get_user_guilds(int limit, snowflake b
     if (after) {
         data["after"] = after;
     }
-    auto data = send_request<request_method::Get>(data, get_default_headers(), get_user_guilds_url());
-    for (auto const &each : data) {
+    auto d = send_request<request_method::Get>(data, get_default_headers(), get_user_guilds_url());
+    for (auto const &each : d) {
         snowflake guild_id = to_sf(each["id"]);
         g_vec.push_back(*discord::utils::get(this->guilds, [&guild_id](auto const &guild) {
             return guild->id == guild_id;
@@ -588,6 +588,9 @@ std::vector<discord::Guild> discord::Bot::get_user_guilds(int limit, snowflake b
 
 discord::Channel discord::Bot::create_group_dm(std::vector<std::string> const &access_tokens, nlohmann::json const &nicks) {
     nlohmann::json data({ { "access_tokens", nlohmann::json::array() }, { "nicks", nicks } });
+    for (auto const &each : access_tokens) {
+        data["access_tokens"].push_back(each);
+    }
     return discord::Channel{
         send_request<request_method::Post>(data, get_default_headers(), get_create_group_dm_url())
     };
@@ -600,16 +603,15 @@ std::vector<discord::Connection> discord::Bot::get_connections() {
         get_default_headers(),
         get_connections_url());
     for (auto const &each : response) {
-        conn_vec.emplace_back(
-            to_sf(each["id"]),
-            each["name"],
-            each["type"],
-            each["revoked"],
-            // integrations
-            each["verified"],
-            each["friend_sync"],
-            each["show_activity"],
-            each["visibility"]);
+        conn_vec.push_back({ to_sf(each["id"]),
+                             each["name"],
+                             each["type"],
+                             each["revoked"],
+                             // integrations
+                             each["verified"],
+                             each["friend_sync"],
+                             each["show_activity"],
+                             each["visibility"] });
     }
     return conn_vec;
 }

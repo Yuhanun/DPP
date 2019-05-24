@@ -172,7 +172,7 @@ namespace discord {
         bool custom;
     };
 
-    class Connection{
+    struct Connection{
         snowflake id;
         std::string name;
         std::string type;
