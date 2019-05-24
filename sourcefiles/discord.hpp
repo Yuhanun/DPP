@@ -146,16 +146,19 @@ namespace discord {
     };
 
     struct Context {
+        Context(const discord::Bot*, discord::Message const&, std::vector<std::string> const&, std::function<void(Context const&)> const&, std::string const&);
         const discord::Bot* bot;
         const discord::Message& message;
         const std::vector<std::string>& arguments;
-        const std::function<void(Context const& c)> command;
+        const std::function<void(Context const&)> command;
         const std::string command_name;
+        const discord::Member* author;
+        const discord::Channel* channel;
 
         template <typename... Tys>
         discord::Message send(Tys&&... args) const;
     };
-
+    
     struct VoiceRegion {
         std::string id;
         std::string name;
@@ -164,6 +167,18 @@ namespace discord {
         bool deprecated;
         bool custom;
     };
+
+    class Connection{
+        snowflake id;
+        std::string name;
+        std::string type;
+        bool revoked;
+        // TODO: std::vector<Integration> integrations;
+        bool verified;
+        bool friend_sync;
+        bool show_activity;
+        int visibility;
+    }
 
     class Attachment {
     public:
@@ -206,11 +221,19 @@ namespace discord {
         discord::User get_user(snowflake);
         // TODO: avatar
         discord::User edit(std::string const&);
+        std::vector<discord::Guild> get_user_guilds(int = 0, snowflake = 0, snowflake = 0);
+
+        discord::Channel create_group_dm(std::vector<std::string> const&, nlohmann::json const&);
+        std::vector<discord::Connection> get_connections();
+
 
     private:
         std::string get_current_user_url();
         std::string get_user_url(snowflake);
-        
+        std::string get_user_guilds_url();
+        std::string get_create_group_dm_url();
+        std::string get_connections_url();
+
         void fire_commands(discord::Message&) const;
         void await_events();
         void gateway_auth();
@@ -255,7 +278,7 @@ namespace discord {
         void voice_state_update_event(nlohmann::json);
         void voice_server_update_event(nlohmann::json);
         void webhooks_update_event(nlohmann::json);
-        
+
         std::string get_gateway_url() const;
         std::string get_identify_packet();
         std::string get_create_guild_url() const;
@@ -395,6 +418,8 @@ namespace discord {
         User(snowflake);
         User(nlohmann::json const);
 
+        discord::Channel create_dm();
+
     public:
         bool bot;
 
@@ -403,6 +428,9 @@ namespace discord {
         std::string avatar;
         std::string mention;
         std::string discriminator;
+
+    private:
+        std::string get_create_dm_url();
     };
 
     class Emoji : public Object {
@@ -498,9 +526,11 @@ namespace discord {
         discord::Channel system_channel;
 
         std::vector<discord::Webhook> get_webhooks();
+        void leave();
 
     private:
         std::string get_webhooks_url() const;
+        std::string get_leave_url();
     };
 
     class Webhook : public Object {

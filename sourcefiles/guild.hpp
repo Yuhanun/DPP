@@ -55,6 +55,14 @@ std::vector<discord::Webhook> discord::Guild::get_webhooks() {
                                           get_webhooks_url()));
 }
 
+void discord::Guild::leave() {
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_leave_url());
+}
+
 std::string discord::Guild::get_webhooks_url() const {
     return format("%/guilds/%/webhooks", get_api(), id);
+}
+
+std::string discord::Guild::get_leave_url() {
+    return format("%/users/@me/guilds/%", get_api(), id);
 }

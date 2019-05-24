@@ -23,3 +23,15 @@ discord::User::User(nlohmann::json const j) {
     name = j["username"];
     mention = "<@" + std::to_string(id) + ">";
 }
+
+discord::Channel discord::User::create_dm() {
+    return discord::Channel {
+        send_request<request_method::Post>(nlohmann::json(
+                                               { "recipient_id", id }),
+                                           get_default_headers(), get_create_dm_url())
+    };
+}
+
+std::string discord::User::get_create_dm_url() {
+    return format("%/users/@me/channels", get_api());
+}

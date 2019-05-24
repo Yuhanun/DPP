@@ -65,13 +65,6 @@ REST:
         Get invite // cache (?)
         Delete invite
 
-    User:
-        Get current user guilds // cache
-        Leave guild
-        Get User DMs // not usable for bots
-        Create DM
-        Create Group DM 
-    
     Webhook:
         Slack webhook
         GitHub webhook

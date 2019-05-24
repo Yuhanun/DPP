@@ -12,41 +12,43 @@
 discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
     : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
     discord::detail::bot_instance = this;
-    internal_event_map["HELLO"] = std::bind(&discord::Bot::hello_event, this, std::placeholders::_1);
-    internal_event_map["READY"] = std::bind(&discord::Bot::ready_event, this, std::placeholders::_1);
-    internal_event_map["RESUMED"] = std::bind(&discord::Bot::resumed_event, this, std::placeholders::_1);
-    internal_event_map["INVALID_SESSION"] = std::bind(&discord::Bot::invalid_session_event, this, std::placeholders::_1);
-    internal_event_map["CHANNEL_CREATE"] = std::bind(&discord::Bot::channel_create_event, this, std::placeholders::_1);
-    internal_event_map["CHANNEL_UPDATE"] = std::bind(&discord::Bot::channel_update_event, this, std::placeholders::_1);
-    internal_event_map["CHANNEL_DELETE"] = std::bind(&discord::Bot::channel_delete_event, this, std::placeholders::_1);
-    internal_event_map["CHANNEL_PINS_UPDATE"] = std::bind(&discord::Bot::channel_pins_update_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_CREATE"] = std::bind(&discord::Bot::guild_create_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_UPDATE"] = std::bind(&discord::Bot::guild_update_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_DELETE"] = std::bind(&discord::Bot::guild_delete_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_BAN_ADD"] = std::bind(&discord::Bot::guild_ban_add_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_BAN_REMOVE"] = std::bind(&discord::Bot::guild_ban_remove_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_EMOJIS_UPDATE"] = std::bind(&discord::Bot::guild_emojis_update_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_INTEGRATIONS_UPDATE"] = std::bind(&discord::Bot::guild_integrations_update_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_MEMBER_ADD"] = std::bind(&discord::Bot::guild_member_add_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_MEMBER_REMOVE"] = std::bind(&discord::Bot::guild_member_remove_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_MEMBER_UPDATE"] = std::bind(&discord::Bot::guild_member_update_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_MEMBERS_CHUNK"] = std::bind(&discord::Bot::guild_members_chunk_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_ROLE_CREATE"] = std::bind(&discord::Bot::guild_role_create_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_ROLE_UPDATE"] = std::bind(&discord::Bot::guild_role_update_event, this, std::placeholders::_1);
-    internal_event_map["GUILD_ROLE_DELETE"] = std::bind(&discord::Bot::guild_role_delete_event, this, std::placeholders::_1);
-    internal_event_map["MESSAGE_CREATE"] = std::bind(&discord::Bot::message_create_event, this, std::placeholders::_1);
-    internal_event_map["MESSAGE_UPDATE"] = std::bind(&discord::Bot::message_update_event, this, std::placeholders::_1);
-    internal_event_map["MESSAGE_DELETE"] = std::bind(&discord::Bot::message_delete_event, this, std::placeholders::_1);
-    internal_event_map["MESSAGE_DELETE_BULK"] = std::bind(&discord::Bot::message_delete_bulk_event, this, std::placeholders::_1);
-    internal_event_map["MESSAGE_REACTION_ADD"] = std::bind(&discord::Bot::message_reaction_add_event, this, std::placeholders::_1);
-    internal_event_map["MESSAGE_REACTION_REMOVE"] = std::bind(&discord::Bot::message_reaction_remove_event, this, std::placeholders::_1);
-    internal_event_map["MESSAGE_REACTION_REMOVE_ALL"] = std::bind(&discord::Bot::message_reaction_remove_all_event, this, std::placeholders::_1);
-    internal_event_map["PRESENCE_UPDATE"] = std::bind(&discord::Bot::presence_update_event, this, std::placeholders::_1);
-    internal_event_map["TYPING_START"] = std::bind(&discord::Bot::typing_start_event, this, std::placeholders::_1);
-    internal_event_map["USER_UPDATE"] = std::bind(&discord::Bot::user_update_event, this, std::placeholders::_1);
-    internal_event_map["VOICE_STATE_UPDATE"] = std::bind(&discord::Bot::voice_state_update_event, this, std::placeholders::_1);
-    internal_event_map["VOICE_SERVER_UPDATE"] = std::bind(&discord::Bot::voice_server_update_event, this, std::placeholders::_1);
-    internal_event_map["WEBHOOKS_UPDATE"] = std::bind(&discord::Bot::webhooks_update_event, this, std::placeholders::_1);
+    internal_event_map = {
+        { "HELLO", std::bind(&discord::Bot::hello_event, this, std::placeholders::_1) },
+        { "READY", std::bind(&discord::Bot::ready_event, this, std::placeholders::_1) },
+        { "RESUMED", std::bind(&discord::Bot::resumed_event, this, std::placeholders::_1) },
+        { "INVALID_SESSION", std::bind(&discord::Bot::invalid_session_event, this, std::placeholders::_1) },
+        { "CHANNEL_CREATE", std::bind(&discord::Bot::channel_create_event, this, std::placeholders::_1) },
+        { "CHANNEL_UPDATE", std::bind(&discord::Bot::channel_update_event, this, std::placeholders::_1) },
+        { "CHANNEL_DELETE", std::bind(&discord::Bot::channel_delete_event, this, std::placeholders::_1) },
+        { "CHANNEL_PINS_UPDATE", std::bind(&discord::Bot::channel_pins_update_event, this, std::placeholders::_1) },
+        { "GUILD_CREATE", std::bind(&discord::Bot::guild_create_event, this, std::placeholders::_1) },
+        { "GUILD_UPDATE", std::bind(&discord::Bot::guild_update_event, this, std::placeholders::_1) },
+        { "GUILD_DELETE", std::bind(&discord::Bot::guild_delete_event, this, std::placeholders::_1) },
+        { "GUILD_BAN_ADD", std::bind(&discord::Bot::guild_ban_add_event, this, std::placeholders::_1) },
+        { "GUILD_BAN_REMOVE", std::bind(&discord::Bot::guild_ban_remove_event, this, std::placeholders::_1) },
+        { "GUILD_EMOJIS_UPDATE", std::bind(&discord::Bot::guild_emojis_update_event, this, std::placeholders::_1) },
+        { "GUILD_INTEGRATIONS_UPDATE", std::bind(&discord::Bot::guild_integrations_update_event, this, std::placeholders::_1) },
+        { "GUILD_MEMBER_ADD", std::bind(&discord::Bot::guild_member_add_event, this, std::placeholders::_1) },
+        { "GUILD_MEMBER_REMOVE", std::bind(&discord::Bot::guild_member_remove_event, this, std::placeholders::_1) },
+        { "GUILD_MEMBER_UPDATE", std::bind(&discord::Bot::guild_member_update_event, this, std::placeholders::_1) },
+        { "GUILD_MEMBERS_CHUNK", std::bind(&discord::Bot::guild_members_chunk_event, this, std::placeholders::_1) },
+        { "GUILD_ROLE_CREATE", std::bind(&discord::Bot::guild_role_create_event, this, std::placeholders::_1) },
+        { "GUILD_ROLE_UPDATE", std::bind(&discord::Bot::guild_role_update_event, this, std::placeholders::_1) },
+        { "GUILD_ROLE_DELETE", std::bind(&discord::Bot::guild_role_delete_event, this, std::placeholders::_1) },
+        { "MESSAGE_CREATE", std::bind(&discord::Bot::message_create_event, this, std::placeholders::_1) },
+        { "MESSAGE_UPDATE", std::bind(&discord::Bot::message_update_event, this, std::placeholders::_1) },
+        { "MESSAGE_DELETE", std::bind(&discord::Bot::message_delete_event, this, std::placeholders::_1) },
+        { "MESSAGE_DELETE_BULK", std::bind(&discord::Bot::message_delete_bulk_event, this, std::placeholders::_1) },
+        { "MESSAGE_REACTION_ADD", std::bind(&discord::Bot::message_reaction_add_event, this, std::placeholders::_1) },
+        { "MESSAGE_REACTION_REMOVE", std::bind(&discord::Bot::message_reaction_remove_event, this, std::placeholders::_1) },
+        { "MESSAGE_REACTION_REMOVE_ALL", std::bind(&discord::Bot::message_reaction_remove_all_event, this, std::placeholders::_1) },
+        { "PRESENCE_UPDATE", std::bind(&discord::Bot::presence_update_event, this, std::placeholders::_1) },
+        { "TYPING_START", std::bind(&discord::Bot::typing_start_event, this, std::placeholders::_1) },
+        { "USER_UPDATE", std::bind(&discord::Bot::user_update_event, this, std::placeholders::_1) },
+        { "VOICE_STATE_UPDATE", std::bind(&discord::Bot::voice_state_update_event, this, std::placeholders::_1) },
+        { "VOICE_SERVER_UPDATE", std::bind(&discord::Bot::voice_server_update_event, this, std::placeholders::_1) },
+        { "WEBHOOKS_UPDATE", std::bind(&discord::Bot::webhooks_update_event, this, std::placeholders::_1) }
+    };
 }
 
 discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
@@ -141,7 +143,7 @@ void discord::Bot::gateway_auth() {
 void discord::Bot::await_events() {
     event_thread = std::thread{ [&]() {
         while (true) {
-            if (!packet_handling.size()){
+            if (!packet_handling.size()) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 continue;
             }
@@ -165,11 +167,13 @@ void discord::Bot::fire_commands(discord::Message &m) const {
     if (!boost::starts_with(m.content, prefix)) {
         return;
     }
+
     std::vector<std::string> argument_vec;
     boost::split(argument_vec, m.content, boost::is_any_of(" "));
     if (!argument_vec.size()) {
         return;
     }
+
     auto command_name = argument_vec[0].erase(0, prefix.size());
     if (command_map.find(command_name) == command_map.end()) {
         return;
@@ -220,15 +224,15 @@ void discord::Bot::handle_heartbeat() {
 }
 
 discord::Guild discord::Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
-    const nlohmann::json data = nlohmann::json({ { "name", name },
-                                                 { "region", region },
-                                                 { "icon", "" },
-                                                 { "verification_level", verification_level },
-                                                 { "default_message_notifications", default_message_notifications },
-                                                 { "explicit_content_filter", explicit_content_filter },
-                                                 { "roles", {} },
-                                                 { "channels", {} } });
-    return discord::Guild{ send_request<request_method::Post>(data, get_default_headers(), get_create_guild_url()) };
+    return discord::Guild{ send_request<request_method::Post>(nlohmann::json({ { "name", name },
+                                                                               { "region", region },
+                                                                               { "icon", "" },
+                                                                               { "verification_level", verification_level },
+                                                                               { "default_message_notifications", default_message_notifications },
+                                                                               { "explicit_content_filter", explicit_content_filter },
+                                                                               { "roles", {} },
+                                                                               { "channels", {} } }),
+                                                              get_default_headers(), get_create_guild_url()) };
 }
 
 template <std::size_t event_type>
@@ -557,12 +561,59 @@ discord::User discord::Bot::edit(std::string const &username) {
     discord::User user{ send_request<request_method::Patch>(
         nlohmann::json({ { "username", username } }),
         get_default_headers(),
-        get_current_user_url()
-        ) };
+        get_current_user_url()) };
     this->username = user.name;
     this->avatar = user.avatar;
     return user;
 }
+
+std::vector<discord::Guild> discord::Bot::get_user_guilds(int limit, snowflake before, snowflake after) {
+    std::vector<discord::Guild> g_vec{};
+    nlohmann::json data({ { "limit", limit ? limit : 100 } });
+    if (before) {
+        data["before"] = before;
+    }
+    if (after) {
+        data["after"] = after;
+    }
+    auto data = send_request<request_method::Get>(data, get_default_headers(), get_user_guilds_url());
+    for (auto const &each : data) {
+        snowflake guild_id = to_sf(each["id"]);
+        g_vec.push_back(*discord::utils::get(this->guilds, [&guild_id](auto const &guild) {
+            return guild->id == guild_id;
+        }));
+    }
+    return g_vec;
+}
+
+discord::Channel discord::Bot::create_group_dm(std::vector<std::string> const &access_tokens, nlohmann::json const &nicks) {
+    nlohmann::json data({ { "access_tokens", nlohmann::json::array() }, { "nicks", nicks } });
+    return discord::Channel{
+        send_request<request_method::Post>(data, get_default_headers(), get_create_group_dm_url())
+    };
+}
+
+std::vector<discord::Connection> discord::Bot::get_connections() {
+    std::vector<discord::Connection> conn_vec;
+    auto response = send_request<request_method::Get>(
+        nlohmann::json({}),
+        get_default_headers(),
+        get_connections_url());
+    for (auto const &each : response) {
+        conn_vec.emplace_back(
+            to_sf(each["id"]),
+            each["name"],
+            each["type"],
+            each["revoked"],
+            // integrations
+            each["verified"],
+            each["friend_sync"],
+            each["show_activity"],
+            each["visibility"]);
+    }
+    return conn_vec;
+}
+
 
 std::string discord::Bot::get_current_user_url() {
     return format("%/users/@me", get_api());
@@ -570,4 +621,16 @@ std::string discord::Bot::get_current_user_url() {
 
 std::string discord::Bot::get_user_url(snowflake id) {
     return format("%/users/%", get_api(), id);
+}
+
+std::string discord::Bot::get_user_guilds_url() {
+    return format("%/users/@me/guilds", get_api());
+}
+
+std::string discord::Bot::get_create_group_dm_url() {
+    return format("%/users/@me/channels", get_api());
+}
+
+std::string discord::Bot::get_connections_url() {
+    return format("%/users/@me/connections", get_api());
 }
