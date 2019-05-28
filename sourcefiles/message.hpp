@@ -31,6 +31,12 @@ discord::Message::Message(nlohmann::json const j) {
         return c->id == channel_id;
     });
 
+    if (!channel) {
+        auto c = std::make_unique<discord::Channel>(channel_id, 0);
+        channel = c.get();
+        discord::detail::bot_instance->channels.emplace_back(std::move(c));
+    }
+
     if (channel && channel->guild) {
         author = discord::utils::get(channel->guild->members, [&sender_id](auto const& mem) {
             return mem.id == sender_id;
