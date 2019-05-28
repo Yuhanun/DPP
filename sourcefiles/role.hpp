@@ -5,7 +5,7 @@
 #include "utility.hpp"
 
 discord::Role::Role(snowflake id) {
-    discord::utils::get(discord::detail::bot_instance->guilds, [&id, this](auto const& g) {
+    discord::utils::get(discord::detail::bot_instance->guilds, [id, this](auto const& g) {
         for (auto const& role : g->roles) {
             if (role.id == id) {
                 *this = role;

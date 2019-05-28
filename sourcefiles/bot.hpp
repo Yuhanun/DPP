@@ -314,7 +314,7 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
     const auto data = j["d"];
     auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
     if (channel.guild) {
-        auto guild = discord::utils::get(this->guilds, [&channel](auto &guild) {
+        auto guild = discord::utils::get(this->guilds, [channel](auto &guild) {
             return channel.guild->id == guild->id;
         });
         if (guild) {
@@ -394,7 +394,7 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
     if (!ready) {
         for (auto const &unavail_guild : ready_packet["guilds"]) {
             snowflake g_id = to_sf(unavail_guild["id"]);
-            if (std::find_if(guilds.begin(), guilds.end(), [&g_id](std::unique_ptr<discord::Guild> &g) { return g_id == g->id; }) == guilds.end()) {
+            if (std::find_if(guilds.begin(), guilds.end(), [g_id](std::unique_ptr<discord::Guild> &g) { return g_id == g->id; }) == guilds.end()) {
                 return;
             }
         }
@@ -417,7 +417,7 @@ void discord::Bot::guild_update_event(nlohmann::json data) {
 
 void discord::Bot::guild_delete_event(nlohmann::json data) {
     snowflake to_remove = to_sf(data["id"]);
-    guilds.erase(std::remove_if(guilds.begin(), guilds.end(), [&to_remove](std::unique_ptr<discord::Guild> const &g) {
+    guilds.erase(std::remove_if(guilds.begin(), guilds.end(), [to_remove](std::unique_ptr<discord::Guild> const &g) {
                      return g->id == to_remove;
                  }),
                  guilds.end());
@@ -448,7 +448,7 @@ void discord::Bot::guild_integrations_update_event(nlohmann::json data) {
 
 void discord::Bot::guild_member_add_event(nlohmann::json data) {
     snowflake guild_id = to_sf(data["guild_id"]);
-    auto guild = discord::utils::get(this->guilds, [&guild_id](auto &g) {
+    auto guild = discord::utils::get(this->guilds, [guild_id](auto &g) {
         return g->id == guild_id;
     });
     discord::User user{ data["user"] };
@@ -460,7 +460,7 @@ void discord::Bot::guild_member_add_event(nlohmann::json data) {
 void discord::Bot::guild_member_remove_event(nlohmann::json data) {
     discord::User user{ data["user"] };
     snowflake guild_id = to_sf(data["guild_id"]);
-    auto guild = discord::utils::get(this->guilds, [&guild_id](auto &g) {
+    auto guild = discord::utils::get(this->guilds, [guild_id](auto &g) {
         return g->id == guild_id;
     });
     guild->members.erase(std::remove(guild->members.begin(), guild->members.end(), user), guild->members.end());
@@ -470,10 +470,10 @@ void discord::Bot::guild_member_remove_event(nlohmann::json data) {
 void discord::Bot::guild_member_update_event(nlohmann::json data) {
     discord::User user{ data["user"] };
     snowflake guild_id = to_sf(data["guild_id"]);
-    auto guild = discord::utils::get(this->guilds, [&guild_id](auto &g) {
+    auto guild = discord::utils::get(this->guilds, [guild_id](auto &g) {
         return g->id == guild_id;
     });
-    auto member = discord::utils::get(guild->members, [&user](auto &usr) {
+    auto member = discord::utils::get(guild->members, [user](auto &usr) {
         return usr.id == user.id;
     });
     member->nick = get_value(data, "nick", member->nick);
@@ -578,7 +578,7 @@ std::vector<discord::Guild> discord::Bot::get_user_guilds(int limit, snowflake b
     auto d = send_request<request_method::Get>(data, get_default_headers(), get_user_guilds_url());
     for (auto const &each : d) {
         snowflake guild_id = to_sf(each["id"]);
-        g_vec.push_back(*discord::utils::get(this->guilds, [&guild_id](auto const &guild) {
+        g_vec.push_back(*discord::utils::get(this->guilds, [guild_id](auto const &guild) {
             return guild->id == guild_id;
         }));
     }

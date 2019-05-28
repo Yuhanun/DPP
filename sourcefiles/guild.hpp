@@ -11,7 +11,7 @@
 
 discord::Guild::Guild(snowflake id)
     : discord::Object(id) {
-    auto g = discord::utils::get(discord::detail::bot_instance->guilds, [&id](auto const& guild) {
+    auto g = discord::utils::get(discord::detail::bot_instance->guilds, [id](auto const& guild) {
         return guild->id == id;
     });
     if (g) {

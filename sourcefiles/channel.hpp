@@ -6,7 +6,7 @@
 
 discord::Channel::Channel(snowflake id) {
     this->id = id;
-    auto c = discord::utils::get(discord::detail::bot_instance->channels, [&id](auto const &c) {
+    auto c = discord::utils::get(discord::detail::bot_instance->channels, [id](auto const &c) {
         return c->id == id;
     });
     if (!c) {
@@ -24,7 +24,7 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
     topic = get_value(data, "topic", "");
 
     if (guild_id) {
-        guild = discord::utils::get(discord::detail::bot_instance->guilds, [&guild_id](auto const &g) {
+        guild = discord::utils::get(discord::detail::bot_instance->guilds, [guild_id](auto const &g) {
             return g->id == guild_id;
         });
     }

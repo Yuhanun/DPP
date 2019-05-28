@@ -27,7 +27,7 @@ discord::Message::Message(nlohmann::json const j) {
         }
     }
 
-    channel = discord::utils::get(discord::detail::bot_instance->channels, [&channel_id](auto const& c) {
+    channel = discord::utils::get(discord::detail::bot_instance->channels, [channel_id](auto const& c) {
         return c->id == channel_id;
     });
 
@@ -38,7 +38,7 @@ discord::Message::Message(nlohmann::json const j) {
     }
 
     if (channel && channel->guild) {
-        author = discord::utils::get(channel->guild->members, [&sender_id](auto const& mem) {
+        author = discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
             return mem.id == sender_id;
         });
     }
@@ -53,7 +53,7 @@ discord::Message::Message(nlohmann::json const j) {
         for (auto const& mention : j["mentions"]) {
             snowflake mention_id = to_sf(mention["id"]);
             if (channel->guild) {
-                auto mem = discord::utils::get(channel->guild->members, [&mention_id](auto const& mem) {
+                auto mem = discord::utils::get(channel->guild->members, [mention_id](auto const& mem) {
                     return mem.id == mention_id;
                 });
                 if (mem) {
@@ -93,12 +93,12 @@ discord::Message& discord::Message::update(nlohmann::json const j) {
         }
     }
 
-    channel = discord::utils::get(discord::detail::bot_instance->channels, [&channel_id](auto const& c) {
+    channel = discord::utils::get(discord::detail::bot_instance->channels, [channel_id](auto const& c) {
         return c->id == channel_id;
     });
 
     if (channel->guild) {
-        author = discord::utils::get(channel->guild->members, [&sender_id](auto const& mem) {
+        author = discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
             return mem.id == sender_id;
         });
     }
@@ -115,7 +115,7 @@ discord::Message& discord::Message::update(nlohmann::json const j) {
         for (auto const& mention : j["mentions"]) {
             snowflake mention_id = to_sf(mention["id"]);
             if (channel->guild) {
-                auto mem = discord::utils::get(channel->guild->members, [&mention_id](auto const& mem) {
+                auto mem = discord::utils::get(channel->guild->members, [mention_id](auto const& mem) {
                     return mem.id == mention_id;
                 });
                 if (mem) {
