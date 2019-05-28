@@ -230,7 +230,7 @@ namespace discord {
         discord::Channel create_group_dm(std::vector<std::string> const&, nlohmann::json const&);
         std::vector<discord::Connection> get_connections();
 
-
+	    std::string get_guild_url();
     private:
         std::string get_current_user_url();
         std::string get_user_url(snowflake);
@@ -539,7 +539,16 @@ namespace discord {
 
         std::vector<discord::Webhook> get_webhooks();
         void leave();
-
+        Guild get_guild();
+	    Channel get_guild_channels();
+	    Channel create_guild_channel(const nlohmann::json&);
+	    void delete_guild();
+	    void modify_guild(const nlohmann::json&);
+	    void modify_guild_channel_positions(const nlohmann::json&);
+	    Guild create_guild(const nlohmann::json&);
+	    std::string get_guild_id();
+	    std::string get_member_user_id(const User&);
+	    std::string get_guild_channel_url();
         std::vector<discord::Emoji> list_emojis();
         discord::Emoji get_emoji(discord::Emoji const&);
         // TODO: discord::Emoji create_emoji();

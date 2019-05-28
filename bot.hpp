@@ -638,3 +638,6 @@ std::string discord::Bot::get_create_group_dm_url() {
 std::string discord::Bot::get_connections_url() {
     return format("%/users/@me/connections", get_api());
 }
+std::string discord::Bot::get_guild_url() {
+	return format("%/guilds/", get_api());
+}

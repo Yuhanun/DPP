@@ -117,3 +117,52 @@ std::string discord::Guild::get_webhooks_url() const {
 std::string discord::Guild::get_leave_url() {
     return format("%/users/@me/guilds/%", get_api(), id);
 }
+
+std::string discord::Guild::get_guild_id() {
+	return format("%/guilds/%", get_api(), id);
+}
+
+discord::Guild discord::Guild::get_guild() {
+	return discord::Guild {
+		send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_guild_id())
+	};
+}
+
+void discord::Guild::delete_guild() {
+	send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_guild_id());
+}
+
+discord::Channel discord::Guild::get_guild_channels() {
+	return discord::Channel {
+		send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_guild_channel_url())
+	};
+}
+
+std::string discord::Guild::get_guild_channel_url() {
+	return get_guild_id() + "/channels";
+}
+
+discord::Channel discord::Guild::create_guild_channel(const nlohmann::json& j) {
+	return discord::Channel {
+		send_request<request_method::Post>(j, get_default_headers(), get_guild_channel_url())
+	};
+}
+
+void discord::Guild::modify_guild(const nlohmann::json& j) {
+	send_request<request_method::Patch>(j, get_default_headers(), get_guild_id());
+}
+
+discord::Guild discord::Guild::create_guild(const nlohmann::json& j) {
+	return discord::Guild {
+		send_request<request_method::Post>(j, get_default_headers(), format("%/guilds", get_api()))
+	};
+}
+
+void discord::Guild::modify_guild_channel_positions(const nlohmann::json& j) {
+	send_request<request_method::Patch>(j, get_default_headers(), get_guild_channel_url());
+}
+
+std::string discord::Guild::get_member_user_id(const User& u) {
+	return format("%/guilds/%/members/%", get_api(), id, u.id);
+}
+
