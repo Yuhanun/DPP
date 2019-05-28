@@ -5,17 +5,6 @@ REST:
     Audit logs:
         All, including struct
 
-    Channel:
-        Get Channel // cache
-        Create Reaction
-        Delete own reaction
-        Delete user reaction
-        Get reactions // cache
-        Delete all reactions
-        Delete Permission
-        Group DM add recipient
-        Group DM remove recipient
-
     Emoji:
         Create guild emoji
 

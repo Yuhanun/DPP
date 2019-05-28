@@ -169,3 +169,49 @@ void discord::Message::unpin() {
 void discord::Message::pin() {
     send_request<request_method::Put>(nlohmann::json({}), get_default_headers(), get_pin_url());
 }
+
+void discord::Message::add_reaction(discord::Emoji const& emote) {
+    send_request<request_method::Put>(nlohmann::json({}), get_default_headers(), get_add_reaction_url(emote));
+}
+
+void discord::Message::remove_own_reaction(discord::Emoji const& emote) {
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_add_reaction_url(emote));
+}
+
+void discord::Message::remove_reaction(discord::User const& user, discord::Emoji const& emote) {
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_add_reaction_url(emote));
+}
+
+std::vector<discord::User> discord::Message::get_reactions(discord::Emoji const& emote, snowflake before, snowflake after, int limit) {
+    auto data = nlohmann::json({ { "limit", limit > 0 ? limit : 25 } });
+
+    if (after) {
+        data["after"] = after;
+    }
+    if (before) {
+        data["before"] = before;
+    }
+
+    return from_json_array<discord::User>(
+        send_request<request_method::Get>(data, get_default_headers(), get_reactions_url(emote)));
+}
+
+void discord::Message::remove_all_reactions(discord::Emoji const& emote) {
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_remove_all_reactions_url(emote));
+}
+
+std::string discord::Message::get_add_reaction_url(discord::Emoji const& emote) const {
+    return format("%/channels/%/messages/%/reactions/%:%/@me", get_api(), channel->id, id, emote.name, emote.id);
+}
+
+std::string discord::Message::get_remove_user_url(discord::User const& user, discord::Emoji const& emote) {
+    return format("%/channels/%/messages/%/reactions/%:%/%", get_api(), channel->id, id, emote.name, emote.id, user.id);
+}
+
+std::string discord::Message::get_reactions_url(discord::Emoji const& emote) {
+    return format("%/channels/%/messages/%/reactions/%:%", get_api(), channel->id, id, emote.name, emote.id);
+}
+
+std::string discord::Message::get_remove_all_reactions_url(discord::Emoji const& emote) {
+    return format("%/channels/%/messages/%/reactions", get_api(), channel->id, id);
+}

@@ -638,3 +638,13 @@ std::string discord::Bot::get_create_group_dm_url() {
 std::string discord::Bot::get_connections_url() {
     return format("%/users/@me/connections", get_api());
 }
+
+discord::Channel discord::Bot::get_channel(snowflake chan_id) {
+    return discord::Channel{
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_channel_url(chan_id))
+    };
+}
+
+std::string discord::Bot::get_channel_url(snowflake chan_id) {
+    return format("%/channels/%", get_api(), chan_id);
+}

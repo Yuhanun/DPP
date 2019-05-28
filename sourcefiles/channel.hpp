@@ -163,6 +163,22 @@ void discord::Channel::typing() {
     send_request<request_method::Post>(nlohmann::json({}), get_default_headers(), get_typing_url());
 }
 
+void discord::Channel::add_group_dm_recipient(discord::User const &user, std::string const &access_token, std::string const &nick) {
+    send_request<request_method::Put>(
+        nlohmann::json({ { "access_token", access_token }, { "nick", nick } }),
+        get_default_headers(),
+        get_add_group_dm_recipient_url(user));
+}
+
+void discord::Channel::remove_group_dm_recipient(discord::User const &user) {
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_add_group_dm_recipient_url(user));
+}
+
+std::string discord::Channel::get_add_group_dm_recipient_url(discord::User const &user) {
+    return format("%/channels/%/recipient/%", get_api(), this->id, user.id);
+}
+
+
 std::string discord::Channel::get_get_message_url(snowflake m_id) const {
     return format("%/channels/%/messages/%", get_api(), id, m_id);
 }
