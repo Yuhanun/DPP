@@ -37,7 +37,7 @@ int main() {
         s << "-----------------------------" << std::endl;
         std::printf("%s", s.str().c_str());
     };
-    
+
     bot.register_callback<discord::events::message_create>(l);
     bot.register_callback<discord::events::message_update>(l);
     bot.register_callback<discord::events::message_delete>(l);
@@ -49,8 +49,7 @@ int main() {
                      .set_author(
                          "Discord++",
                          "https://github.com/yuhanun/dpp",
-                         ctx.author->avatar
-                ));
+                         ctx.author->avatar));
     });
 
     bot.run();
