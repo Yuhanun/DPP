@@ -32,9 +32,9 @@ discord::Message::Message(nlohmann::json const j) {
     });
 
     if (!channel) {
-        auto c = std::make_unique<discord::Channel>(channel_id, 0);
+        auto c = std::make_shared<discord::Channel>(channel_id, 0);
         channel = c.get();
-        discord::detail::bot_instance->channels.emplace_back(std::move(c));
+        discord::detail::bot_instance->channels.push_back(c);
     }
 
     if (channel && channel->guild) {

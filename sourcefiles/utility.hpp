@@ -9,7 +9,7 @@
 namespace discord {
     namespace utils {
         template <typename S, typename F>
-        S *get(std::vector<std::unique_ptr<S>> &iterable, F const &callable) {
+        S *get(std::vector<std::shared_ptr<S>> &iterable, F const &callable) {
             for (auto const &each : iterable) {
                 if (callable(each)) {
                     return each.get();

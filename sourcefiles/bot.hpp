@@ -321,7 +321,7 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
             guild->channels.push_back(channel);
         }
     }
-    channels.emplace_back(std::make_unique<discord::Channel>(channel));
+    channels.emplace_back(std::make_shared<discord::Channel>(channel));
     func_holder.call<events::channel_create>(packet_handling, true, channel);
 }
 
@@ -381,20 +381,20 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
                 break;
             }
         }
-        users.emplace_back(std::make_unique<discord::User>(member["user"]));
+        users.emplace_back(std::make_shared<discord::User>(member["user"]));
     }
 
     auto guild = discord::Guild(data);
-    guilds.emplace_back(std::make_unique<discord::Guild>(data));
+    guilds.emplace_back(std::make_shared<discord::Guild>(data));
 
     for (auto const &channel : data["channels"]) {
-        channels.emplace_back(std::make_unique<discord::Channel>(channel, guild_id));
+        channels.emplace_back(std::make_shared<discord::Channel>(channel, guild_id));
     }
 
     if (!ready) {
         for (auto const &unavail_guild : ready_packet["guilds"]) {
             snowflake g_id = to_sf(unavail_guild["id"]);
-            if (std::find_if(guilds.begin(), guilds.end(), [g_id](std::unique_ptr<discord::Guild> &g) { return g_id == g->id; }) == guilds.end()) {
+            if (std::find_if(guilds.begin(), guilds.end(), [g_id](auto const &g) { return g_id == g->id; }) == guilds.end()) {
                 return;
             }
         }
@@ -409,7 +409,7 @@ void discord::Bot::guild_update_event(nlohmann::json data) {
     Guild g;
     for (auto &each : guilds) {
         if (new_guild == each->id) {
-            g = *(std::make_unique<Guild>(data));
+            g = *(std::make_shared<Guild>(data));
         }
     }
     func_holder.call<events::guild_update>(packet_handling, true, g);
@@ -417,7 +417,7 @@ void discord::Bot::guild_update_event(nlohmann::json data) {
 
 void discord::Bot::guild_delete_event(nlohmann::json data) {
     snowflake to_remove = to_sf(data["id"]);
-    guilds.erase(std::remove_if(guilds.begin(), guilds.end(), [to_remove](std::unique_ptr<discord::Guild> const &g) {
+    guilds.erase(std::remove_if(guilds.begin(), guilds.end(), [to_remove](auto const &g) {
                      return g->id == to_remove;
                  }),
                  guilds.end());

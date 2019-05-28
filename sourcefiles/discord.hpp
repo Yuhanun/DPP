@@ -310,9 +310,9 @@ namespace discord {
         std::string username;
 
         function_handler func_holder;
-        std::vector<std::unique_ptr<discord::User>> users;
-        std::vector<std::unique_ptr<discord::Guild>> guilds;
-        std::vector<std::unique_ptr<discord::Channel>> channels;
+        std::vector<std::shared_ptr<discord::User>> users;
+        std::vector<std::shared_ptr<discord::Guild>> guilds;
+        std::vector<std::shared_ptr<discord::Channel>> channels;
 
     private:
         nlohmann::json hello_packet;
