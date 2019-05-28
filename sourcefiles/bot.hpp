@@ -118,9 +118,14 @@ void discord::Bot::handle_gateway() {
 
 void discord::Bot::run() {
     gateway_auth();
-    await_events();
+    while (true) {
+        if (!packet_handling.size()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            continue;
+        }
+        packet_handling.erase(packet_handling.begin());
+    }
     gateway_thread.join();
-    event_thread.join();
 }
 
 std::string discord::Bot::get_identify_packet() {
@@ -138,17 +143,6 @@ std::string discord::Bot::get_identify_packet() {
 
 void discord::Bot::gateway_auth() {
     gateway_thread = std::thread{ &Bot::handle_gateway, this };
-}
-
-void discord::Bot::await_events() {
-    event_thread = std::thread{ [&]() {
-        while (true) {
-            if (!packet_handling.size()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                continue;
-            }
-            packet_handling.erase(packet_handling.begin());
-    } } };
 }
 
 std::string discord::Bot::get_gateway_url() const {
@@ -334,7 +328,7 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
 void discord::Bot::channel_update_event(nlohmann::json j) {
     const nlohmann::json data = j["d"];
     auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
-    
+
     // TODO: perfect this loop below idk what i did here
     // for (auto &each : channel.guild->channels) {
     //     if (each.id == channel.id) {
@@ -483,7 +477,10 @@ void discord::Bot::guild_member_update_event(nlohmann::json data) {
         return usr.id == user.id;
     });
     member->nick = get_value(data, "nick", member->nick);
-    member->roles = from_json_array<discord::Role>(data["roles"]);
+    member->roles.clear();
+    for (auto const &each_id : data["roles"]) {
+        member->roles.emplace_back(to_sf(each_id));
+    }
     func_holder.call<events::guild_member_update>(packet_handling, ready, *member);
 }
 

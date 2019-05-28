@@ -329,7 +329,6 @@ namespace discord {
         client c;
         client::connection_ptr con;
 
-        std::thread event_thread;
         std::thread gateway_thread;
         std::thread heartbeat_thread;
         std::future<void> client_future;
@@ -609,13 +608,14 @@ namespace discord {
         void add_reaction(discord::Emoji const&);
         void remove_own_reaction(discord::Emoji const&);
         void remove_reaction(discord::User const&, discord::Emoji const&);
-        void remove_all_reactions(discord::Emoji const&);
+        void remove_all_reactions();
         std::vector<discord::User> get_reactions(discord::Emoji const&, snowflake = 0, snowflake = 0, int = 0);
 
         discord::Message& update(nlohmann::json const);
 
     private:
-        std::string get_remove_all_reactions_url(discord::Emoji const&);
+        std::string get_remove_all_reactions_url();
+        std::string get_remove_user_reaction_url(discord::Emoji const&, discord::User const&);
         std::string get_add_reaction_url(discord::Emoji const&) const;
         std::string get_remove_user_url(discord::User const&, discord::Emoji const&);
         std::string get_reactions_url(discord::Emoji const&);

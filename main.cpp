@@ -38,9 +38,9 @@ int main() {
         std::printf("%s", s.str().c_str());
     };
 
-    bot.register_callback<discord::events::message_create>(l);
-    bot.register_callback<discord::events::message_update>(l);
-    bot.register_callback<discord::events::message_delete>(l);
+    // bot.register_callback<discord::events::message_create>(l);
+    // bot.register_callback<discord::events::message_update>(l);
+    // bot.register_callback<discord::events::message_delete>(l);
 
     bot.register_command("help", [](discord::Context const& ctx) {
         ctx.send(discord::EmbedBuilder{}
