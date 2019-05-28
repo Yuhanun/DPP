@@ -1,0 +1,70 @@
+Gateway:
+    Caching
+
+REST:
+    Audit logs:
+        All, including struct
+
+    Channel:
+        Get Channel // cache
+        Create Reaction
+        Delete own reaction
+        Delete user reaction
+        Get reactions // cache
+        Delete all reactions
+        Delete Permission
+        Group DM add recipient
+        Group DM remove recipient
+
+    Emoji:
+        List guild emojis // cache
+        Get guild emoji // cache
+        Create guild emoji
+        Modify guild emoji
+        Delete guild emoji
+
+    Guild:
+        List guild members // cache
+        Add guild member 
+        Modify guild member
+        Modify current user nick
+        Add guild member role
+        Remove guild member role
+        Remove guild member
+        Get guild bans // cache
+        Get guild ban // cache
+        Create guild ban
+        Remove guild ban
+        Get guild roles // cache
+        Create guild role
+        Modify guild role positions
+        Modify guild role
+        Delete guild role
+        Get guild prune count // cache (?)
+        Begin guild prune
+        Get guild voice regions // cache
+        Get guild invites // cache
+        Get guild integrations // cache
+        Create guild integrations
+        Modify guild integration
+        Delete guild integration
+        Sync guild integration
+        Get guild embed
+        Modify guild embed
+        Get guild vanity URL // cache (?)
+        Get guild widget image // cache
+
+    Invite:
+        Get invite // cache (?)
+        Delete invite
+
+    User:
+        Get current user guilds // cache
+        Leave guild
+        Get User DMs // not usable for bots
+        Create DM
+        Create Group DM 
+    
+    Webhook:
+        Slack webhook
+        GitHub webhook
