@@ -7,7 +7,7 @@
 
 discord::User::User(snowflake id)
     : discord::Object(id) {
-    auto user = discord::utils::get(discord::detail::bot_instance->users, id](auto const& usr) {
+    auto user = discord::utils::get(discord::detail::bot_instance->users, [id](auto const& usr) {
         return usr->id == id;
     });
     if (user) {
