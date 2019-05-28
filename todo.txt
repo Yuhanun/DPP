@@ -20,13 +20,6 @@ REST:
         Create guild emoji
 
     Guild:
-        Get guild // cache
-        Modify guild
-        Delete guild
-        Get guild channels // cache
-        Create guild channel
-        Modify guild channel positions
-        Get guild member // cache
         List guild members // cache
         Add guild member 
         Modify guild member
