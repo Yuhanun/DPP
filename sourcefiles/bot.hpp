@@ -125,7 +125,6 @@ void discord::Bot::run() {
         }
         packet_handling.erase(packet_handling.begin());
     }
-    gateway_thread.join();
 }
 
 std::string discord::Bot::get_identify_packet() {
@@ -142,7 +141,7 @@ std::string discord::Bot::get_identify_packet() {
 }
 
 void discord::Bot::gateway_auth() {
-    gateway_thread = std::thread{ &Bot::handle_gateway, this };
+    gateway_thread = std::async(std::launch::async, &Bot::handle_gateway, this);
 }
 
 std::string discord::Bot::get_gateway_url() const {
@@ -300,7 +299,7 @@ void discord::Bot::hello_event(nlohmann::json) {
 
 void discord::Bot::ready_event(nlohmann::json data) {
     this->session_id = data["session_id"].get<std::string>();
-    heartbeat_thread = std::thread{ &Bot::handle_heartbeat, this };
+    heartbeat_thread = std::async(std::launch::async, &Bot::handle_heartbeat, this);
     initialize_variables(data.dump());
     ready_packet = data;
 }
@@ -456,9 +455,9 @@ void discord::Bot::guild_member_add_event(nlohmann::json data) {
         return g->id == guild_id;
     });
     discord::User user{ data["user"] };
-    discord::Member mem{ data, user, guild };
-    guild->members.push_back(mem);
-    func_holder.call<events::guild_member_add>(packet_handling, ready, mem);
+    std::shared_ptr<discord::Member> mem = std::make_shared<discord::Member>(data, user, guild);
+    guild->members.emplace_back(mem);
+    func_holder.call<events::guild_member_add>(packet_handling, ready, *mem);
 }
 
 void discord::Bot::guild_member_remove_event(nlohmann::json data) {
@@ -467,7 +466,10 @@ void discord::Bot::guild_member_remove_event(nlohmann::json data) {
     auto guild = discord::utils::get(this->guilds, [guild_id](auto &g) {
         return g->id == guild_id;
     });
-    guild->members.erase(std::remove(guild->members.begin(), guild->members.end(), user), guild->members.end());
+    guild->members.erase(std::remove_if(guild->members.begin(), guild->members.end(), [&user](auto const &i) {
+                             return i->id == user.id;
+                         }),
+                         guild->members.end());
     func_holder.call<events::guild_member_remove>(packet_handling, ready, user);
 }
 
@@ -478,7 +480,7 @@ void discord::Bot::guild_member_update_event(nlohmann::json data) {
         return g->id == guild_id;
     });
     auto member = discord::utils::get(guild->members, [user](auto &usr) {
-        return usr.id == user.id;
+        return usr->id == user.id;
     });
     member->nick = get_value(data, "nick", member->nick);
     member->roles.clear();
@@ -502,7 +504,7 @@ void discord::Bot::message_create_event(nlohmann::json data) {
     bool found = false;
     auto message = Message{ data };
     process_message_cache<0>(&message, found);
-    if (message.author && message.author.id != this->id) {
+    if (message.author && message.author->id != this->id) {
         fire_commands(message);
     }
     func_holder.call<events::message_create>(packet_handling, ready, message);

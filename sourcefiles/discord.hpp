@@ -230,7 +230,7 @@ namespace discord {
         const std::vector<std::string>& arguments;
         const std::function<void(Context const&)> command;
         const std::string command_name;
-        const discord::Member author;
+        const std::shared_ptr<discord::Member> author;
         const std::shared_ptr<discord::Channel> channel;
 
         template <typename... Tys>
@@ -368,8 +368,8 @@ namespace discord {
         client c;
         client::connection_ptr con;
 
-        std::thread gateway_thread;
-        std::thread heartbeat_thread;
+        std::future<void> gateway_thread;
+        std::future<void> heartbeat_thread;
         std::future<void> client_future;
 
         std::vector<discord::Message> messages;
@@ -534,7 +534,7 @@ namespace discord {
         std::vector<int> features;
         std::vector<discord::Role> roles;
         std::vector<discord::Emoji> emojis;
-        std::vector<discord::Member> members;
+        std::vector<std::shared_ptr<discord::Member>> members;
         std::vector<std::shared_ptr<discord::Channel>> channels;
 
         discord::Member owner;
@@ -638,10 +638,10 @@ namespace discord {
         datetime timestamp{ boost::local_time::not_a_date_time };
         datetime edited_timestamp{ boost::local_time::not_a_date_time };
 
-        discord::Member author;
+        std::shared_ptr<discord::Member> author;
         std::shared_ptr<discord::Channel> channel;
 
-        std::vector<discord::Member> mentions;
+        std::vector<std::shared_ptr<discord::Member>> mentions;
         std::vector<discord::Role> mentioned_roles;
         std::vector<discord::Attachment> attachments;
         std::vector<discord::EmbedBuilder> embeds;

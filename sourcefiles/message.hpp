@@ -38,8 +38,8 @@ discord::Message::Message(nlohmann::json const j) {
 
     if (channel && channel->guild) {
         std::cout << channel->guild << " -> " << channel->guild->members.size() << " " << &channel->guild->members << std::endl;
-        author = *discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
-            return mem.id == sender_id;
+        author = discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
+            return mem->id == sender_id;
         });
     }
 
@@ -54,11 +54,11 @@ discord::Message::Message(nlohmann::json const j) {
             snowflake mention_id = to_sf(mention["id"]);
             if (channel->guild) {
                 auto mem = discord::utils::get(channel->guild->members, [mention_id](auto const& mem) {
-                    return mem.id == mention_id;
+                    return mem->id == mention_id;
                 });
 
                 if (mem) {
-                    mentions.push_back(*mem);
+                    mentions.push_back(mem);
                 }
             } else {
                 mentions.emplace_back(mention);
@@ -99,8 +99,8 @@ discord::Message& discord::Message::update(nlohmann::json const j) {
     });
 
     if (channel->guild) {
-        author = *discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
-            return mem.id == sender_id;
+        author = discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
+            return mem->id == sender_id;
         });
     }
 
@@ -117,10 +117,10 @@ discord::Message& discord::Message::update(nlohmann::json const j) {
             snowflake mention_id = to_sf(mention["id"]);
             if (channel->guild) {
                 auto mem = discord::utils::get(channel->guild->members, [mention_id](auto const& mem) {
-                    return mem.id == mention_id;
+                    return mem->id == mention_id;
                 });
                 if (mem) {
-                    mentions.push_back(*mem);
+                    mentions.emplace_back(mem);
                 }
             } else {
                 mentions.emplace_back(mention);

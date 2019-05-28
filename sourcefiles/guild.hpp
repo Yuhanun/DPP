@@ -46,14 +46,14 @@ discord::Guild::Guild(nlohmann::json const guild)
                 return this->id == g->id;
             })
         };
-        members.push_back(member);
+        members.emplace_back(std::make_shared<discord::Member>(member));
         if (each["user"]["id"] == guild["owner_id"]) {
             owner = member;
         }
     }
 
     for (auto const& each : guild["channels"]) {
-        channels.push_back(std::make_unique<discord::Channel>(each, id));
+        channels.emplace_back(std::make_shared<discord::Channel>(each, id));
     }
 }
 

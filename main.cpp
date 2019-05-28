@@ -59,7 +59,7 @@ int main() {
                      .set_author(
                          "Discord++",
                          "https://github.com/yuhanun/dpp",
-                         ctx.author.avatar));
+                         ctx.author->avatar));
     });
 
     bot.run();
