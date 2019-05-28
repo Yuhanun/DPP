@@ -47,7 +47,7 @@ namespace discord {
     }  // namespace detail
 
     typedef uint64_t snowflake;
-    typedef boost::local_time::local_date_time datetime;
+    typedef boost::posix_time::ptime datetime;
 
 
     using namespace boost;
@@ -162,7 +162,7 @@ namespace discord {
         template <typename... Tys>
         discord::Message send(Tys&&... args) const;
     };
-    
+
     struct VoiceRegion {
         std::string id;
         std::string name;
@@ -172,7 +172,7 @@ namespace discord {
         bool custom;
     };
 
-    struct Connection{
+    struct Connection {
         snowflake id;
         std::string name;
         std::string type;
@@ -549,13 +549,12 @@ namespace discord {
     private:
         std::string get_webhooks_url() const;
         std::string get_leave_url();
-    
+
         std::string get_list_guild_emojis_url();
         std::string get_guild_emoji(snowflake);
         // TODO: std::string get_create_emoji_url();
         std::string get_modify_guild_emoji_url(snowflake);
         std::string get_delete_emoji_url(snowflake);
-    
     };
 
     class Webhook : public Object {

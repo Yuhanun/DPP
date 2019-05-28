@@ -49,7 +49,7 @@ int main() {
                      .set_author(
                          "Discord++",
                          "https://github.com/yuhanun/dpp",
-                         "https://cdn.discordapp.com/avatars/553478921870508061/a_7336e4a1d2d84c8f22e39ea7dcc778bb.webp"
+                         ctx.author->avatar
                 ));
     });
 

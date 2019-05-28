@@ -204,28 +204,11 @@ namespace discord {
 
     discord::datetime time_from_discord_string(const std::string &tempstr) {
         if (tempstr.empty()) {
-            return boost::local_time::local_date_time{ boost::local_time::not_a_date_time };
+            return boost::posix_time::ptime{};
         }
-        std::string fstr;
-        std::stringstream ss;
-        auto ptr = new boost::local_time::local_time_input_facet("%Y-%m-%d %H:%M:%S %Q");
-        ss.imbue(std::locale(ss.getloc(), ptr));
-        std::for_each(tempstr.begin(), tempstr.begin() + 19, [&tempstr, &fstr](const auto &ch) {
-            if (isdigit(ch) || ch == ':') fstr += ch;
-            if (ch == '-') fstr += '-';
-            if (ch == 'T') fstr += ' ';
-            if (((&ch)[1]) == '.') {
-                auto it = tempstr.begin() + 26;
-                fstr += ' ';
-                while (it != tempstr.end())
-                    fstr += *it++;
-            }
-        });
-        ss.str(fstr);
-        boost::local_time::local_date_time ldt(boost::local_time::not_a_date_time);
-        ss >> ldt;
-        delete ptr;
-        return ldt;
+        auto time_str = tempstr.substr(0, tempstr.size() - 6);
+        time_str[10] = ' ';
+        return boost::posix_time::time_from_string(time_str);
     }
 
     template <size_t method>
