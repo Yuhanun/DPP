@@ -37,14 +37,23 @@ discord::Guild::Guild(nlohmann::json const guild)
       created_at{ time_from_discord_string(guild["joined_at"]) },
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
       roles{ from_json_array<discord::Role>(guild, "roles") },
-      emojis{ from_json_array<discord::Emoji>(guild, "emojis") },
-      channels{ from_json_array<discord::Channel>(guild, "channels", id) } {
+      emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
     for (auto& each : guild["members"]) {
-        discord::Member member{ each, discord::User(each["user"]), this };
+        discord::Member member{
+            each,
+            discord::User(each["user"]),
+            discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) {
+                return this->id == g->id;
+            })
+        };
         members.push_back(member);
         if (each["user"]["id"] == guild["owner_id"]) {
             owner = member;
         }
+    }
+
+    for (auto const& each : guild["channels"]) {
+        channels.push_back(std::make_unique<discord::Channel>(each, id));
     }
 }
 

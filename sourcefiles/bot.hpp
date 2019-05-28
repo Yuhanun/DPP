@@ -287,7 +287,11 @@ std::string discord::Bot::get_voice_regions_url() const {
 void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) {
     const nlohmann::json data = j["d"];
     last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
-    internal_event_map[event_name](data);
+    if (internal_event_map.find(event_name) != internal_event_map.end()) {
+        internal_event_map[event_name](data);
+    } else {
+        std::cout << "Unknown event: " << event_name << std::endl;
+    }
 }
 
 void discord::Bot::hello_event(nlohmann::json) {
@@ -318,7 +322,7 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
             return channel.guild->id == guild->id;
         });
         if (guild) {
-            guild->channels.push_back(channel);
+            guild->channels.push_back(std::make_shared<discord::Channel>(channel));
         }
     }
     channels.emplace_back(std::make_shared<discord::Channel>(channel));
@@ -343,13 +347,13 @@ void discord::Bot::channel_update_event(nlohmann::json j) {
 void discord::Bot::channel_delete_event(nlohmann::json j) {
     const nlohmann::json data = j["d"];
     snowflake chan_id = to_sf(get_value(data, "id", "0"));
-    discord::Channel event_chan;
+    std::shared_ptr<discord::Channel> event_chan;
     if (!chan_id) {
-        return func_holder.call<events::channel_delete>(packet_handling, true, event_chan);
+        return func_holder.call<events::channel_delete>(packet_handling, true, discord::Channel{});
     }
     for (auto &guild : this->guilds) {
         for (std::size_t i = 0; i < guild->channels.size(); i++) {
-            if (guild->channels[i].id != chan_id) {
+            if (guild->channels[i]->id != chan_id) {
                 continue;
             }
             event_chan = guild->channels[i];
@@ -361,11 +365,11 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
         if (channels[i]->id != chan_id) {
             continue;
         }
-        event_chan = *(channels[i]);
+        event_chan = channels[i];
         channels.erase(channels.begin() + i);
         break;
     }
-    func_holder.call<events::channel_delete>(packet_handling, true, event_chan);
+    func_holder.call<events::channel_delete>(packet_handling, true, *event_chan);
 }
 
 void discord::Bot::channel_pins_update_event(nlohmann::json data) {
@@ -498,7 +502,7 @@ void discord::Bot::message_create_event(nlohmann::json data) {
     bool found = false;
     auto message = Message{ data };
     process_message_cache<0>(&message, found);
-    if (message.author && message.author->id != this->id) {
+    if (message.author && message.author.id != this->id) {
         fire_commands(message);
     }
     func_holder.call<events::message_create>(packet_handling, ready, message);

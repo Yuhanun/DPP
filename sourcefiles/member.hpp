@@ -13,7 +13,7 @@ discord::Member::Member(snowflake id)
     }
 }
 
-discord::Member::Member(nlohmann::json const j, discord::User const& user, discord::Guild* g) {
+discord::Member::Member(nlohmann::json const j, discord::User const& user, std::shared_ptr<discord::Guild> g) {
     deaf = get_value(j, "deaf", false);
     muted = get_value(j, "mute", false);
     nick = get_value(j, "nick", "");

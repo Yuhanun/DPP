@@ -19,7 +19,7 @@ discord::Invite::Invite(nlohmann::json const data) {
     snowflake temp_channel_id = to_sf(data["channel"]["id"]);
 
     channel = discord::utils::get(guild->channels, [temp_channel_id](auto const& c) {
-        return c.id == temp_channel_id;
+        return c->id == temp_channel_id;
     });
 }
 

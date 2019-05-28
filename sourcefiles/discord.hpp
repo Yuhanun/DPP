@@ -149,20 +149,6 @@ namespace discord {
         }
     };
 
-    struct Context {
-        Context(const discord::Bot*, discord::Message const&, std::vector<std::string> const&, std::function<void(Context const&)> const&, std::string const&);
-        const discord::Bot* bot;
-        const discord::Message& message;
-        const std::vector<std::string>& arguments;
-        const std::function<void(Context const&)> command;
-        const std::string command_name;
-        const discord::Member* author;
-        const discord::Channel* channel;
-
-        template <typename... Tys>
-        discord::Message send(Tys&&... args) const;
-    };
-
     struct VoiceRegion {
         std::string id;
         std::string name;
@@ -196,6 +182,59 @@ namespace discord {
         std::string url;
         std::string filename;
         std::string proxy_url;
+    };
+
+    class User : public Object {
+    public:
+        User() = default;
+        User(snowflake);
+        User(nlohmann::json const);
+
+        discord::Channel create_dm();
+
+    public:
+        bool bot;
+
+        std::string name;
+
+        std::string avatar;
+        std::string mention;
+        std::string discriminator;
+
+    private:
+        std::string get_create_dm_url();
+    };
+
+    class Member : public User {
+    public:
+        Member() = default;
+        Member(snowflake);
+        Member(nlohmann::json const, discord::User const&, std::shared_ptr<discord::Guild>);
+
+    public:
+        bool deaf;
+        bool muted;
+
+        std::shared_ptr<discord::Guild> guild;
+
+        std::vector<discord::Role> roles;
+
+        std::string nick;
+        datetime joined_at{ boost::local_time::not_a_date_time };
+    };
+
+    struct Context {
+        Context(const discord::Bot*, discord::Message const&, std::vector<std::string> const&, std::function<void(Context const&)> const&, std::string const&);
+        const discord::Bot* bot;
+        const discord::Message& message;
+        const std::vector<std::string>& arguments;
+        const std::function<void(Context const&)> command;
+        const std::string command_name;
+        const discord::Member author;
+        const std::shared_ptr<discord::Channel> channel;
+
+        template <typename... Tys>
+        discord::Message send(Tys&&... args) const;
     };
 
 
@@ -416,30 +455,9 @@ namespace discord {
         std::string name;
         std::string topic;
 
-        discord::Guild* guild;
-        std::vector<discord::User> recipients;
+        std::shared_ptr<discord::Guild> guild;
+        std::vector<std::shared_ptr<discord::User>> recipients;
         std::vector<discord::PermissionOverwrites> overwrites;
-    };
-
-    class User : public Object {
-    public:
-        User() = default;
-        User(snowflake);
-        User(nlohmann::json const);
-
-        discord::Channel create_dm();
-
-    public:
-        bool bot;
-
-        std::string name;
-
-        std::string avatar;
-        std::string mention;
-        std::string discriminator;
-
-    private:
-        std::string get_create_dm_url();
     };
 
     class Emoji : public Object {
@@ -460,25 +478,6 @@ namespace discord {
         std::vector<discord::Role> roles;
     };
 
-
-    class Member : public User {
-    public:
-        Member() = default;
-        Member(snowflake);
-        Member(nlohmann::json const, discord::User const&, discord::Guild*);
-
-    public:
-        bool deaf;
-        bool muted;
-
-        discord::Guild* guild;
-
-        std::vector<discord::Role> roles;
-
-        std::string nick;
-        datetime joined_at{ boost::local_time::not_a_date_time };
-    };
-
     class Invite {
     public:
         Invite() = default;
@@ -493,7 +492,7 @@ namespace discord {
         std::string code;
         datetime created_at{ boost::local_time::not_a_date_time };
         discord::Member inviter;
-        discord::Channel* channel;
+        std::shared_ptr<discord::Channel> channel;
 
         discord::Invite get_invite();
         void remove();
@@ -536,7 +535,7 @@ namespace discord {
         std::vector<discord::Role> roles;
         std::vector<discord::Emoji> emojis;
         std::vector<discord::Member> members;
-        std::vector<discord::Channel> channels;
+        std::vector<std::shared_ptr<discord::Channel>> channels;
 
         discord::Member owner;
         discord::Channel afk_channel;
@@ -609,7 +608,7 @@ namespace discord {
         void remove_own_reaction(discord::Emoji const&);
         void remove_reaction(discord::User const&, discord::Emoji const&);
         void remove_all_reactions();
-        std::vector<discord::User> get_reactions(discord::Emoji const&, snowflake = 0, snowflake = 0, int = 0);
+        std::vector<std::shared_ptr<discord::User>> get_reactions(discord::Emoji const&, snowflake = 0, snowflake = 0, int = 0);
 
         discord::Message& update(nlohmann::json const);
 
@@ -639,8 +638,8 @@ namespace discord {
         datetime timestamp{ boost::local_time::not_a_date_time };
         datetime edited_timestamp{ boost::local_time::not_a_date_time };
 
-        discord::Member* author;
-        discord::Channel* channel;
+        discord::Member author;
+        std::shared_ptr<discord::Channel> channel;
 
         std::vector<discord::Member> mentions;
         std::vector<discord::Role> mentioned_roles;

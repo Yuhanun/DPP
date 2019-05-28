@@ -24,23 +24,33 @@ int main() {
                   << "-----------------------------" << std::endl;
     });
 
-    auto l = [](discord::Message m) {
-        std::stringstream s;
-        s << "Embeds: " << m.embeds.size() << std::endl
-          << "Attachments: " << m.attachments.size() << std::endl
-          << "Content: " << m.content << std::endl
-          << "Created at: " << m.timestamp << std::endl
-          << "Edited at: " << m.edited_timestamp << std::endl;
-        if (m.author) {
-            s << "Author: " << m.author->name << "#" << m.author->discriminator << std::endl;
-        }
-        s << "-----------------------------" << std::endl;
-        std::printf("%s", s.str().c_str());
-    };
+    // auto l = [](discord::Message m) {
+    //     std::stringstream s;
+    //     s << "Embeds: " << m.embeds.size() << std::endl
+    //       << "Attachments: " << m.attachments.size() << std::endl
+    //       << "Content: " << m.content << std::endl
+    //       << "Created at: " << m.timestamp << std::endl
+    //       << "Edited at: " << m.edited_timestamp << std::endl;
+    //     if (m.author) {
+    //         s << "Author: " << m.author->name << "#" << m.author->discriminator << std::endl;
+    //     }
+    //     s << "-----------------------------" << std::endl;
+    //     std::printf("%s", s.str().c_str());
+    // };
 
     // bot.register_callback<discord::events::message_create>(l);
     // bot.register_callback<discord::events::message_update>(l);
     // bot.register_callback<discord::events::message_delete>(l);
+
+
+    bot.register_command("test", [](discord::Context const& ctx) {
+        std::vector<discord::Message> messages = { ctx.message };
+        for (int i = 0; i < 5; i++) {
+            messages.push_back(ctx.send("test"));
+        }
+        ctx.message.channel->bulk_delete(messages);
+    });
+
 
     bot.register_command("help", [](discord::Context const& ctx) {
         ctx.send(discord::EmbedBuilder{}
@@ -49,7 +59,7 @@ int main() {
                      .set_author(
                          "Discord++",
                          "https://github.com/yuhanun/dpp",
-                         ctx.author->avatar));
+                         ctx.author.avatar));
     });
 
     bot.run();

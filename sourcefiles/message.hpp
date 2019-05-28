@@ -32,13 +32,13 @@ discord::Message::Message(nlohmann::json const j) {
     });
 
     if (!channel) {
-        auto c = std::make_shared<discord::Channel>(channel_id, 0);
-        channel = c.get();
-        discord::detail::bot_instance->channels.push_back(c);
+        auto channel = std::make_shared<discord::Channel>(channel_id, 0);
+        discord::detail::bot_instance->channels.push_back(channel);
     }
 
     if (channel && channel->guild) {
-        author = discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
+        std::cout << channel->guild << " -> " << channel->guild->members.size() << " " << &channel->guild->members << std::endl;
+        author = *discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
             return mem.id == sender_id;
         });
     }
@@ -56,6 +56,7 @@ discord::Message::Message(nlohmann::json const j) {
                 auto mem = discord::utils::get(channel->guild->members, [mention_id](auto const& mem) {
                     return mem.id == mention_id;
                 });
+
                 if (mem) {
                     mentions.push_back(*mem);
                 }
@@ -98,7 +99,7 @@ discord::Message& discord::Message::update(nlohmann::json const j) {
     });
 
     if (channel->guild) {
-        author = discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
+        author = *discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
             return mem.id == sender_id;
         });
     }
@@ -188,7 +189,7 @@ void discord::Message::remove_reaction(discord::User const& user, discord::Emoji
     send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_remove_user_reaction_url(emote, user));
 }
 
-std::vector<discord::User> discord::Message::get_reactions(discord::Emoji const& emote, snowflake before, snowflake after, int limit) {
+std::vector<std::shared_ptr<discord::User>> discord::Message::get_reactions(discord::Emoji const& emote, snowflake before, snowflake after, int limit) {
     auto data = nlohmann::json({ { "limit", limit > 0 ? limit : 25 } });
 
     if (after) {
@@ -198,7 +199,7 @@ std::vector<discord::User> discord::Message::get_reactions(discord::Emoji const&
         data["before"] = before;
     }
 
-    return from_json_array<discord::User>(
+    return from_json_array<std::shared_ptr<discord::User>>(
         send_request<request_method::Get>(data, get_default_headers(), get_reactions_url(emote)));
 }
 
