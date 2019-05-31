@@ -75,3 +75,10 @@ void discord::Member::kick() {
         get_default_headers(),
         format("%/guilds/%/members/%", get_api(), this->guild->id, this->id));
 }
+
+void discord::Member::ban(std::string const& _reason, int _days) {
+    send_request<request_method::Put>(
+        nlohmann::json({ { "reason", _reason }, { "delete-message-days", _days } }),
+        get_default_headers(),
+        format("%/guilds/%/members/%", get_api(), this->guild->id, this->id));
+}

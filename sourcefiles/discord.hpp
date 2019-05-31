@@ -216,6 +216,7 @@ namespace discord {
         void remove_role(discord::Role const&);
 
         void kick();
+        void ban(std::string const&, int);
 
     public:
         bool deaf;
