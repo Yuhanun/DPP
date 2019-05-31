@@ -157,6 +157,15 @@ void discord::Guild::remove_emoji(discord::Emoji const& emote) {
         get_delete_emoji_url(emote.id));
 }
 
+discord::Member discord::Guild::get_member(snowflake m_id) {
+    auto req_data = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/members/%", get_api(), this->id, m_id));
+    return discord::Member{
+        req_data,
+        req_data["user"],
+        this
+    };
+}
+
 
 std::string discord::Guild::get_list_guild_emojis_url() {
     return format("%/guilds/%/emojis", get_api(), id);
