@@ -112,6 +112,10 @@ void discord::Guild::edit(std::string const& name, std::string const& region, in
         format("%/guilds/%", get_api(), id));
 }
 
+void discord::Guild::remove() {
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), format("%/guilds/%", get_api(), id));
+}
+
 void discord::Guild::remove_emoji(discord::Emoji const& emote) {
     send_request<request_method::Delete>(
         nlohmann::json({}),
