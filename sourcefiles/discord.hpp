@@ -541,6 +541,7 @@ namespace discord {
         discord::Role create_role(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);
 
         int get_prune_count(int);
+        int begin_prune(int, bool);
 
     public:
         int splash;

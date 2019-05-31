@@ -9,8 +9,6 @@ REST:
         Create guild emoji
 
     Guild:
-        Get guild prune count // cache (?)
-        Begin guild prune
         Get guild voice regions // cache
         Get guild invites // cache
         Get guild integrations // cache

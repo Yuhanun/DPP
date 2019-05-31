@@ -247,3 +247,13 @@ int discord::Guild::get_prune_count(int days) {
     return send_request<request_method::Get>(
         nlohmann::json({ { "days", days } }), get_default_headers(), format("%/guilds/%/prune", get_api(), id))["pruned"];
 }
+
+int discord::Guild::begin_prune(int days, bool compute_prune_count) {
+    return get_value(send_request<request_method::Post>(
+                         nlohmann::json({ { "days", days },
+                                          { "compute_prune_count", compute_prune_count } }),
+                         get_default_headers(),
+                         format("%/guilds/%/prune", get_api(), id)),
+                     "pruned",
+                     0);
+}
