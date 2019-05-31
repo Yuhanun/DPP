@@ -754,12 +754,15 @@ namespace discord {
     public:
         Role() = default;
         Role(snowflake);
-        Role(nlohmann::json);
+        Role(nlohmann::json, discord::Guild*);
+
+        void edit_position(int);
 
     public:
         bool hoist;
         bool managed;
         bool mentionable;
+        std::shared_ptr<discord::Guild> guild;
 
         std::string name;
 

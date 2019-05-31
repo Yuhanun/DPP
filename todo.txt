@@ -9,7 +9,6 @@ REST:
         Create guild emoji
 
     Guild:
-        Create guild role
         Modify guild role positions
         Modify guild role
         Delete guild role

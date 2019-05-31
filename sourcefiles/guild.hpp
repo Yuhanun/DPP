@@ -36,7 +36,7 @@ discord::Guild::Guild(nlohmann::json const guild)
       banner{ get_value(guild, "banner", "") },
       created_at{ time_from_discord_string(guild["joined_at"]) },
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
-      roles{ from_json_array<discord::Role>(guild, "roles") },
+      roles{ from_json_array<discord::Role>(guild, "roles", this) },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
     for (auto& each : guild["members"]) {
         discord::Member member{
@@ -206,15 +206,18 @@ std::vector<discord::Role> discord::Guild::get_roles() {
 }
 
 discord::Role discord::Guild::create_role(std::string const& _name, PermissionOverwrites& _perms, discord::Color _color, bool _hoist, bool _mention) {
-    return discord::Role {
+    return discord::Role{
         send_request<request_method::Post>(
             nlohmann::json({ { "name", _name },
-                             { "permissions", _perms.base_permissions } }),
+                             { "permissions", _perms.base_permissions },
+                             { "color", _color.raw_int },
+                             { "hoist", _hoist },
+                             { "mentionable", _mention } }),
             get_default_headers(),
-            format("%/guilds/%/roles", get_api(), id))
+            format("%/guilds/%/roles", get_api(), id)),
+        this
     };
 }
-
 
 std::string discord::Guild::get_list_guild_emojis_url() {
     return format("%/guilds/%/emojis", get_api(), id);
