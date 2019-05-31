@@ -5,11 +5,13 @@ REST:
     Audit logs:
         All, including struct
 
+    Integration:
+        Struct
+
     Emoji:
         Create guild emoji
 
     Guild:
-        Get guild invites // cache
         Get guild integrations // cache
         Create guild integrations
         Modify guild integration

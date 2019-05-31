@@ -546,6 +546,8 @@ namespace discord {
         std::vector<discord::VoiceRegion> get_voice_regions();
         std::vector<discord::Invite> get_invites();
 
+        snowflake get_embed();
+
     public:
         int splash;
         int mfa_level;
@@ -587,6 +589,7 @@ namespace discord {
         void remove_emoji(discord::Emoji const&);
 
     private:
+
         std::string get_webhooks_url() const;
         std::string get_leave_url();
 

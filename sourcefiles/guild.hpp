@@ -280,3 +280,10 @@ std::vector<discord::Invite> discord::Guild::get_invites() {
             get_default_headers(),
             format("%/guilds/%/invites", get_api(), id)));
 }
+
+discord::snowflake discord::Guild::get_embed() {
+    return get_value(send_request<request_method::Get>(
+                         nlohmann::json({}), get_default_headers(), format("%/guilds/%/embed", get_api(), id)),
+                     "channel_id",
+                     0);
+}
