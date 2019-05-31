@@ -511,6 +511,8 @@ namespace discord {
 
         Guild(nlohmann::json const);
 
+        void edit(std::string const&, std::string const&, int, int, int, snowflake, int, std::string const&, snowflake, std::string const&, snowflake);
+
     public:
         int splash;
         int mfa_level;

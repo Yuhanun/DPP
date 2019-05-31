@@ -95,6 +95,23 @@ discord::Emoji discord::Guild::edit_emoji(discord::Emoji const& emote, std::stri
     };
 }
 
+void discord::Guild::edit(std::string const& name, std::string const& region, int verif_level, int default_message_notif, int explicit_cont_filt, snowflake afk_chan_id, int afk_timeout, std::string const& icon, snowflake owner_id, std::string const& splash, snowflake system_channel_id) {
+    send_request<request_method::Patch>(
+        nlohmann::json({ { "name", name },
+                         { "region", region },
+                         { "verification_level", verif_level },
+                         { "default_message_notifications", default_message_notif },
+                         { "explicit_content_filter", explicit_cont_filt },
+                         { "afk_channel_id", afk_chan_id },
+                         { "afk_timeout", afk_timeout },
+                         { "icon", icon },
+                         { "owner_id", owner_id },
+                         { "splash", splash },
+                         { "system_channel_id", system_channel_id } }),
+        get_default_headers(),
+        format("%/guilds/%", get_api(), id));
+}
+
 void discord::Guild::remove_emoji(discord::Emoji const& emote) {
     send_request<request_method::Delete>(
         nlohmann::json({}),
