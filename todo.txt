@@ -9,8 +9,6 @@ REST:
         Create guild emoji
 
     Guild:
-        Modify guild role positions
-        Modify guild role
         Delete guild role
         Get guild prune count // cache (?)
         Begin guild prune

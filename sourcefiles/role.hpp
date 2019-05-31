@@ -34,3 +34,17 @@ void discord::Role::edit_position(int _new_position) {
         get_default_headers(),
         format("%/guilds/%/roles", get_api(), this->guild->id));
 }
+
+void discord::Role::edit(std::string const& _name, PermissionOverwrites& _perms, discord::Color _color, bool _hoist, bool _mention) {
+    discord::Role{
+        send_request<request_method::Patch>(
+            nlohmann::json({ { "name", _name },
+                             { "permissions", _perms.base_permissions },
+                             { "color", _color.raw_int },
+                             { "hoist", _hoist },
+                             { "mentionable", _mention } }),
+            get_default_headers(),
+            format("%/guilds/%/roles/%", get_api(), guild->id, id)),
+        this->guild.get()
+    };
+}

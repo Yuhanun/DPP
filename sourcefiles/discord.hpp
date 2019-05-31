@@ -757,6 +757,7 @@ namespace discord {
         Role(nlohmann::json, discord::Guild*);
 
         void edit_position(int);
+        void edit(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);
 
     public:
         bool hoist;
