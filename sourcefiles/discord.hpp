@@ -426,6 +426,8 @@ namespace discord {
         void add_group_dm_recipient(discord::User const&, std::string const&, std::string const&);
         void remove_group_dm_recipient(discord::User const&);
 
+        void edit_position(int);
+
     private:
         std::string get_bulk_delete_url() const;
         std::string get_get_messages_url(int) const;

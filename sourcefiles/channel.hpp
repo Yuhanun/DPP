@@ -40,7 +40,8 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
             int t = each["type"].get<std::string>() == "role" ? role : member;
             overwrites.emplace_back(each["allow"].get<int>(),
                                     each["deny"].get<int>(),
-                                    to_sf(each["id"]), t);
+                                    to_sf(each["id"]),
+                                    t);
         }
     }
     name = get_value(data, "name", "");
@@ -173,6 +174,14 @@ void discord::Channel::add_group_dm_recipient(discord::User const &user, std::st
 void discord::Channel::remove_group_dm_recipient(discord::User const &user) {
     send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_add_group_dm_recipient_url(user));
 }
+
+void discord::Channel::edit_position(int new_pos) {
+    send_request<request_method::Patch>(
+        nlohmann::json({ { "id", this->id }, { "position", new_pos } }),
+        get_default_headers(),
+        format("%/guilds/%/channels", get_api(), this->guild->id));
+}
+
 
 std::string discord::Channel::get_add_group_dm_recipient_url(discord::User const &user) {
     return format("%/channels/%/recipient/%", get_api(), this->id, user.id);
