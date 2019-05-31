@@ -513,6 +513,7 @@ namespace discord {
 
         void edit(std::string const&, std::string const&, int, int, int, snowflake, int, std::string const&, snowflake, std::string const&, snowflake);
         void remove();
+        std::vector<discord::Channel> get_channels();
 
 
     public:

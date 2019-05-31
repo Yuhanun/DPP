@@ -116,6 +116,11 @@ void discord::Guild::remove() {
     send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), format("%/guilds/%", get_api(), id));
 }
 
+std::vector<discord::Channel> discord::Guild::get_channels() {
+    return from_json_array<discord::Channel>(
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/channels", get_api(), id)), id);
+}
+
 void discord::Guild::remove_emoji(discord::Emoji const& emote) {
     send_request<request_method::Delete>(
         nlohmann::json({}),
