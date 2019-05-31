@@ -9,6 +9,8 @@
 #include "member.hpp"
 #include "role.hpp"
 
+#include <cpr/cpr.h>
+
 discord::Guild::Guild(snowflake id)
     : discord::Object(id) {
     auto g = discord::utils::get(discord::detail::bot_instance->guilds, [id](auto const& guild) {
@@ -302,4 +304,12 @@ std::string discord::Guild::get_vanity_invite_url() {
                          nlohmann::json({}), get_default_headers(), format("%/guilds/%/vanity-url", id)),
                      "code",
                      "");
+}
+
+
+std::string discord::Guild::get_widget_image(std::string const& style) {
+    return cpr::Get(
+               cpr::Url{
+                   format("%/guilds/%/widget.png?style=%", get_api(), id, style) })
+        .text;
 }

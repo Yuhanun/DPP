@@ -550,6 +550,8 @@ namespace discord {
         snowflake edit_embed(snowflake = -1);
 
         std::string get_vanity_invite_url();
+        // TODO: turn into an Asset<>
+        std::string get_widget_image(std::string const&);
 
     public:
         int splash;

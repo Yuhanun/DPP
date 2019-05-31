@@ -17,8 +17,6 @@ REST:
         Modify guild integration
         Delete guild integration
         Sync guild integration
-        Get guild vanity URL // cache (?)
-        Get guild widget image // cache
 
     Webhook:
         Slack webhook
