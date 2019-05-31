@@ -95,19 +95,25 @@ discord::Emoji discord::Guild::edit_emoji(discord::Emoji const& emote, std::stri
     };
 }
 
-void discord::Guild::edit(std::string const& name, std::string const& region, int verif_level, int default_message_notif, int explicit_cont_filt, snowflake afk_chan_id, int afk_timeout, std::string const& icon, snowflake owner_id, std::string const& splash, snowflake system_channel_id) {
+// void edit(std::string const&, std::string const& = "", int = -1, int = -1, int = -1, snowflake = -1, int = -1, std::string const& = "", snowflake = -1, std::string const &= "", snowflake = -1);
+
+void discord::Guild::edit(std::string const& name, std::string const& rg, int verif_level, int default_message_notif, int explicit_cont_filt, snowflake afk_chan_id, int afk_timeout, std::string const& icon, snowflake owner_id, std::string const& splash, snowflake system_channel_id) {
+    nlohmann::json data{
+        { "name", name }
+    };
+    if (rg != "") data["region"] = rg;
+    if (verif_level != -1) data["verification_level"] = verif_level;
+    if (default_message_notif != -1) data["default_message_notifications"] = default_message_notif;
+    if (explicit_cont_filt != -1) data["explicit_content_filter"] = explicit_cont_filt;
+    if (afk_chan_id != -1) data["afk_channel_id"] = afk_chan_id;
+    if (afk_timeout != -1) data["afk_timeout"] = afk_timeout;
+    if (icon != "") data["icon"] = icon;
+    if (owner_id != -1) data["owner_id"] = owner_id;
+    if (splash != "") data["splash"] = splash;
+    if (system_channel_id != -1) data["system_channel_id"] = system_channel_id;
+
     send_request<request_method::Patch>(
-        nlohmann::json({ { "name", name },
-                         { "region", region },
-                         { "verification_level", verif_level },
-                         { "default_message_notifications", default_message_notif },
-                         { "explicit_content_filter", explicit_cont_filt },
-                         { "afk_channel_id", afk_chan_id },
-                         { "afk_timeout", afk_timeout },
-                         { "icon", icon },
-                         { "owner_id", owner_id },
-                         { "splash", splash },
-                         { "system_channel_id", system_channel_id } }),
+        data,
         get_default_headers(),
         format("%/guilds/%", get_api(), id));
 }
@@ -120,6 +126,29 @@ std::vector<discord::Channel> discord::Guild::get_channels() {
     return from_json_array<discord::Channel>(
         send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/channels", get_api(), id)), id);
 }
+
+discord::Channel discord::Guild::create_channel(std::string const& name, bool nsfw, int type, std::string const& topic, int bitrate, int user_limit, int rate_limit_per_user, int position, std::vector<discord::PermissionOverwrites> const& permission_overwrites, snowflake parent_id) {
+    nlohmann::json data = nlohmann::json({ { "name", name },
+                                           { "nsfw", nsfw },
+                                           { "permission_overwrites", nlohmann::json::array() } });
+    if (type != -1) data["type"] = type;
+    if (topic != "") data["topic"] = topic;
+    if (bitrate != -1) data["bitrate"] = bitrate;
+    if (user_limit != -1) data["user_limit"] = user_limit;
+    if (rate_limit_per_user != -1) data["rate_limit_per_user"];
+    if (position != -1) data["position"] = position;
+
+    for (auto const& each : permission_overwrites) {
+        data["permission_overwrites"].push_back(each.to_json());
+    }
+
+    if (parent_id != -1) data["parent_id"] = parent_id;
+
+    return discord::Channel{
+        send_request<request_method::Post>(data, get_default_headers(), format("%/guilds/%/channels", get_api(), id))
+    };
+}
+
 
 void discord::Guild::remove_emoji(discord::Emoji const& emote) {
     send_request<request_method::Delete>(

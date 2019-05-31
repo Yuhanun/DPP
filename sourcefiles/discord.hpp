@@ -511,9 +511,10 @@ namespace discord {
 
         Guild(nlohmann::json const);
 
-        void edit(std::string const&, std::string const&, int, int, int, snowflake, int, std::string const&, snowflake, std::string const&, snowflake);
+        void edit(std::string const&, std::string const& = "", int = -1, int = -1, int = -1, snowflake = -1, int = -1, std::string const& = "", snowflake = -1, std::string const& = "", snowflake = -1);
         void remove();
         std::vector<discord::Channel> get_channels();
+        discord::Channel create_channel(std::string const&, bool, int = -1, std::string const& = "", int = -1, int = -1, int = -1, int = -1, std::vector<discord::PermissionOverwrites> const& = {}, snowflake = -1);
 
 
     public:
