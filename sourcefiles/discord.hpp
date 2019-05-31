@@ -211,6 +211,8 @@ namespace discord {
         Member(snowflake);
         Member(nlohmann::json const, discord::User const&, discord::Guild*);
 
+        void edit(std::string const&, bool, bool, std::vector<discord::Role> const& = {}, snowflake = -1);
+
     public:
         bool deaf;
         bool muted;

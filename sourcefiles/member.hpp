@@ -32,3 +32,24 @@ discord::Member::Member(nlohmann::json const j, discord::User const& user, disco
         roles.emplace_back(to_sf(role));
     }
 }
+
+void discord::Member::edit(std::string const& t_name, bool t_mute, bool t_deaf, std::vector<discord::Role> const& t_roles, snowflake channel_id) {
+    nlohmann::json data({ { "name", t_name },
+                          { "mute", t_mute },
+                          { "deaf", t_deaf },
+                          { "roles", nlohmann::json::array() } });
+
+    for (auto const& each : t_roles) {
+        data["roles"].push_back(each.id);
+    }
+
+    if (channel_id != -1) {
+        if (channel_id == 0)
+            data["channel_id"] = nullptr;
+        else
+            data["channel_id"] = channel_id;
+    }
+
+    send_request<request_method::Patch>(
+        data, get_default_headers(), format("%/guilds/%/members/%", get_api(), this->guild->id, this->id));
+}
