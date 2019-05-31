@@ -531,6 +531,7 @@ namespace discord {
         void edit_bot_username(std::string const&);
 
         std::vector<std::pair<std::string, discord::User>> get_bans();
+        std::pair<std::string, discord::User> get_ban(discord::Object const&);
 
     public:
         int splash;
