@@ -48,3 +48,10 @@ void discord::Role::edit(std::string const& _name, PermissionOverwrites& _perms,
         this->guild.get()
     };
 }
+
+void discord::Role::remove() {
+    send_request<request_method::Delete>(
+        nlohmann::json({}),
+        get_default_headers(),
+        format("%/guilds/%/roles/%", get_api(), guild->id, id));
+}

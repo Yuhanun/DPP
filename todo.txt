@@ -9,7 +9,6 @@ REST:
         Create guild emoji
 
     Guild:
-        Delete guild role
         Get guild prune count // cache (?)
         Begin guild prune
         Get guild voice regions // cache

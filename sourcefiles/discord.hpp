@@ -758,6 +758,7 @@ namespace discord {
 
         void edit_position(int);
         void edit(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);
+        void remove();
 
     public:
         bool hoist;
