@@ -538,6 +538,8 @@ namespace discord {
 
         std::vector<discord::Role> get_roles();
 
+        discord::Role create_role(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);
+
     public:
         int splash;
         int mfa_level;
@@ -745,6 +747,7 @@ namespace discord {
 
         PermissionOverwrite allow_perms;
         PermissionOverwrite deny_perms;
+        int base_permissions;
     };
 
     class Role : public Object {

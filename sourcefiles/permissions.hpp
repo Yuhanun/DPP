@@ -55,6 +55,9 @@ discord::PermissionOverwrites& discord::PermissionOverwrites::add_permission(std
     } else if (allow_type == deny_perms.allow_type) {
         deny_perms.add_permission(name);
     }
+    this->base_permissions = 0;
+    this->base_permissions &= ~deny_perms.value;
+    this->base_permissions |= allow_perms.value;
     return *this;
 }
 

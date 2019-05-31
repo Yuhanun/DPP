@@ -205,6 +205,16 @@ std::vector<discord::Role> discord::Guild::get_roles() {
         send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/roles", get_api(), id)));
 }
 
+discord::Role discord::Guild::create_role(std::string const& _name, PermissionOverwrites& _perms, discord::Color _color, bool _hoist, bool _mention) {
+    return discord::Role {
+        send_request<request_method::Post>(
+            nlohmann::json({ { "name", _name },
+                             { "permissions", _perms.base_permissions } }),
+            get_default_headers(),
+            format("%/guilds/%/roles", get_api(), id))
+    };
+}
+
 
 std::string discord::Guild::get_list_guild_emojis_url() {
     return format("%/guilds/%/emojis", get_api(), id);
