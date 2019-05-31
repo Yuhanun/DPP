@@ -212,6 +212,10 @@ namespace discord {
         Member(nlohmann::json const, discord::User const&, discord::Guild*);
 
         void edit(std::string const&, bool, bool, std::vector<discord::Role> const& = {}, snowflake = -1);
+        void add_role(discord::Role const&);
+        void remove_role(discord::Role const&);
+
+        void kick();
 
     public:
         bool deaf;
