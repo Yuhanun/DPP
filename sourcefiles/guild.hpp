@@ -257,3 +257,18 @@ int discord::Guild::begin_prune(int days, bool compute_prune_count) {
                      "pruned",
                      0);
 }
+
+
+std::vector<discord::VoiceRegion> discord::Guild::get_voice_regions() {
+    auto resp = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/regions", get_api(), id));
+    std::vector<VoiceRegion> ret_val;
+    for (auto const& each : resp) {
+        ret_val.push_back({ each["id"],
+                            each["name"],
+                            each["vip"],
+                            each["optimal"],
+                            each["deprecated"],
+                            each["custom"] });
+    }
+    return ret_val;
+}

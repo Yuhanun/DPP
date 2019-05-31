@@ -543,6 +543,8 @@ namespace discord {
         int get_prune_count(int);
         int begin_prune(int, bool);
 
+        std::vector<VoiceRegion> get_voice_regions();
+
     public:
         int splash;
         int mfa_level;
