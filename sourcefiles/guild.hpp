@@ -272,3 +272,11 @@ std::vector<discord::VoiceRegion> discord::Guild::get_voice_regions() {
     }
     return ret_val;
 }
+
+std::vector<discord::Invite> discord::Guild::get_invites() {
+    return from_json_array<discord::Invite>(
+        send_request<request_method::Get>(
+            nlohmann::json({}),
+            get_default_headers(),
+            format("%/guilds/%/invites", get_api(), id)));
+}
