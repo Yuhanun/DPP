@@ -242,3 +242,8 @@ std::string discord::Guild::get_webhooks_url() const {
 std::string discord::Guild::get_leave_url() {
     return format("%/users/@me/guilds/%", get_api(), id);
 }
+
+int discord::Guild::get_prune_count(int days) {
+    return send_request<request_method::Get>(
+        nlohmann::json({ { "days", days } }), get_default_headers(), format("%/guilds/%/prune", get_api(), id))["pruned"];
+}

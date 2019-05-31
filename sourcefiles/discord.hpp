@@ -540,6 +540,8 @@ namespace discord {
 
         discord::Role create_role(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);
 
+        int get_prune_count(int);
+
     public:
         int splash;
         int mfa_level;
