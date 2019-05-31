@@ -286,6 +286,7 @@ std::string discord::Bot::get_voice_regions_url() const {
 void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) {
     const nlohmann::json data = j["d"];
     last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
+    std::printf("Incoming event: %s\n", event_name.c_str());
     if (internal_event_map.find(event_name) != internal_event_map.end()) {
         internal_event_map[event_name](data);
     } else {
@@ -482,7 +483,7 @@ void discord::Bot::guild_member_update_event(nlohmann::json data) {
     auto member = discord::utils::get(guild->members, [user](auto &usr) {
         return usr->id == user.id;
     });
-    member->nick = get_value(data, "nick", member->nick);
+    member->nick = get_value(data, "nick", member->nick); // member is 0x0
     member->roles.clear();
     for (auto const &each_id : data["roles"]) {
         member->roles.emplace_back(to_sf(each_id));

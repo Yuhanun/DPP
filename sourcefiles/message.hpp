@@ -37,7 +37,6 @@ discord::Message::Message(nlohmann::json const j) {
     }
 
     if (channel && channel->guild) {
-        std::cout << channel->guild << " -> " << channel->guild->members.size() << " " << &channel->guild->members << std::endl;
         author = discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
             return mem->id == sender_id;
         });
@@ -52,7 +51,7 @@ discord::Message::Message(nlohmann::json const j) {
     if (j.contains("mentions")) {
         for (auto const& mention : j["mentions"]) {
             snowflake mention_id = to_sf(mention["id"]);
-            if (channel->guild) {
+            if (channel && channel->guild) {
                 auto mem = discord::utils::get(channel->guild->members, [mention_id](auto const& mem) {
                     return mem->id == mention_id;
                 });
