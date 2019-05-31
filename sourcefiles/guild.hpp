@@ -170,6 +170,9 @@ std::vector<discord::Member> discord::Guild::get_members(int limit, snowflake af
             format("%/guilds/%/members", get_api(), this->id)));
 }
 
+void discord::Guild::add_member(nlohmann::json const& data, snowflake user_id) {
+    send_request<request_method::Put>(data, get_default_headers(), format("%/guilds/%/members/%", get_api(), this->id, user_id));
+}
 
 std::string discord::Guild::get_list_guild_emojis_url() {
     return format("%/guilds/%/emojis", get_api(), id);

@@ -520,6 +520,7 @@ namespace discord {
 
         discord::Member get_member(snowflake);
         std::vector<discord::Member> get_members(int, snowflake = 0);
+        void add_member(nlohmann::json const&, snowflake);
 
     public:
         int splash;
