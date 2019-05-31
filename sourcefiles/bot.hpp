@@ -483,7 +483,7 @@ void discord::Bot::guild_member_update_event(nlohmann::json data) {
     auto member = discord::utils::get(guild->members, [user](auto &usr) {
         return usr->id == user.id;
     });
-    member->nick = get_value(data, "nick", member->nick); // member is 0x0
+    member->nick = get_value(data, "nick", member->nick);  // member is 0x0
     member->roles.clear();
     for (auto const &each_id : data["roles"]) {
         member->roles.emplace_back(to_sf(each_id));
@@ -622,6 +622,11 @@ std::vector<discord::Connection> discord::Bot::get_connections() {
     return conn_vec;
 }
 
+discord::Guild discord::Bot::get_guild(snowflake g_id) {
+    return discord::Guild{
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%", get_api(), g_id))
+    };
+}
 
 std::string discord::Bot::get_current_user_url() {
     return format("%/users/@me", get_api());

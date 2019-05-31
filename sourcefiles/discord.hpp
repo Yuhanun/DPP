@@ -269,6 +269,7 @@ namespace discord {
         discord::Channel create_group_dm(std::vector<std::string> const&, nlohmann::json const&);
         std::vector<discord::Connection> get_connections();
         discord::Channel get_channel(snowflake);
+        discord::Guild get_guild(snowflake);
 
     private:
         std::string get_current_user_url();
