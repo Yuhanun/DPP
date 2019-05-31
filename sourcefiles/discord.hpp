@@ -549,6 +549,8 @@ namespace discord {
         snowflake get_embed();
         snowflake edit_embed(snowflake = -1);
 
+        std::string get_vanity_invite_url();
+
     public:
         int splash;
         int mfa_level;

@@ -288,11 +288,18 @@ discord::snowflake discord::Guild::get_embed() {
                      0);
 }
 
-discord::snowflake discord::Guild::edit_embed(snowflake c_id = -1) {
+discord::snowflake discord::Guild::edit_embed(snowflake c_id) {
     return get_value(send_request<request_method::Patch>(
                          nlohmann::json({ { "enabled", c_id != -1 }, { "channel_id", c_id } }),
                          get_default_headers(),
                          format("%/guilds/%/embed", get_api(), id)),
                      "channel_id",
                      0);
+}
+
+std::string discord::Guild::get_vanity_invite_url() {
+    return get_value(send_request<request_method::Get>(
+                         nlohmann::json({}), get_default_headers(), format("%/guilds/%/vanity-url", id)),
+                     "code",
+                     "");
 }
