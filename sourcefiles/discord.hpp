@@ -534,6 +534,8 @@ namespace discord {
         std::vector<std::pair<std::string, discord::User>> get_bans();
         std::pair<std::string, discord::User> get_ban(discord::Object const&);
 
+        void unban(discord::Object const&);
+
     public:
         int splash;
         int mfa_level;

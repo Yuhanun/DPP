@@ -193,6 +193,14 @@ void discord::Guild::edit_bot_username(std::string const& new_nick) {
     send_request<request_method::Patch>(nlohmann::json({ { "nick", new_nick } }), get_default_headers(), format("%/guilds/%/members/@me/nick", get_api(), discord::detail::bot_instance->id));
 }
 
+void discord::Guild::unban(discord::Object const& obj) {
+    send_request<request_method::Delete>(
+        nlohmann::json({}),
+        get_default_headers(),
+        format("%/guilds/%/bans/%", get_api(), id, obj.id));
+}
+
+
 std::string discord::Guild::get_list_guild_emojis_url() {
     return format("%/guilds/%/emojis", get_api(), id);
 }
