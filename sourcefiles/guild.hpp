@@ -287,3 +287,12 @@ discord::snowflake discord::Guild::get_embed() {
                      "channel_id",
                      0);
 }
+
+discord::snowflake discord::Guild::edit_embed(snowflake c_id = -1) {
+    return get_value(send_request<request_method::Patch>(
+                         nlohmann::json({ { "enabled", c_id != -1 }, { "channel_id", c_id } }),
+                         get_default_headers(),
+                         format("%/guilds/%/embed", get_api(), id)),
+                     "channel_id",
+                     0);
+}

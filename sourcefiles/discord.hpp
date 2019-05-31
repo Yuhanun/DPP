@@ -547,6 +547,7 @@ namespace discord {
         std::vector<discord::Invite> get_invites();
 
         snowflake get_embed();
+        snowflake edit_embed(snowflake = -1);
 
     public:
         int splash;
