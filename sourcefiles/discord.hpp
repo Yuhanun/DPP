@@ -46,7 +46,7 @@ namespace discord {
         inline discord::Bot* bot_instance;
     }  // namespace detail
 
-    typedef uint64_t snowflake;
+    typedef int64_t snowflake;
     typedef boost::posix_time::ptime datetime;
 
 
@@ -523,6 +523,8 @@ namespace discord {
         discord::Member get_member(snowflake);
         std::vector<discord::Member> get_members(int, snowflake = 0);
         void add_member(nlohmann::json const&, snowflake);
+
+        void edit_bot_username(std::string const&);
 
     public:
         int splash;

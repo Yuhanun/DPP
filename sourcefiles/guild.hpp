@@ -119,7 +119,7 @@ void discord::Guild::remove() {
 }
 
 std::vector<discord::Channel> discord::Guild::get_channels() {
-    return from_json_array<discord::Channel>(
+    return from_json_array_special<discord::Channel>(
         send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/channels", get_api(), id)), id);
 }
 
@@ -172,6 +172,10 @@ std::vector<discord::Member> discord::Guild::get_members(int limit, snowflake af
 
 void discord::Guild::add_member(nlohmann::json const& data, snowflake user_id) {
     send_request<request_method::Put>(data, get_default_headers(), format("%/guilds/%/members/%", get_api(), this->id, user_id));
+}
+
+void discord::Guild::edit_bot_username(std::string const& new_nick) {
+    send_request<request_method::Patch>(nlohmann::json({ { "nick", new_nick } }), get_default_headers(), format("%/guilds/%/members/@me/nick", get_api(), discord::detail::bot_instance->id));
 }
 
 std::string discord::Guild::get_list_guild_emojis_url() {

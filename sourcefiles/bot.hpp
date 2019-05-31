@@ -456,8 +456,8 @@ void discord::Bot::guild_member_add_event(nlohmann::json data) {
         return g->id == guild_id;
     });
     discord::User user{ data["user"] };
-    std::shared_ptr<discord::Member> mem = std::make_shared<discord::Member>(data, user, guild);
-    guild->members.emplace_back(mem);
+    std::shared_ptr<discord::Member> mem = std::make_shared<discord::Member>(data, user, guild.get());
+    guild->members.emplace_back(mem.get());
     func_holder.call<events::guild_member_add>(packet_handling, ready, *mem);
 }
 
