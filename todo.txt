@@ -9,9 +9,6 @@ REST:
         Create guild emoji
 
     Guild:
-        Create guild ban
-        Remove guild ban
-        Get guild roles // cache
         Create guild role
         Modify guild role positions
         Modify guild role

@@ -200,6 +200,11 @@ void discord::Guild::unban(discord::Object const& obj) {
         format("%/guilds/%/bans/%", get_api(), id, obj.id));
 }
 
+std::vector<discord::Role> discord::Guild::get_roles() {
+    return from_json_array<discord::Role>(
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/roles", get_api(), id)));
+}
+
 
 std::string discord::Guild::get_list_guild_emojis_url() {
     return format("%/guilds/%/emojis", get_api(), id);

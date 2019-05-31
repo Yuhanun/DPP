@@ -536,6 +536,8 @@ namespace discord {
 
         void unban(discord::Object const&);
 
+        std::vector<discord::Role> get_roles();
+
     public:
         int splash;
         int mfa_level;
