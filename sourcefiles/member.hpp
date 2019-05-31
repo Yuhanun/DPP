@@ -18,7 +18,7 @@ discord::Member::Member(nlohmann::json const j, discord::User const& user, disco
     muted = get_value(j, "mute", false);
     nick = get_value(j, "nick", "");
     joined_at = time_from_discord_string(get_value(j, "joined_at", ""));
-    guild = g;
+    guild = std::make_shared<discord::Guild>(*g);
     id = user.id;
     bot = user.bot;
     name = user.name;

@@ -519,6 +519,7 @@ namespace discord {
         discord::Channel create_channel(std::string const&, bool, int = -1, std::string const& = "", int = -1, int = -1, int = -1, int = -1, std::vector<discord::PermissionOverwrites> const& = {}, snowflake = -1);
 
         discord::Member get_member(snowflake);
+        std::vector<discord::Member> get_members(int, snowflake = 0);
 
     public:
         int splash;

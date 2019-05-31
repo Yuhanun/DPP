@@ -42,9 +42,7 @@ discord::Guild::Guild(nlohmann::json const guild)
         discord::Member member{
             each,
             discord::User(each["user"]),
-            discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) {
-                return this->id == g->id;
-            })
+            this
         };
         members.emplace_back(std::make_shared<discord::Member>(member));
         if (each["user"]["id"] == guild["owner_id"]) {
@@ -94,8 +92,6 @@ discord::Emoji discord::Guild::edit_emoji(discord::Emoji const& emote, std::stri
             get_modify_guild_emoji_url(emote.id))
     };
 }
-
-// void edit(std::string const&, std::string const& = "", int = -1, int = -1, int = -1, snowflake = -1, int = -1, std::string const& = "", snowflake = -1, std::string const &= "", snowflake = -1);
 
 void discord::Guild::edit(std::string const& name, std::string const& rg, int verif_level, int default_message_notif, int explicit_cont_filt, snowflake afk_chan_id, int afk_timeout, std::string const& icon, snowflake owner_id, std::string const& splash, snowflake system_channel_id) {
     nlohmann::json data{
@@ -164,6 +160,14 @@ discord::Member discord::Guild::get_member(snowflake m_id) {
         req_data["user"],
         this
     };
+}
+
+std::vector<discord::Member> discord::Guild::get_members(int limit, snowflake after) {
+    return from_json_array<discord::Member>(
+        send_request<request_method::Get>(
+            nlohmann::json({ { "limit", limit }, { "after", after } }),
+            get_default_headers(),
+            format("%/guilds/%/members", get_api(), this->id)));
 }
 
 
