@@ -170,6 +170,16 @@ std::vector<discord::Member> discord::Guild::get_members(int limit, snowflake af
             format("%/guilds/%/members", get_api(), this->id)));
 }
 
+std::vector<std::pair<std::string, discord::User>> discord::Guild::get_bans() {
+    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/bans", get_api(), id));
+    std::vector<std::pair<std::string, discord::User>> ret_vec;
+    for (auto const& each : response) {
+        ret_vec.push_back({ each["reason"], discord::User{ each["user"] } });
+    }
+    return ret_vec;
+}
+
+
 void discord::Guild::add_member(nlohmann::json const& data, snowflake user_id) {
     send_request<request_method::Put>(data, get_default_headers(), format("%/guilds/%/members/%", get_api(), this->id, user_id));
 }

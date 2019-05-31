@@ -530,6 +530,8 @@ namespace discord {
 
         void edit_bot_username(std::string const&);
 
+        std::vector<std::pair<std::string, discord::User>> get_bans();
+
     public:
         int splash;
         int mfa_level;
