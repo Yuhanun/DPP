@@ -2,6 +2,8 @@
 #include <iostream>
 #include <thread>
 
+#define __DPP_DEBUG
+
 #include "activity.hpp"
 #include "embedbuilder.hpp"
 #include "message.hpp"

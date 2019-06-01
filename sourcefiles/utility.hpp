@@ -241,7 +241,9 @@ namespace discord {
             response = cpr::Patch(url, h, body);
         }
 
+#ifdef __DPP_DEBUG
         std::cout << response.text << std::endl;
+#endif
         auto j_resp = response.text.length() ? nlohmann::json::parse(response.text) : nlohmann::json({});
         if (j_resp.contains("message")) {
             if (j_resp["message"].get<std::string>() == "You are being rate limited.") {

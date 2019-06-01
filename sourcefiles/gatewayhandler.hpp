@@ -101,7 +101,9 @@ websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> on_tls_init(c
         ctx->load_verify_file("ca-chain.cert.pem");
         
     } catch (std::exception &e) {
+#ifdef __DPP_DEBUG
         std::cout << e.what() << std::endl;
+#endif
     }
     return ctx;
 }
