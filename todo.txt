@@ -8,9 +8,6 @@ REST:
     Emoji:
         Create guild emoji
 
-    Guild:
-        Sync guild integration
-
     Webhook:
         Slack webhook
         GitHub webhook

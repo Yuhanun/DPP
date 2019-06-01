@@ -345,3 +345,10 @@ void discord::Guild::remove_integration(discord::Integration const& integr) {
         get_default_headers(),
         format("%/guilds/%/integrations/%", get_api(), id, integr.id));
 }
+
+void discord::Guild::sync_integration(discord::Integration const& integr) {
+    send_request<request_method::Post>(
+        nlohmann::json({}),
+        get_default_headers(),
+        format("%/guilds/%/integrations/%/sync", get_api(), id, integr.id));
+}
