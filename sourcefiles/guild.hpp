@@ -41,21 +41,24 @@ discord::Guild::Guild(nlohmann::json const guild)
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
       roles{ from_json_array<discord::Role>(guild, "roles", this) },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
-    for (auto& each : guild["members"]) {
-        discord::Member member{
-            each,
-            discord::User(each["user"]),
-            this
-        };
-        members.emplace_back(std::make_shared<discord::Member>(member));
-        if (each["user"]["id"] == guild["owner_id"]) {
-            owner = member;
-        }
-    }
-
-    for (auto const& each : guild["channels"]) {
-        channels.emplace_back(std::make_shared<discord::Channel>(each, id));
-    }
+	if (guild.contains("members")) {
+		for (auto& each : guild["members"]) {
+			discord::Member member{
+					each,
+					discord::User(each["user"]),
+					this
+			};
+			members.emplace_back(std::make_shared<discord::Member>(member));
+			if (each["user"]["id"] == guild["owner_id"]) {
+				owner = member;
+			}
+		}
+	}
+	if (guild.contains("channels")) {
+		for (auto const& each : guild["channels"]) {
+			channels.emplace_back(std::make_shared<discord::Channel>(each, id));
+		}
+	}
 }
 
 std::vector<discord::Webhook> discord::Guild::get_webhooks() {
