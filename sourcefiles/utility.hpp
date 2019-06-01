@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+#include "discord.hpp"
 #include "cpr/cpr.h"
 #include "nlohmann/json.hpp"
 
@@ -181,11 +182,6 @@ namespace discord {
             { "Connection", "keep-alive" }
         };
     }
-
-    enum object_type {
-        role,
-        member
-    };
 
     enum permission_type {
         deny,

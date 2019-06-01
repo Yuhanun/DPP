@@ -50,6 +50,10 @@ namespace discord {
     typedef int64_t snowflake;
     typedef boost::posix_time::ptime datetime;
 
+	enum object_type {
+		role,
+		member
+	};
 
     using namespace boost;
 

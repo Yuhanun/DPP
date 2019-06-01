@@ -4,12 +4,26 @@
 
 namespace discord {
 
+	AuditLogEntry::AuditLogEntry(nlohmann::json const& j)
+			: target_id{ to_sf(get_value(j, "target_id", 0)) },
+			  user_id{ to_sf(get_value(j, "user_id", 0)) },
+			  id{ to_sf(get_value(j, "id", 0)) },
+			  channel_id{ to_sf(get_value(j, "channel_id", 0)) },
+			  overwritten_id{ to_sf(get_value(j, "overwritten_id", 0)) },
+			  count{ get_value(j, "count", 0) },
+			  role_name{ get_value(j, "role_name", "") },
+			  reason{ get_value(j, "reason", "") },
+			  members_removed{ get_value(j, "members_removed", "") },
+			  delete_member_days{ get_value(j, "delete_member_days", "") },
+			  type{ get_value(j, "type", object_type{}) },
+			  action_type{ get_value(j, "action_type", AuditLogEventType{}) } {
+			if (!j["changes"].empty())
+				for (const auto& elem : j["changes"])
+					changes.emplace_back(elem);
+	}
+
     AuditLogs::AuditLogs(const nlohmann::json& j) {
-        audit_log_entries.emplace_back(
-            discord::to_sf(j["id"]),
-            j["type"],
-            discord::to_sf(j["before"]),
-            j["limit"]);
+        audit_log_entries.emplace_back(j);
     }
 
     AuditLogKeyChange::AuditLogKeyChange(const nlohmann::json& j)
