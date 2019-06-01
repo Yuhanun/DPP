@@ -507,6 +507,8 @@ namespace discord {
         std::vector<discord::Role> roles;
     };
 	struct AuditLogKeyChange {
+		AuditLogKeyChange(const nlohmann::json&);
+		AuditLogKeyChange() = default;
 		std::string name;
 		std::string icon_hash;
 		std::string splash_hash;
@@ -546,13 +548,14 @@ namespace discord {
 		snowflake id;
 		std::string type;
 	};
+
 	class AuditLogEntry {
 	public:
 		AuditLogEntry() = default;
-		AuditLogEntry(const snowflake&, const int&, const snowflake&, const int&);
+		AuditLogEntry(const snowflake&, const int, const snowflake&, const int);
 		std::string key;
-		std::string new_value;
-		std::string old_value;
+		AuditLogKeyChange new_value;
+		AuditLogKeyChange old_value;
 		snowflake channel_id;
 		snowflake id;
 		std::string role_name;
@@ -568,7 +571,6 @@ namespace discord {
 	struct AuditLogs {
 		AuditLogs() = default;
 		AuditLogs(const nlohmann::json&);
-	private:
 		std::vector<discord::Webhook> webhooks;
 		std::vector<discord::User> users;
 		std::vector<discord::AuditLogEntry> audit_log_entries;
