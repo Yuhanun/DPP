@@ -352,3 +352,16 @@ void discord::Guild::sync_integration(discord::Integration const& integr) {
         get_default_headers(),
         format("%/guilds/%/integrations/%/sync", get_api(), id, integr.id));
 }
+
+discord::Emoji discord::Guild::create_emoji(std::string const& name, discord::Emoji const& emote_data, std::vector<discord::Role> roles) {
+    nlohmann::json data({ { "name", name },
+                          { "image", emote_data.url },
+                          { "roles", nlohmann::json::array() } });
+    for (auto const& each : roles) {
+        data["roles"].push_back(each.id);
+    }
+    send_request<request_method::Post>(
+        data,
+        get_default_headers(),
+        format("%/guilds/%/emojis", get_api(), id));
+}

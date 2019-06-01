@@ -554,6 +554,9 @@ namespace discord {
 
         void unban(discord::Object const&);
 
+        // TODO: Asset<>
+        discord::Emoji create_emoji(std::string const&, discord::Emoji const&, std::vector<discord::Role> = {});
+
         std::vector<discord::Role> get_roles();
 
         discord::Role create_role(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);

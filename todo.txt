@@ -4,6 +4,3 @@ Gateway:
 REST:
     Audit logs:
         All, including struct
-        
-    Emoji:
-        Create guild emoji
