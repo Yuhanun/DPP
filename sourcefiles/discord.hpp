@@ -21,6 +21,7 @@
 
 #include "function_type.hpp"
 #include "gatewayhandler.hpp"
+#include "events.hpp"
 
 #include "cpr/cpr.h"
 
@@ -505,8 +506,72 @@ namespace discord {
         discord::User user;
         std::vector<discord::Role> roles;
     };
-
-    class Invite {
+	struct AuditLogKeyChange {
+		std::string name;
+		std::string icon_hash;
+		std::string splash_hash;
+		snowflake owner_id;
+		std::string region;
+		snowflake afk_channel_id;
+		int afk_timeout;
+		int mfa_level;
+		int verification_level;
+		int explicit_content_filter;
+		int default_message_notifications;
+		std::string vanity_url_code;
+		int prune_delete_days;
+		bool widget_enabled;
+		snowflake widget_channel_id;
+		int position;
+		std::string topic;
+		int bitrate;
+		bool nsfw;
+		snowflake application_id;
+		int permission;
+		int color;
+		bool hoist;
+		bool mentionable;
+		int allow;
+		int deny;
+		std::string code;
+		snowflake channel_id;
+		int max_uses;
+		int uses;
+		int max_age;
+		bool temporary;
+		bool deaf;
+		bool mute;
+		std::string nick;
+		std::string avatar_hash;
+		snowflake id;
+		std::string type;
+	};
+	class AuditLogEntry {
+	public:
+		std::string key;
+		std::string new_value;
+		std::string old_value;
+		snowflake channel_id;
+		snowflake id;
+		std::string role_name;
+		std::string delete_member_days;
+		std::string members_removed;
+		std::string count;
+		std::string type;
+		std::string target_id;
+		snowflake user_id;
+		discord::AuditLogEvents action_type;
+		std::string reason;
+	};
+	struct AuditLogs {
+		AuditLogs() = default;
+		AuditLogs(const nlohmann::json&);
+	private:
+		std::vector<discord::Webhook> webhooks;
+		std::vector<discord::User> users;
+		std::vector<discord::AuditLogEntry> audit_log_entries;
+	};
+	class Invite {
     public:
         Invite() = default;
         Invite(nlohmann::json const);
@@ -548,7 +613,7 @@ namespace discord {
         void add_member(nlohmann::json const&, snowflake);
 
         void edit_bot_username(std::string const&);
-
+	    AuditLogs get_guild_audit_log();
         std::vector<std::pair<std::string, discord::User>> get_bans();
         std::pair<std::string, discord::User> get_ban(discord::Object const&);
 
@@ -822,4 +887,4 @@ namespace discord {
         const char* what() const throw();
     };
 
-};  // namespace discord
+}  // namespace discord
