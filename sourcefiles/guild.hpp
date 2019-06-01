@@ -328,3 +328,12 @@ void discord::Guild::create_integration(discord::Integration const& integr) {
         get_default_headers(),
         format("%/guilds/%/integrations", get_api(), id));
 }
+
+void discord::Guild::edit_integration(discord::Integration const& integr, int expire_behavior, int expire_grace_period, bool enable_emotes) {
+    send_request<request_method::Patch>(
+        nlohmann::json({ { "expire_behavior", expire_behavior },
+                         { "expire_grace_period", expire_grace_period },
+                         { "enable_emoticons", enable_emotes } }),
+        get_default_headers(),
+        format("%/guilds/%/integrations/%", get_api(), id, integr.id));
+}

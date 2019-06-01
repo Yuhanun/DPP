@@ -9,8 +9,6 @@ REST:
         Create guild emoji
 
     Guild:
-        Create guild integrations
-        Modify guild integration
         Delete guild integration
         Sync guild integration
 

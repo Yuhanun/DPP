@@ -572,6 +572,7 @@ namespace discord {
         std::string get_widget_image(std::string const&);
         std::vector<discord::Integration> get_integrations();
         void create_integration(discord::Integration const&);
+        void edit_integration(discord::Integration const&, int, int, bool);
 
     public:
         int splash;
