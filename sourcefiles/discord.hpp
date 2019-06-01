@@ -565,6 +565,7 @@ namespace discord {
 		AuditLogEvents action_type;
 		std::string reason;
 	};
+
 	struct AuditLogs {
 		AuditLogs() = default;
 		AuditLogs(const nlohmann::json&);
@@ -573,6 +574,7 @@ namespace discord {
 		std::vector<discord::User> users;
 		std::vector<discord::AuditLogEntry> audit_log_entries;
 	};
+    
 	class Invite {
     public:
         Invite() = default;
