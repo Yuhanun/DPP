@@ -112,7 +112,9 @@ void discord::Bot::handle_gateway() {
         c.run();
 
     } catch (websocketpp::exception const &e) {
+#ifdef __DPP_DEBUG
         std::cout << e.what() << std::endl;
+#endif
     }
 }
 
@@ -291,7 +293,9 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     if (internal_event_map.find(event_name) != internal_event_map.end()) {
         internal_event_map[event_name](data);
     } else {
+#ifdef __DPP_DEBUG
         std::cout << "Unknown event: " << event_name << std::endl;
+#endif
     }
 }
 

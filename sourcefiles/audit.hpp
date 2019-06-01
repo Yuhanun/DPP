@@ -3,6 +3,7 @@
 #include "utility.hpp"
 
 namespace discord {
+
 	AuditLogEntry::AuditLogEntry(const snowflake& user_id, const int action_type, const snowflake& before, const int init) {
 		this->id = user_id;
 		this->action_type = discord::AuditLogEvents(action_type);
@@ -56,3 +57,4 @@ namespace discord {
 	type { get_value(j, "type", "") }
 	{}
 } // namespace discord
+

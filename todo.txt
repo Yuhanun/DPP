@@ -3,4 +3,8 @@ Gateway:
 
 REST:
     Audit logs:
-        All, including struct
+        Most structs done, just big parsing thing left.
+
+General:
+    Complete ASYNC
+    Complete rewrite to cpprestsdk

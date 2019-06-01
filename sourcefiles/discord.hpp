@@ -19,9 +19,9 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include "events.hpp"
 #include "function_type.hpp"
 #include "gatewayhandler.hpp"
-#include "events.hpp"
 
 #include "cpr/cpr.h"
 
@@ -617,7 +617,7 @@ namespace discord {
         void add_member(nlohmann::json const&, snowflake);
 
         void edit_bot_username(std::string const&);
-	    AuditLogs get_audit_logs();
+        AuditLogs get_audit_logs();
         std::vector<std::pair<std::string, discord::User>> get_bans();
         std::pair<std::string, discord::User> get_ban(discord::Object const&);
 
