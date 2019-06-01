@@ -615,7 +615,7 @@ namespace discord {
         void add_member(nlohmann::json const&, snowflake);
 
         void edit_bot_username(std::string const&);
-	    AuditLogs get_audit_log();
+	    AuditLogs get_audit_logs();
         std::vector<std::pair<std::string, discord::User>> get_bans();
         std::pair<std::string, discord::User> get_ban(discord::Object const&);
 
