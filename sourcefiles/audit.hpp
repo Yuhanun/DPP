@@ -7,7 +7,6 @@ namespace discord {
 		this->action_type = discord::AuditLogEvents(action_type);
 	}
 	AuditLogs::AuditLogs(const nlohmann::json& j) {
-		AuditLogEntry temp;
 		audit_log_entries.push_back({
 			j["id"],
 			j["type"],
