@@ -320,3 +320,11 @@ std::vector<discord::Integration> discord::Guild::get_integrations() {
         send_request<request_method::Get>(
             nlohmann::json({}), get_default_headers(), format("%/guilds/%/integrations", get_api(), id)));
 }
+
+
+void discord::Guild::create_integration(discord::Integration const& integr) {
+    send_request<request_method::Post>(
+        nlohmann::json({ { "type", integr.type }, { "id", integr.id } }),
+        get_default_headers(),
+        format("%/guilds/%/integrations", get_api(), id));
+}

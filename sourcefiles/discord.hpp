@@ -571,6 +571,7 @@ namespace discord {
         // TODO: turn into an Asset<>
         std::string get_widget_image(std::string const&);
         std::vector<discord::Integration> get_integrations();
+        void create_integration(discord::Integration const&);
 
     public:
         int splash;
