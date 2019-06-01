@@ -158,12 +158,30 @@ namespace discord {
         bool custom;
     };
 
+    class Integration {
+    public:
+        Integration(nlohmann::json const);
+
+        snowflake id;
+        std::string name;
+        std::string type;
+        bool enabled;
+        bool syncing;
+        std::shared_ptr<discord::Role> role;
+        int expire_behavior;
+        int expire_grace_period;
+        std::shared_ptr<discord::User> user;
+        snowflake account_id;
+        std::string account_name;
+        datetime synced_at;
+    };
+
     struct Connection {
         snowflake id;
         std::string name;
         std::string type;
         bool revoked;
-        // TODO: std::vector<Integration> integrations;
+        std::vector<Integration> integrations;
         bool verified;
         bool friend_sync;
         bool show_activity;
@@ -594,7 +612,6 @@ namespace discord {
         void remove_emoji(discord::Emoji const&);
 
     private:
-
         std::string get_webhooks_url() const;
         std::string get_leave_url();
 

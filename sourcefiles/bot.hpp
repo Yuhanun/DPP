@@ -7,6 +7,7 @@
 #include "gatewayhandler.hpp"
 #include "guild.hpp"
 #include "message.hpp"
+#include "integration.hpp"
 #include "nlohmann/json.hpp"
 
 discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
@@ -225,7 +226,8 @@ discord::Guild discord::Bot::create_guild(std::string const &name, std::string c
                                                                                { "explicit_content_filter", explicit_content_filter },
                                                                                { "roles", {} },
                                                                                { "channels", {} } }),
-                                                              get_default_headers(), get_create_guild_url()) };
+                                                              get_default_headers(),
+                                                              get_create_guild_url()) };
 }
 
 template <std::size_t event_type>
@@ -613,7 +615,7 @@ std::vector<discord::Connection> discord::Bot::get_connections() {
                              each["name"],
                              each["type"],
                              each["revoked"],
-                             // integrations
+                             from_json_array<discord::Integration>(each["integrations"]),
                              each["verified"],
                              each["friend_sync"],
                              each["show_activity"],
