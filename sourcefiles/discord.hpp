@@ -548,6 +548,8 @@ namespace discord {
 	};
 	class AuditLogEntry {
 	public:
+		AuditLogEntry() = default;
+		AuditLogEntry(const snowflake&, const int&, const snowflake&, const int&);
 		std::string key;
 		std::string new_value;
 		std::string old_value;
