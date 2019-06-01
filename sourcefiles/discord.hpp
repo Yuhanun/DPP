@@ -573,6 +573,7 @@ namespace discord {
         std::vector<discord::Integration> get_integrations();
         void create_integration(discord::Integration const&);
         void edit_integration(discord::Integration const&, int, int, bool);
+        void remove_integration(discord::Integration const&);
 
     public:
         int splash;

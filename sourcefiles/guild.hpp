@@ -337,3 +337,11 @@ void discord::Guild::edit_integration(discord::Integration const& integr, int ex
         get_default_headers(),
         format("%/guilds/%/integrations/%", get_api(), id, integr.id));
 }
+
+
+void discord::Guild::remove_integration(discord::Integration const& integr) {
+    send_request<request_method::Delete>(
+        nlohmann::json({}),
+        get_default_headers(),
+        format("%/guilds/%/integrations/%", get_api(), id, integr.id));
+}
