@@ -651,6 +651,8 @@ namespace discord {
         discord::Message send(std::string const&, bool = false, std::string const& = "", std::string const& = "");
         discord::Message send(std::vector<EmbedBuilder> const&, bool = false, std::string const& = "", std::string const& = "", std::string const& = "");
 
+        void execute_slack(bool, nlohmann::json const);
+
     private:
         std::string get_edit_webhook_url() const;
         std::string get_edit_webhook_token_url() const;

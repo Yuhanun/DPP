@@ -118,3 +118,10 @@ std::string discord::Webhook::get_delete_webhook_url() const {
 std::string discord::Webhook::get_execute_webhook_url() const {
     return format("%/webhooks/%/%?wait=true", get_api(), id, token);
 }
+
+void discord::Webhook::execute_slack(bool wait, nlohmann::json const data) {
+    send_request<request_method::Post>(
+        data,
+        get_default_headers(),
+        format("%/webhooks/%/%/slack", get_api(), id, token));
+}

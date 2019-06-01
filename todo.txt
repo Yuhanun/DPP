@@ -9,5 +9,4 @@ REST:
         Create guild emoji
 
     Webhook:
-        Slack webhook
         GitHub webhook
