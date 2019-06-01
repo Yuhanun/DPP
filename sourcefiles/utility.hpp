@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+#include "discord.hpp"
 #include "cpr/cpr.h"
 #include "nlohmann/json.hpp"
 
@@ -129,6 +130,11 @@ namespace discord {
         return format("%/channels/%/messages", get_api(), id);
     }
 
+    template <typename Ty>
+    inline Ty get_value(nlohmann::json const &j, const char* key1, const char* key2, Ty def) {
+    	// TODO: define this func
+    }
+
     inline std::string get_iso_datetime_now() {
         boost::posix_time::ptime t =
             boost::posix_time::microsec_clock::universal_time();
@@ -181,11 +187,6 @@ namespace discord {
             { "Connection", "keep-alive" }
         };
     }
-
-    enum object_type {
-        role,
-        member
-    };
 
     enum permission_type {
         deny,

@@ -50,6 +50,10 @@ namespace discord {
     typedef int64_t snowflake;
     typedef boost::posix_time::ptime datetime;
 
+	enum object_type {
+		role,
+		member
+	};
 
     using namespace boost;
 
@@ -560,14 +564,20 @@ namespace discord {
         snowflake user_id;
         snowflake id;
         AuditLogEventType action_type;
-        std::string delete_member_days;
-        std::string members_removed;
-        snowflake channel_id;
         int count;
-        snowflake overwritten_id;
         object_type type;
-        std::string role_name;
         std::string reason;
+
+        struct {
+        	std::string delete_member_days;
+        	std::string members_removed;
+        	snowflake channel_id;
+        	std::string count;
+        	snowflake id;
+        	std::string type;
+        	std::string role_name;
+        } opts;
+        std::vector<decltype(opts)> options;
     };
 
     struct AuditLogs {
