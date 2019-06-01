@@ -4,11 +4,11 @@
 
 #include "utility.hpp"
 
+#include "audit.hpp"
 #include "channel.hpp"
 #include "emoji.hpp"
 #include "member.hpp"
 #include "role.hpp"
-#include "audit.hpp"
 
 #include <cpr/cpr.h>
 
@@ -361,19 +361,19 @@ discord::Emoji discord::Guild::create_emoji(std::string const& name, discord::Em
     for (auto const& each : roles) {
         data["roles"].push_back(each.id);
     }
-    send_request<request_method::Post>(
-        data,
-        get_default_headers(),
-        format("%/guilds/%/emojis", get_api(), id));
-
-}
-discord::AuditLogs discord::Guild::get_audit_logs() {
-	return discord::AuditLogs{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/audit-logs", get_api(), id)) };
+    return discord::Emoji{
+        send_request<request_method::Post>(
+            data,
+            get_default_headers(),
+            format("%/guilds/%/emojis", get_api(), id))
+    };
 }
 
 discord::AuditLogs discord::Guild::get_audit_logs() {
-    return send_request<request_method::Get>(
-        nlohmann::json({}),
-        get_default_headers(),
-        format("%/guilds/%/audit-logs", get_api(), id));
+    return discord::AuditLogs{
+        send_request<request_method::Get>(
+            nlohmann::json({}),
+            get_default_headers(),
+            format("%/guilds/%/audit-logs", get_api(), id))
+    };
 }
