@@ -562,7 +562,7 @@ namespace discord {
 		std::string type;
 		std::string target_id;
 		snowflake user_id;
-		discord::AuditLogEvents action_type;
+		AuditLogEvents action_type;
 		std::string reason;
 	};
 	struct AuditLogs {
