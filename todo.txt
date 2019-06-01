@@ -7,6 +7,3 @@ REST:
         
     Emoji:
         Create guild emoji
-
-    Webhook:
-        GitHub webhook

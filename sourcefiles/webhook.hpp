@@ -123,5 +123,12 @@ void discord::Webhook::execute_slack(bool wait, nlohmann::json const data) {
     send_request<request_method::Post>(
         data,
         get_default_headers(),
-        format("%/webhooks/%/%/slack", get_api(), id, token));
+        format("%/webhooks/%/%/slack?wait=%", get_api(), id, token, wait));
+}
+
+void discord::Webhook::execute_github(bool wait, nlohmann::json const data) {
+    send_request<request_method::Post>(
+        data,
+        get_default_headers(),
+        format("%/webhooks/%/%/github?wait=%", get_api(), id, token, wait));
 }

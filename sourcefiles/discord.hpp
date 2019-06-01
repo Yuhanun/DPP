@@ -652,6 +652,7 @@ namespace discord {
         discord::Message send(std::vector<EmbedBuilder> const&, bool = false, std::string const& = "", std::string const& = "", std::string const& = "");
 
         void execute_slack(bool, nlohmann::json const);
+        void execute_github(bool, nlohmann::json const);
 
     private:
         std::string get_edit_webhook_url() const;
