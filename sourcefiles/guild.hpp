@@ -37,7 +37,7 @@ discord::Guild::Guild(nlohmann::json const guild)
       icon{ get_value(guild, "icon", "") },
       region{ get_value(guild, "region", "") },
       banner{ get_value(guild, "banner", "") },
-      created_at{ time_from_discord_string(guild["joined_at"]) },
+      created_at{ time_from_discord_string(get_value(guild, "joined_at", "")) },
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
       roles{ from_json_array<discord::Role>(guild, "roles", this) },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
