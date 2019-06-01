@@ -6,8 +6,8 @@
 #include "exceptions.hpp"
 #include "gatewayhandler.hpp"
 #include "guild.hpp"
-#include "message.hpp"
 #include "integration.hpp"
+#include "message.hpp"
 #include "nlohmann/json.hpp"
 
 discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
@@ -81,8 +81,7 @@ void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl &, const
             heartbeat_acked = true;
             break;
         default:
-            std::string event_name = get_value(j, "t", "");
-            handle_event(j, event_name);
+            handle_event(j, get_value(j, "t", ""));
             break;
     }
     packet_counter++;

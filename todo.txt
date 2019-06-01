@@ -4,15 +4,11 @@ Gateway:
 REST:
     Audit logs:
         All, including struct
-
-    Integration:
-        Struct
-
+        
     Emoji:
         Create guild emoji
 
     Guild:
-        Get guild integrations // cache
         Create guild integrations
         Modify guild integration
         Delete guild integration

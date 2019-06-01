@@ -570,6 +570,7 @@ namespace discord {
         std::string get_vanity_invite_url();
         // TODO: turn into an Asset<>
         std::string get_widget_image(std::string const&);
+        std::vector<discord::Integration> get_integrations();
 
     public:
         int splash;

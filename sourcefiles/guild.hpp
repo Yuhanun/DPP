@@ -313,3 +313,10 @@ std::string discord::Guild::get_widget_image(std::string const& style) {
                    format("%/guilds/%/widget.png?style=%", get_api(), id, style) })
         .text;
 }
+
+
+std::vector<discord::Integration> discord::Guild::get_integrations() {
+    return from_json_array<discord::Integration>(
+        send_request<request_method::Get>(
+            nlohmann::json({}), get_default_headers(), format("%/guilds/%/integrations", get_api(), id)));
+}
