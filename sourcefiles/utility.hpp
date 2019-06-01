@@ -67,8 +67,8 @@ namespace discord {
         return return_vec;
     }
 
-    template <typename T, typename ...Tys>
-    inline std::vector<T> from_json_array_special(nlohmann::json const &j, Tys&&...args) {
+    template <typename T, typename... Tys>
+    inline std::vector<T> from_json_array_special(nlohmann::json const &j, Tys &&... args) {
         std::vector<T> return_vec{};
         for (const auto &it : j) {
             return_vec.emplace_back(it, std::forward<Tys>(args)...);
@@ -226,6 +226,8 @@ namespace discord {
         auto url = cpr::Url{ uri };
         auto body = cpr::Body{ j.dump() };
 
+        static_assert(method < 5, "Invalid request method.");
+
         cpr::Response response;
         if (method == request_method::Get) {
             response = cpr::Get(url, h);
@@ -269,5 +271,3 @@ namespace discord {
     }
 
 }  // namespace discord
-
-
