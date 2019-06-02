@@ -217,16 +217,18 @@ void discord::Bot::handle_heartbeat() {
 }
 
 discord::Guild discord::Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
-    return discord::Guild{ send_request<request_method::Post>(nlohmann::json({ { "name", name },
-                                                                               { "region", region },
-                                                                               { "icon", "" },
-                                                                               { "verification_level", verification_level },
-                                                                               { "default_message_notifications", default_message_notifications },
-                                                                               { "explicit_content_filter", explicit_content_filter },
-                                                                               { "roles", {} },
-                                                                               { "channels", {} } }),
-                                                              get_default_headers(),
-                                                              get_create_guild_url()) };
+    return discord::Guild{
+        send_request<request_method::Post>(nlohmann::json({ { "name", name },
+                                                            { "region", region },
+                                                            { "icon", "" },
+                                                            { "verification_level", verification_level },
+                                                            { "default_message_notifications", default_message_notifications },
+                                                            { "explicit_content_filter", explicit_content_filter },
+                                                            { "roles", {} },
+                                                            { "channels", {} } }),
+                                           get_default_headers(),
+                                           endpoint("/guilds"))
+    };
 }
 
 template <std::size_t event_type>
@@ -260,7 +262,7 @@ discord::Message discord::Bot::process_message_cache(discord::Message *m, bool &
 
 std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
     std::vector<VoiceRegion> return_vec = {};
-    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_voice_regions_url());
+    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("%/voice/regions"));
     for (auto const &each : response) {
         return_vec.push_back({ get_value(each, "id", ""),
                                get_value(each, "name", ""),
@@ -274,14 +276,6 @@ std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
 
 void discord::Bot::update_presence(Activity const &act) {
     con->send(nlohmann::json({ { "op", 3 }, { "d", act.to_json() } }).dump());
-}
-
-std::string discord::Bot::get_create_guild_url() const {
-    return endpoint("/guilds");
-}
-
-std::string discord::Bot::get_voice_regions_url() const {
-    return endpoint("%/voice/regions");
 }
 
 void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) {
@@ -315,7 +309,6 @@ void discord::Bot::resumed_event(nlohmann::json) {
 void discord::Bot::invalid_session_event(nlohmann::json) {
     func_holder.call<events::invalid_session>(futures, true);
 }
-
 
 void discord::Bot::channel_create_event(nlohmann::json j) {
     const auto data = j["d"];
@@ -559,18 +552,18 @@ void discord::Bot::webhooks_update_event(nlohmann::json) {
 }
 
 discord::User discord::Bot::get_current_user() {
-    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_current_user_url()) };
+    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/users/@me")) };
 }
 
 discord::User discord::Bot::get_user(snowflake id) {
-    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_user_url(id)) };
+    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/users/%", id)) };
 }
 
 discord::User discord::Bot::edit(std::string const &username) {
     discord::User user{ send_request<request_method::Patch>(
         nlohmann::json({ { "username", username } }),
         get_default_headers(),
-        get_current_user_url()) };
+        endpoint("/users/@me")) };
     this->username = user.name;
     this->avatar = user.avatar;
     return user;
@@ -579,13 +572,16 @@ discord::User discord::Bot::edit(std::string const &username) {
 std::vector<discord::Guild> discord::Bot::get_user_guilds(int limit, snowflake before, snowflake after) {
     std::vector<discord::Guild> g_vec{};
     nlohmann::json data({ { "limit", limit ? limit : 100 } });
+
     if (before) {
         data["before"] = before;
     }
+
     if (after) {
         data["after"] = after;
     }
-    auto d = send_request<request_method::Get>(data, get_default_headers(), get_user_guilds_url());
+
+    auto d = send_request<request_method::Get>(data, get_default_headers(), endpoint("/users/@me/guilds"));
     for (auto const &each : d) {
         snowflake guild_id = to_sf(each["id"]);
         g_vec.push_back(*discord::utils::get(this->guilds, [guild_id](auto const &guild) {
@@ -601,7 +597,7 @@ discord::Channel discord::Bot::create_group_dm(std::vector<std::string> const &a
         data["access_tokens"].push_back(each);
     }
     return discord::Channel{
-        send_request<request_method::Post>(data, get_default_headers(), get_create_group_dm_url())
+        send_request<request_method::Post>(data, get_default_headers(), endpoint("/users/@me/channels"))
     };
 }
 
@@ -610,7 +606,7 @@ std::vector<discord::Connection> discord::Bot::get_connections() {
     auto response = send_request<request_method::Get>(
         nlohmann::json({}),
         get_default_headers(),
-        get_connections_url());
+        endpoint("/users/@me/connections"));
     for (auto const &each : response) {
         conn_vec.push_back({ to_sf(each["id"]),
                              each["name"],
@@ -631,32 +627,8 @@ discord::Guild discord::Bot::get_guild(snowflake g_id) {
     };
 }
 
-std::string discord::Bot::get_current_user_url() {
-    return endpoint("/users/@me");
-}
-
-std::string discord::Bot::get_user_url(snowflake id) {
-    return endpoint("/users/%", id);
-}
-
-std::string discord::Bot::get_user_guilds_url() {
-    return endpoint("/users/@me/guilds");
-}
-
-std::string discord::Bot::get_create_group_dm_url() {
-    return endpoint("/users/@me/channels");
-}
-
-std::string discord::Bot::get_connections_url() {
-    return endpoint("/users/@me/connections");
-}
-
 discord::Channel discord::Bot::get_channel(snowflake chan_id) {
     return discord::Channel{
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_channel_url(chan_id))
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%", chan_id))
     };
-}
-
-std::string discord::Bot::get_channel_url(snowflake chan_id) {
-    return endpoint("/channels/%", chan_id);
 }

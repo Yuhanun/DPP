@@ -307,12 +307,6 @@ namespace discord {
         discord::Guild get_guild(snowflake);
 
     private:
-        std::string get_current_user_url();
-        std::string get_user_url(snowflake);
-        std::string get_channel_url(snowflake);
-        std::string get_user_guilds_url();
-        std::string get_create_group_dm_url();
-        std::string get_connections_url();
 
         void fire_commands(discord::Message&) const;
         void await_events();
