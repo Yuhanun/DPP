@@ -282,7 +282,7 @@ discord::snowflake discord::Guild::edit_embed(snowflake c_id) {
 
 std::string discord::Guild::get_vanity_invite_url() {
     return get_value(send_request<request_method::Get>(
-                         nlohmann::json({}), get_default_headers(), format("%/guilds/%/vanity-url", id)),
+                         nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/vanity-url", id)),
                      "code",
                      "");
 }

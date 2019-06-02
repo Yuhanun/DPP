@@ -33,20 +33,12 @@ discord::Invite discord::Invite::get_invite() {
         send_request<request_method::Get>(
             nlohmann::json({ { "with_counts", true } }),
             get_default_headers(),
-            get_invite_url())
+            endpoint("/invites/%", code))
     };
 }
-void discord::Invite::remove(){
+void discord::Invite::remove() {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        get_delete_invite_url());
-}
-
-std::string discord::Invite::get_invite_url() {
-    return endpoint("/invites/%", code);
-}
-
-std::string discord::Invite::get_delete_invite_url() {
-    return get_invite_url();
+        endpoint("/invites/%", code));
 }

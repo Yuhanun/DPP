@@ -49,7 +49,7 @@ void discord::Webhook::edit(std::string const& name, snowflake chann_id) {
         send_request<request_method::Patch>(
             data,
             get_default_headers(),
-            get_edit_webhook_url())
+            endpoint("/webhooks/%", id))
     };
 }
 
@@ -58,7 +58,7 @@ void discord::Webhook::edit(std::string const& name) {
         send_request<request_method::Patch>(
             nlohmann::json({ { "name", name } }),
             get_default_headers(),
-            get_edit_webhook_url())
+            endpoint("/webhooks/%", id))
     };
 }
 
@@ -66,7 +66,7 @@ void discord::Webhook::remove() {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        get_delete_webhook_url());
+        endpoint("/webhooks/%/%", id, token));
 }
 
 discord::Message discord::Webhook::send(std::string const& content, bool tts, std::string const& avatar_url, std::string const& username) {
@@ -79,7 +79,7 @@ discord::Message discord::Webhook::send(std::string const& content, bool tts, st
         j["username"] = username;
     }
 
-    return discord::Message{ send_request<request_method::Post>(j, get_default_headers(), get_execute_webhook_url()) };
+    return discord::Message{ send_request<request_method::Post>(j, get_default_headers(), endpoint("/webhooks/%/%?wait=true", id, token)) };
 }
 
 discord::Message discord::Webhook::send(std::vector<EmbedBuilder> const& embed_arr, bool tts, std::string const& content, std::string const& avatar_url, std::string const& username) {
@@ -100,24 +100,9 @@ discord::Message discord::Webhook::send(std::vector<EmbedBuilder> const& embed_a
     }
 
 
-    return discord::Message{ send_request<request_method::Post>(j, get_default_headers(), get_execute_webhook_url()) };
+    return discord::Message{ send_request<request_method::Post>(j, get_default_headers(), endpoint("/webhooks/%/%?wait=true", id, token)) };
 }
 
-std::string discord::Webhook::get_edit_webhook_url() const {
-    return endpoint("/webhooks/%", id);
-}
-
-std::string discord::Webhook::get_edit_webhook_token_url() const {
-    return endpoint("/webhooks/%/%", id, token);
-}
-
-std::string discord::Webhook::get_delete_webhook_url() const {
-    return format("%/webhooks/%/%", id, token);
-}
-
-std::string discord::Webhook::get_execute_webhook_url() const {
-    return endpoint("/webhooks/%/%?wait=true", id, token);
-}
 
 void discord::Webhook::execute_slack(bool wait, nlohmann::json const data) {
     send_request<request_method::Post>(

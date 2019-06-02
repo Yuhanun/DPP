@@ -190,8 +190,3 @@ std::vector<std::shared_ptr<discord::User>> discord::Message::get_reactions(disc
 void discord::Message::remove_all_reactions() {
     send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%/messages/%/reactions", channel->id, id));
 }
-
-
-std::string discord::Message::get_remove_user_url(discord::User const& user, discord::Emoji const& emote) {
-    return endpoint("/channels/%/messages/%/reactions/%:%/%", channel->id, id, emote.name, emote.id, user.id);
-}
