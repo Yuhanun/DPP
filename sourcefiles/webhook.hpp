@@ -23,7 +23,7 @@ discord::Webhook::Webhook(snowflake id) {
         send_request<request_method::Get>(
             nlohmann::json({}),
             get_default_headers(),
-            format("%/webhooks/%", get_api(), id))
+            endpoint("/webhooks/%", id))
     };
 }
 
@@ -32,7 +32,7 @@ discord::Webhook::Webhook(snowflake id, std::string const& token) {
         send_request<request_method::Get>(
             nlohmann::json({}),
             get_default_headers(),
-            format("%/webhooks/%/%", get_api(), id, token))
+            endpoint("/webhooks/%/%", id, token))
     };
 }
 
@@ -104,11 +104,11 @@ discord::Message discord::Webhook::send(std::vector<EmbedBuilder> const& embed_a
 }
 
 std::string discord::Webhook::get_edit_webhook_url() const {
-    return format("%/webhooks/%", get_api(), id);
+    return endpoint("/webhooks/%", id);
 }
 
 std::string discord::Webhook::get_edit_webhook_token_url() const {
-    return format("%/webhooks/%/%", get_api(), id, token);
+    return endpoint("/webhooks/%/%", id, token);
 }
 
 std::string discord::Webhook::get_delete_webhook_url() const {
@@ -116,19 +116,19 @@ std::string discord::Webhook::get_delete_webhook_url() const {
 }
 
 std::string discord::Webhook::get_execute_webhook_url() const {
-    return format("%/webhooks/%/%?wait=true", get_api(), id, token);
+    return endpoint("/webhooks/%/%?wait=true", id, token);
 }
 
 void discord::Webhook::execute_slack(bool wait, nlohmann::json const data) {
     send_request<request_method::Post>(
         data,
         get_default_headers(),
-        format("%/webhooks/%/%/slack?wait=%", get_api(), id, token, wait));
+        endpoint("/webhooks/%/%/slack?wait=%", id, token, wait));
 }
 
 void discord::Webhook::execute_github(bool wait, nlohmann::json const data) {
     send_request<request_method::Post>(
         data,
         get_default_headers(),
-        format("%/webhooks/%/%/github?wait=%", get_api(), id, token, wait));
+        endpoint("/webhooks/%/%/github?wait=%", id, token, wait));
 }

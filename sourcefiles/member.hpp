@@ -51,7 +51,7 @@ void discord::Member::edit(std::string const& t_name, bool t_mute, bool t_deaf, 
     }
 
     send_request<request_method::Patch>(
-        data, get_default_headers(), format("%/guilds/%/members/%", get_api(), this->guild->id, this->id));
+        data, get_default_headers(), endpoint("/guilds/%/members/%", this->guild->id, this->id));
 }
 
 
@@ -59,26 +59,26 @@ void discord::Member::add_role(discord::Role const& new_role) {
     send_request<request_method::Put>(
         nlohmann::json({}),
         get_default_headers(),
-        format("%/guilds/%/members/%/roles/%", get_api(), this->guild->id, this->id, new_role.id));
+        endpoint("/guilds/%/members/%/roles/%", this->guild->id, this->id, new_role.id));
 }
 
 void discord::Member::remove_role(discord::Role const& new_role) {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        format("%/guilds/%/members/%/roles/%", get_api(), this->guild->id, this->id, new_role.id));
+        endpoint("/guilds/%/members/%/roles/%", this->guild->id, this->id, new_role.id));
 }
 
 void discord::Member::kick() {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        format("%/guilds/%/members/%", get_api(), this->guild->id, this->id));
+        endpoint("/guilds/%/members/%", this->guild->id, this->id));
 }
 
 void discord::Member::ban(std::string const& _reason, int _days) {
     send_request<request_method::Put>(
         nlohmann::json({ { "reason", _reason }, { "delete-message-days", _days } }),
         get_default_headers(),
-        format("%/guilds/%/members/%", get_api(), this->guild->id, this->id));
+        endpoint("/guilds/%/members/%", this->guild->id, this->id));
 }

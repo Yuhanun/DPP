@@ -118,16 +118,16 @@ void discord::Guild::edit(std::string const& name, std::string const& rg, int ve
     send_request<request_method::Patch>(
         data,
         get_default_headers(),
-        format("%/guilds/%", get_api(), id));
+        endpoint("/guilds/%", id));
 }
 
 void discord::Guild::remove() {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), format("%/guilds/%", get_api(), id));
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%", id));
 }
 
 std::vector<discord::Channel> discord::Guild::get_channels() {
     return from_json_array_special<discord::Channel>(
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/channels", get_api(), id)), id);
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/channels", id)), id);
 }
 
 discord::Channel discord::Guild::create_channel(std::string const& name, bool nsfw, int type, std::string const& topic, int bitrate, int user_limit, int rate_limit_per_user, int position, std::vector<discord::PermissionOverwrites> const& permission_overwrites, snowflake parent_id) {
@@ -148,7 +148,7 @@ discord::Channel discord::Guild::create_channel(std::string const& name, bool ns
     if (parent_id != -1) data["parent_id"] = parent_id;
 
     return discord::Channel{
-        send_request<request_method::Post>(data, get_default_headers(), format("%/guilds/%/channels", get_api(), id))
+        send_request<request_method::Post>(data, get_default_headers(), endpoint("/guilds/%/channels", id))
     };
 }
 
@@ -161,7 +161,7 @@ void discord::Guild::remove_emoji(discord::Emoji const& emote) {
 }
 
 discord::Member discord::Guild::get_member(snowflake m_id) {
-    auto req_data = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/members/%", get_api(), this->id, m_id));
+    auto req_data = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/members/%", this->id, m_id));
     return discord::Member{
         req_data,
         req_data["user"],
@@ -174,11 +174,11 @@ std::vector<discord::Member> discord::Guild::get_members(int limit, snowflake af
         send_request<request_method::Get>(
             nlohmann::json({ { "limit", limit }, { "after", after } }),
             get_default_headers(),
-            format("%/guilds/%/members", get_api(), this->id)));
+            endpoint("/guilds/%/members", this->id)));
 }
 
 std::vector<std::pair<std::string, discord::User>> discord::Guild::get_bans() {
-    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/bans", get_api(), id));
+    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/bans", id));
     std::vector<std::pair<std::string, discord::User>> ret_vec;
     for (auto const& each : response) {
         ret_vec.push_back({ each["reason"], discord::User{ each["user"] } });
@@ -187,29 +187,29 @@ std::vector<std::pair<std::string, discord::User>> discord::Guild::get_bans() {
 }
 
 std::pair<std::string, discord::User> discord::Guild::get_ban(discord::Object const& banned_obj) {
-    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/bans/%", get_api(), id, banned_obj.id));
+    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/bans/%", id, banned_obj.id));
     return { response["reason"], discord::User{ response["user"] } };
 }
 
 
 void discord::Guild::add_member(nlohmann::json const& data, snowflake user_id) {
-    send_request<request_method::Put>(data, get_default_headers(), format("%/guilds/%/members/%", get_api(), this->id, user_id));
+    send_request<request_method::Put>(data, get_default_headers(), endpoint("/guilds/%/members/%", this->id, user_id));
 }
 
 void discord::Guild::edit_bot_username(std::string const& new_nick) {
-    send_request<request_method::Patch>(nlohmann::json({ { "nick", new_nick } }), get_default_headers(), format("%/guilds/%/members/@me/nick", get_api(), discord::detail::bot_instance->id));
+    send_request<request_method::Patch>(nlohmann::json({ { "nick", new_nick } }), get_default_headers(), endpoint("/guilds/%/members/@me/nick", discord::detail::bot_instance->id));
 }
 
 void discord::Guild::unban(discord::Object const& obj) {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        format("%/guilds/%/bans/%", get_api(), id, obj.id));
+        endpoint("/guilds/%/bans/%", id, obj.id));
 }
 
 std::vector<discord::Role> discord::Guild::get_roles() {
     return from_json_array<discord::Role>(
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/roles", get_api(), id)));
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/roles", id)));
 }
 
 discord::Role discord::Guild::create_role(std::string const& _name, PermissionOverwrites& _perms, discord::Color _color, bool _hoist, bool _mention) {
@@ -221,17 +221,17 @@ discord::Role discord::Guild::create_role(std::string const& _name, PermissionOv
                              { "hoist", _hoist },
                              { "mentionable", _mention } }),
             get_default_headers(),
-            format("%/guilds/%/roles", get_api(), id)),
+            endpoint("/guilds/%/roles", id)),
         discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return g->id == this->id; })
     };
 }
 
 std::string discord::Guild::get_list_guild_emojis_url() {
-    return format("%/guilds/%/emojis", get_api(), id);
+    return endpoint("/guilds/%/emojis", id);
 }
 
 std::string discord::Guild::get_guild_emoji(snowflake e_id) {
-    return format("%/guilds/%/emojis/%", get_api(), id, e_id);
+    return endpoint("/guilds/%/emojis/%", id, e_id);
 }
 
 std::string discord::Guild::get_modify_guild_emoji_url(snowflake e_id) {
@@ -243,16 +243,16 @@ std::string discord::Guild::get_delete_emoji_url(snowflake e_id) {
 }
 
 std::string discord::Guild::get_webhooks_url() const {
-    return format("%/guilds/%/webhooks", get_api(), id);
+    return endpoint("/guilds/%/webhooks", id);
 }
 
 std::string discord::Guild::get_leave_url() {
-    return format("%/users/@me/guilds/%", get_api(), id);
+    return endpoint("/users/@me/guilds/%", id);
 }
 
 int discord::Guild::get_prune_count(int days) {
     return send_request<request_method::Get>(
-        nlohmann::json({ { "days", days } }), get_default_headers(), format("%/guilds/%/prune", get_api(), id))["pruned"];
+        nlohmann::json({ { "days", days } }), get_default_headers(), endpoint("/guilds/%/prune", id))["pruned"];
 }
 
 int discord::Guild::begin_prune(int days, bool compute_prune_count) {
@@ -260,14 +260,14 @@ int discord::Guild::begin_prune(int days, bool compute_prune_count) {
                          nlohmann::json({ { "days", days },
                                           { "compute_prune_count", compute_prune_count } }),
                          get_default_headers(),
-                         format("%/guilds/%/prune", get_api(), id)),
+                         endpoint("/guilds/%/prune", id)),
                      "pruned",
                      0);
 }
 
 
 std::vector<discord::VoiceRegion> discord::Guild::get_voice_regions() {
-    auto resp = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%/regions", get_api(), id));
+    auto resp = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/regions", id));
     std::vector<VoiceRegion> ret_val;
     for (auto const& each : resp) {
         ret_val.push_back({ each["id"],
@@ -285,12 +285,12 @@ std::vector<discord::Invite> discord::Guild::get_invites() {
         send_request<request_method::Get>(
             nlohmann::json({}),
             get_default_headers(),
-            format("%/guilds/%/invites", get_api(), id)));
+            endpoint("/guilds/%/invites", id)));
 }
 
 discord::snowflake discord::Guild::get_embed() {
     return get_value(send_request<request_method::Get>(
-                         nlohmann::json({}), get_default_headers(), format("%/guilds/%/embed", get_api(), id)),
+                         nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/embed", id)),
                      "channel_id",
                      0);
 }
@@ -299,7 +299,7 @@ discord::snowflake discord::Guild::edit_embed(snowflake c_id) {
     return get_value(send_request<request_method::Patch>(
                          nlohmann::json({ { "enabled", c_id != -1 }, { "channel_id", c_id } }),
                          get_default_headers(),
-                         format("%/guilds/%/embed", get_api(), id)),
+                         endpoint("/guilds/%/embed", id)),
                      "channel_id",
                      0);
 }
@@ -315,7 +315,7 @@ std::string discord::Guild::get_vanity_invite_url() {
 std::string discord::Guild::get_widget_image(std::string const& style) {
     return cpr::Get(
                cpr::Url{
-                   format("%/guilds/%/widget.png?style=%", get_api(), id, style) })
+                   endpoint("/guilds/%/widget.png?style=%", id, style) })
         .text;
 }
 
@@ -323,7 +323,7 @@ std::string discord::Guild::get_widget_image(std::string const& style) {
 std::vector<discord::Integration> discord::Guild::get_integrations() {
     return from_json_array<discord::Integration>(
         send_request<request_method::Get>(
-            nlohmann::json({}), get_default_headers(), format("%/guilds/%/integrations", get_api(), id)));
+            nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/integrations", id)));
 }
 
 
@@ -331,7 +331,7 @@ void discord::Guild::create_integration(discord::Integration const& integr) {
     send_request<request_method::Post>(
         nlohmann::json({ { "type", integr.type }, { "id", integr.id } }),
         get_default_headers(),
-        format("%/guilds/%/integrations", get_api(), id));
+        endpoint("/guilds/%/integrations", id));
 }
 
 void discord::Guild::edit_integration(discord::Integration const& integr, int expire_behavior, int expire_grace_period, bool enable_emotes) {
@@ -340,7 +340,7 @@ void discord::Guild::edit_integration(discord::Integration const& integr, int ex
                          { "expire_grace_period", expire_grace_period },
                          { "enable_emoticons", enable_emotes } }),
         get_default_headers(),
-        format("%/guilds/%/integrations/%", get_api(), id, integr.id));
+        endpoint("/guilds/%/integrations/%", id, integr.id));
 }
 
 
@@ -348,14 +348,14 @@ void discord::Guild::remove_integration(discord::Integration const& integr) {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        format("%/guilds/%/integrations/%", get_api(), id, integr.id));
+        endpoint("/guilds/%/integrations/%", id, integr.id));
 }
 
 void discord::Guild::sync_integration(discord::Integration const& integr) {
     send_request<request_method::Post>(
         nlohmann::json({}),
         get_default_headers(),
-        format("%/guilds/%/integrations/%/sync", get_api(), id, integr.id));
+        endpoint("/guilds/%/integrations/%/sync", id, integr.id));
 }
 
 discord::Emoji discord::Guild::create_emoji(std::string const& name, discord::Emoji const& emote_data, std::vector<discord::Role> roles) {
@@ -369,7 +369,7 @@ discord::Emoji discord::Guild::create_emoji(std::string const& name, discord::Em
         send_request<request_method::Post>(
             data,
             get_default_headers(),
-            format("%/guilds/%/emojis", get_api(), id))
+            endpoint("/guilds/%/emojis", id))
     };
 }
 
@@ -378,6 +378,6 @@ discord::AuditLogs discord::Guild::get_audit_logs() {
         send_request<request_method::Get>(
             nlohmann::json({}),
             get_default_headers(),
-            format("%/guilds/%/audit-logs", get_api(), id))
+            endpoint("/guilds/%/audit-logs", id))
     };
 }

@@ -137,7 +137,7 @@ discord::Message& discord::Message::update(nlohmann::json const j) {
 }
 
 std::string discord::Message::get_delete_url() const {
-    return format("%/%/messages/%", get_api(), channel->id, id);
+    return endpoint("/%/messages/%", channel->id, id);
 }
 
 void discord::Message::remove() {
@@ -145,7 +145,7 @@ void discord::Message::remove() {
 }
 
 std::string discord::Message::get_edit_url() const {
-    return format("%/channels/%/messages/%", get_api(), channel->id, id);
+    return endpoint("/channels/%/messages/%", channel->id, id);
 }
 
 discord::Message discord::Message::edit(std::string content) {
@@ -161,11 +161,11 @@ discord::Message discord::Message::edit(EmbedBuilder embed, std::string content)
 }
 
 std::string discord::Message::get_pin_url() const {
-    return format("%/channels/%/pins/%", get_api(), channel->id, id);
+    return endpoint("/channels/%/pins/%", channel->id, id);
 }
 
 std::string discord::Message::get_unpin_url() const {
-    return format("%/channels/%/pins/%", get_api(), channel->id, id);
+    return endpoint("/channels/%/pins/%", channel->id, id);
 }
 
 void discord::Message::unpin() {
@@ -207,21 +207,21 @@ void discord::Message::remove_all_reactions() {
 }
 
 std::string discord::Message::get_add_reaction_url(discord::Emoji const& emote) const {
-    return format("%/channels/%/messages/%/reactions/%:%/@me", get_api(), channel->id, id, emote.name, emote.id);
+    return endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id);
 }
 
 std::string discord::Message::get_remove_user_url(discord::User const& user, discord::Emoji const& emote) {
-    return format("%/channels/%/messages/%/reactions/%:%/%", get_api(), channel->id, id, emote.name, emote.id, user.id);
+    return endpoint("/channels/%/messages/%/reactions/%:%/%", channel->id, id, emote.name, emote.id, user.id);
 }
 
 std::string discord::Message::get_reactions_url(discord::Emoji const& emote) {
-    return format("%/channels/%/messages/%/reactions/%:%", get_api(), channel->id, id, emote.name, emote.id);
+    return endpoint("/channels/%/messages/%/reactions/%:%", channel->id, id, emote.name, emote.id);
 }
 
 std::string discord::Message::get_remove_all_reactions_url() {
-    return format("%/channels/%/messages/%/reactions", get_api(), channel->id, id);
+    return endpoint("/channels/%/messages/%/reactions", channel->id, id);
 }
 
 std::string discord::Message::get_remove_user_reaction_url(discord::Emoji const& emote, discord::User const& user) {
-    return format("%/channels/%/messages/%/reactions/%:%/%", get_api(), channel->id, id, emote.name, emote.id, user.id);
+    return endpoint("/channels/%/messages/%/reactions/%:%/%", channel->id, id, emote.name, emote.id, user.id);
 }

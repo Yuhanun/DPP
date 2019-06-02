@@ -409,7 +409,7 @@ namespace discord {
         std::future<void> client_future;
 
         std::vector<discord::Message> messages;
-        std::vector<std::future<void>> packet_handling;
+        std::vector<std::future<void>> futures;
         std::unordered_map<std::string, std::function<void(discord::Context const&)>> command_map;
         std::unordered_map<std::string, std::function<void(nlohmann::json)>> internal_event_map;
     };

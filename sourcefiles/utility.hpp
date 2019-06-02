@@ -105,10 +105,6 @@ namespace discord {
         return output_str.str();
     }
 
-    inline std::string get_api() {
-        return "https://discordapp.com/api/v6";
-    }
-
     inline std::string get_cdn_url() {
         return "https://cdn.discordapp.com/";
     }
@@ -127,7 +123,7 @@ namespace discord {
     }
 
     inline std::string get_channel_link(uint64_t id) {
-        return format("%/channels/%/messages", get_api(), id);
+        return format("/channels/%/messages", id);
     }
 
     inline std::string get_iso_datetime_now() {
@@ -218,6 +214,12 @@ namespace discord {
         application_asset
     };
 
+    template <typename... Tys>
+    inline std::string endpoint(std::string endpoint_format, Tys &&... args) {
+        endpoint_format = endpoint_format[0] == '/' ? endpoint_format : '/' + endpoint_format;
+        format(std::string("https://discordapp.com/api/v6") + endpoint_format, std::forward<Tys>(args)...);
+    }
+
     inline std::string image_url_from_type(int asset_t, snowflake some_id, std::string second_thing = "", bool is_animated = false) {
         switch (asset_t) {
             case custom_emoji:
@@ -271,10 +273,12 @@ namespace discord {
             response = cpr::Patch(url, h, body);
         }
 
-#ifdef __DPP_DEBUG
-        std::cout << response.text << std::endl;
-#endif
         auto j_resp = response.text.length() ? nlohmann::json::parse(response.text) : nlohmann::json({});
+
+#ifdef __DPP_DEBUG
+        std::cout << j_resp.dump(4) << std::endl;
+#endif
+
         if (j_resp.contains("message")) {
             if (j_resp["message"].get<std::string>() == "You are being rate limited.") {
                 std::this_thread::sleep_for(std::chrono::milliseconds(j_resp["retry_after"].get<int>() + 1));

@@ -44,7 +44,7 @@ void discord::Invite::remove(){
 }
 
 std::string discord::Invite::get_invite_url() {
-    return format("%/invites/%", get_api(), code);
+    return endpoint("/invites/%", code);
 }
 
 std::string discord::Invite::get_delete_invite_url() {

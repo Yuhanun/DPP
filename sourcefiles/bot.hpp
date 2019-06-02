@@ -119,11 +119,11 @@ void discord::Bot::handle_gateway() {
 void discord::Bot::run() {
     gateway_auth();
     while (true) {
-        if (!packet_handling.size()) {
+        if (!futures.size()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             continue;
         }
-        packet_handling.erase(packet_handling.begin());
+        futures.erase(futures.begin());
     }
 }
 
@@ -145,7 +145,7 @@ void discord::Bot::gateway_auth() {
 }
 
 std::string discord::Bot::get_gateway_url() const {
-    auto r = send_request<request_method::Get>(nlohmann::json({}), get_basic_header(), format("%/gateway/bot", get_api()));
+    auto r = send_request<request_method::Get>(nlohmann::json({}), get_basic_header(), endpoint("/gateway/bot"));
     if (!r.contains("url")) {
         throw discord::ImproperToken();
     }
@@ -277,11 +277,11 @@ void discord::Bot::update_presence(Activity const &act) {
 }
 
 std::string discord::Bot::get_create_guild_url() const {
-    return format("%/guilds", get_api());
+    return endpoint("/guilds");
 }
 
 std::string discord::Bot::get_voice_regions_url() const {
-    return format("%/voice/regions", get_api());
+    return endpoint("%/voice/regions");
 }
 
 void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) {
@@ -298,7 +298,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
 }
 
 void discord::Bot::hello_event(nlohmann::json) {
-    func_holder.call<events::hello>(packet_handling, true);
+    func_holder.call<events::hello>(futures, true);
 }
 
 void discord::Bot::ready_event(nlohmann::json data) {
@@ -309,11 +309,11 @@ void discord::Bot::ready_event(nlohmann::json data) {
 }
 
 void discord::Bot::resumed_event(nlohmann::json) {
-    func_holder.call<events::resumed>(packet_handling, true);
+    func_holder.call<events::resumed>(futures, true);
 }
 
 void discord::Bot::invalid_session_event(nlohmann::json) {
-    func_holder.call<events::invalid_session>(packet_handling, true);
+    func_holder.call<events::invalid_session>(futures, true);
 }
 
 
@@ -329,7 +329,7 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
         }
     }
     channels.emplace_back(std::make_shared<discord::Channel>(channel));
-    func_holder.call<events::channel_create>(packet_handling, true, channel);
+    func_holder.call<events::channel_create>(futures, true, channel);
 }
 
 void discord::Bot::channel_update_event(nlohmann::json j) {
@@ -344,7 +344,7 @@ void discord::Bot::channel_update_event(nlohmann::json j) {
     //     }
     // }
 
-    func_holder.call<events::channel_create>(packet_handling, true, channel);
+    func_holder.call<events::channel_create>(futures, true, channel);
 }
 
 void discord::Bot::channel_delete_event(nlohmann::json j) {
@@ -352,7 +352,7 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
     snowflake chan_id = to_sf(get_value(data, "id", "0"));
     std::shared_ptr<discord::Channel> event_chan;
     if (!chan_id) {
-        return func_holder.call<events::channel_delete>(packet_handling, true, discord::Channel{});
+        return func_holder.call<events::channel_delete>(futures, true, discord::Channel{});
     }
     for (auto &guild : this->guilds) {
         for (std::size_t i = 0; i < guild->channels.size(); i++) {
@@ -372,11 +372,11 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
         channels.erase(channels.begin() + i);
         break;
     }
-    func_holder.call<events::channel_delete>(packet_handling, true, *event_chan);
+    func_holder.call<events::channel_delete>(futures, true, *event_chan);
 }
 
 void discord::Bot::channel_pins_update_event(nlohmann::json data) {
-    func_holder.call<events::channel_pins_update>(packet_handling, true, Channel{ to_sf(data["channel_id"]) });
+    func_holder.call<events::channel_pins_update>(futures, true, Channel{ to_sf(data["channel_id"]) });
 }
 
 void discord::Bot::guild_create_event(nlohmann::json data) {
@@ -406,9 +406,9 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
             }
         }
         ready = true;
-        func_holder.call<events::ready>(packet_handling, true);
+        func_holder.call<events::ready>(futures, true);
     }
-    func_holder.call<events::guild_create>(packet_handling, ready, guild);
+    func_holder.call<events::guild_create>(futures, ready, guild);
 }
 
 void discord::Bot::guild_update_event(nlohmann::json data) {
@@ -419,7 +419,7 @@ void discord::Bot::guild_update_event(nlohmann::json data) {
             g = *(std::make_shared<Guild>(data));
         }
     }
-    func_holder.call<events::guild_update>(packet_handling, true, g);
+    func_holder.call<events::guild_update>(futures, true, g);
 }
 
 void discord::Bot::guild_delete_event(nlohmann::json data) {
@@ -433,24 +433,24 @@ void discord::Bot::guild_delete_event(nlohmann::json data) {
 void discord::Bot::guild_ban_add_event(nlohmann::json data) {
     discord::Guild banned_guild{ to_sf(data["guild_id"]) };
     discord::User user{ data["user"] };
-    func_holder.call<events::guild_ban_add>(packet_handling, ready, banned_guild, user);
+    func_holder.call<events::guild_ban_add>(futures, ready, banned_guild, user);
 }
 
 void discord::Bot::guild_ban_remove_event(nlohmann::json data) {
     discord::Guild banned_guild{ to_sf(data["guild_id"]) };
     discord::User user{ data["user"] };
-    func_holder.call<events::guild_ban_remove>(packet_handling, ready, banned_guild, user);
+    func_holder.call<events::guild_ban_remove>(futures, ready, banned_guild, user);
 }
 
 void discord::Bot::guild_emojis_update_event(nlohmann::json data) {
     discord::Guild emote_guild{ to_sf(get_value(data, "guild", "0")) };
     auto emote_vec = from_json_array<discord::Emoji>(data["emojis"]);
-    func_holder.call<events::guild_emojis_update>(packet_handling, ready, emote_guild, emote_vec);
+    func_holder.call<events::guild_emojis_update>(futures, ready, emote_guild, emote_vec);
 }
 
 void discord::Bot::guild_integrations_update_event(nlohmann::json data) {
     func_holder.call<events::guild_integrations_update>(
-        packet_handling, ready, discord::Guild{ to_sf(data["guild_id"]) });
+        futures, ready, discord::Guild{ to_sf(data["guild_id"]) });
 }
 
 void discord::Bot::guild_member_add_event(nlohmann::json data) {
@@ -461,7 +461,7 @@ void discord::Bot::guild_member_add_event(nlohmann::json data) {
     discord::User user{ data["user"] };
     std::shared_ptr<discord::Member> mem = std::make_shared<discord::Member>(data, user, guild.get());
     guild->members.emplace_back(mem.get());
-    func_holder.call<events::guild_member_add>(packet_handling, ready, *mem);
+    func_holder.call<events::guild_member_add>(futures, ready, *mem);
 }
 
 void discord::Bot::guild_member_remove_event(nlohmann::json data) {
@@ -474,7 +474,7 @@ void discord::Bot::guild_member_remove_event(nlohmann::json data) {
                              return i->id == user.id;
                          }),
                          guild->members.end());
-    func_holder.call<events::guild_member_remove>(packet_handling, ready, user);
+    func_holder.call<events::guild_member_remove>(futures, ready, user);
 }
 
 void discord::Bot::guild_member_update_event(nlohmann::json data) {
@@ -491,7 +491,7 @@ void discord::Bot::guild_member_update_event(nlohmann::json data) {
     for (auto const &each_id : data["roles"]) {
         member->roles.emplace_back(to_sf(each_id));
     }
-    func_holder.call<events::guild_member_update>(packet_handling, ready, *member);
+    func_holder.call<events::guild_member_update>(futures, ready, *member);
 }
 
 // TODO: implement
@@ -511,14 +511,14 @@ void discord::Bot::message_create_event(nlohmann::json data) {
     if (message.author && message.author->id != this->id) {
         fire_commands(message);
     }
-    func_holder.call<events::message_create>(packet_handling, ready, message);
+    func_holder.call<events::message_create>(futures, ready, message);
 }
 
 void discord::Bot::message_update_event(nlohmann::json data) {
     bool found = false;
     auto message = Message{ data };
     process_message_cache<1>(&message, found);
-    func_holder.call<events::message_update>(packet_handling, ready, message);
+    func_holder.call<events::message_update>(futures, ready, message);
 }
 
 void discord::Bot::message_delete_event(nlohmann::json data) {
@@ -526,7 +526,7 @@ void discord::Bot::message_delete_event(nlohmann::json data) {
     bool found = false;
     auto message = Message{ data };
     message = process_message_cache<2>(&message, found);
-    func_holder.call<events::message_delete>(packet_handling, found, message);
+    func_holder.call<events::message_delete>(futures, found, message);
 }
 
 void discord::Bot::message_delete_bulk_event(nlohmann::json data) {
@@ -534,7 +534,7 @@ void discord::Bot::message_delete_bulk_event(nlohmann::json data) {
         bool found = false;
         auto message = Message{ each };
         message = process_message_cache<2>(&message, found);
-        func_holder.call<events::message_delete>(packet_handling, found, message);
+        func_holder.call<events::message_delete>(futures, found, message);
     }
 }
 
@@ -627,28 +627,28 @@ std::vector<discord::Connection> discord::Bot::get_connections() {
 
 discord::Guild discord::Bot::get_guild(snowflake g_id) {
     return discord::Guild{
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), format("%/guilds/%", get_api(), g_id))
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%", g_id))
     };
 }
 
 std::string discord::Bot::get_current_user_url() {
-    return format("%/users/@me", get_api());
+    return endpoint("/users/@me");
 }
 
 std::string discord::Bot::get_user_url(snowflake id) {
-    return format("%/users/%", get_api(), id);
+    return endpoint("/users/%", id);
 }
 
 std::string discord::Bot::get_user_guilds_url() {
-    return format("%/users/@me/guilds", get_api());
+    return endpoint("/users/@me/guilds");
 }
 
 std::string discord::Bot::get_create_group_dm_url() {
-    return format("%/users/@me/channels", get_api());
+    return endpoint("/users/@me/channels");
 }
 
 std::string discord::Bot::get_connections_url() {
-    return format("%/users/@me/connections", get_api());
+    return endpoint("/users/@me/connections");
 }
 
 discord::Channel discord::Bot::get_channel(snowflake chan_id) {
@@ -658,5 +658,5 @@ discord::Channel discord::Bot::get_channel(snowflake chan_id) {
 }
 
 std::string discord::Bot::get_channel_url(snowflake chan_id) {
-    return format("%/channels/%", get_api(), chan_id);
+    return endpoint("/channels/%", chan_id);
 }

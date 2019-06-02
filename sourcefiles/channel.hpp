@@ -105,11 +105,11 @@ discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<F
 }
 
 std::string discord::Channel::get_bulk_delete_url() const {
-    return format("%/channels/%/messages/bulk-delete", get_api(), id);
+    return endpoint("/channels/%/messages/bulk-delete", id);
 }
 
 std::string discord::Channel::get_get_messages_url(int limit) const {
-    return format("%/channels/%/messages?limit=%", get_api(), id, limit);
+    return endpoint("/channels/%/messages?limit=%", id, limit);
 }
 
 void discord::Channel::bulk_delete(std::vector<discord::Message> &m) {
@@ -124,7 +124,6 @@ void discord::Channel::bulk_delete(std::vector<discord::Message> &m) {
 
 std::vector<discord::Message> discord::Channel::get_messages(int limit) {
     std::vector<discord::Message> return_vec;
-    limit = limit < 1 || limit > 100 ? 50 : limit;
 
     auto data = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), get_get_messages_url(limit));
     for (auto &each : data) {
@@ -134,11 +133,11 @@ std::vector<discord::Message> discord::Channel::get_messages(int limit) {
 }
 
 std::string discord::Channel::get_channel_edit_url() const {
-    return format("%/channels/%", get_api(), id);
+    return endpoint("/channels/%", id);
 }
 
 std::string discord::Channel::get_delete_url() const {
-    return format("%/channels/%", get_api(), id);
+    return endpoint("/channels/%", id);
 }
 
 void discord::Channel::edit(nlohmann::json &j) {
@@ -220,25 +219,25 @@ void discord::Channel::edit_position(int new_pos) {
     send_request<request_method::Patch>(
         nlohmann::json({ { "id", this->id }, { "position", new_pos } }),
         get_default_headers(),
-        format("%/guilds/%/channels", get_api(), this->guild->id));
+        endpoint("/guilds/%/channels", this->guild->id));
 }
 
 
 std::string discord::Channel::get_add_group_dm_recipient_url(discord::User const &user) {
-    return format("%/channels/%/recipient/%", get_api(), this->id, user.id);
+    return endpoint("/channels/%/recipient/%", this->id, user.id);
 }
 
 
 std::string discord::Channel::get_get_message_url(snowflake m_id) const {
-    return format("%/channels/%/messages/%", get_api(), id, m_id);
+    return endpoint("/channels/%/messages/%", id, m_id);
 }
 
 std::string discord::Channel::get_channel_invites_url() const {
-    return format("%/channels/%/invites", get_api(), id);
+    return endpoint("/channels/%/invites", id);
 }
 
 std::string discord::Channel::get_create_invite_url() const {
-    return format("%/channels/%/invites", get_api(), id);
+    return endpoint("/channels/%/invites", id);
 }
 
 std::string discord::Channel::get_delete_channel_permission_url(discord::Object const &obj) const {
@@ -246,17 +245,17 @@ std::string discord::Channel::get_delete_channel_permission_url(discord::Object 
 }
 
 std::string discord::Channel::get_typing_url() const {
-    return format("%/channels/%/typing", get_api(), id);
+    return endpoint("/channels/%/typing", id);
 }
 
 std::string discord::Channel::get_pins_url() const {
-    return format("%/channels/%/pins", get_api(), id);
+    return endpoint("/channels/%/pins", id);
 }
 
 std::string discord::Channel::get_create_webhook_url() const {
-    return format("%/channels/%/webhooks", get_api(), id);
+    return endpoint("/channels/%/webhooks", id);
 }
 
 std::string discord::Channel::get_webhooks_url() const {
-    return format("%/channels/%/webhooks", get_api(), id);
+    return endpoint("/channels/%/webhooks", id);
 }

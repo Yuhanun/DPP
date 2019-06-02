@@ -32,7 +32,7 @@ void discord::Role::edit_position(int _new_position) {
         nlohmann::json({ { "id", id },
                          { "position", _new_position } }),
         get_default_headers(),
-        format("%/guilds/%/roles", get_api(), this->guild->id));
+        endpoint("/guilds/%/roles", guild->id));
 }
 
 void discord::Role::edit(std::string const& _name, PermissionOverwrites& _perms, discord::Color _color, bool _hoist, bool _mention) {
@@ -44,7 +44,7 @@ void discord::Role::edit(std::string const& _name, PermissionOverwrites& _perms,
                              { "hoist", _hoist },
                              { "mentionable", _mention } }),
             get_default_headers(),
-            format("%/guilds/%/roles/%", get_api(), guild->id, id)),
+            endpoint("/guilds/%/roles/%", guild->id, id)),
         this->guild
     };
 }
@@ -53,5 +53,5 @@ void discord::Role::remove() {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        format("%/guilds/%/roles/%", get_api(), guild->id, id));
+        endpoint("/guilds/%/roles/%", guild->id, id));
 }
