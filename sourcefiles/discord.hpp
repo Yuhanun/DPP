@@ -307,7 +307,6 @@ namespace discord {
         discord::Guild get_guild(snowflake);
 
     private:
-
         void fire_commands(discord::Message&) const;
         void await_events();
         void gateway_auth();
@@ -456,23 +455,6 @@ namespace discord {
         void remove_group_dm_recipient(discord::User const&);
 
         void edit_position(int);
-
-    private:
-        std::string get_bulk_delete_url() const;
-        std::string get_get_messages_url(int) const;
-        std::string get_channel_edit_url() const;
-        std::string get_delete_url() const;
-        std::string get_get_message_url(snowflake) const;
-        std::string get_channel_invites_url() const;
-        std::string get_create_invite_url() const;
-        std::string get_delete_channel_permission_url(discord::Object const&) const;
-        std::string get_typing_url() const;
-        std::string get_pins_url() const;
-
-        std::string get_create_webhook_url() const;
-        std::string get_webhooks_url() const;
-
-        std::string get_add_group_dm_recipient_url(discord::User const&);
 
     public:
         int type;
@@ -755,12 +737,6 @@ namespace discord {
 
         void execute_slack(bool, nlohmann::json const);
         void execute_github(bool, nlohmann::json const);
-
-    private:
-        std::string get_edit_webhook_url() const;
-        std::string get_edit_webhook_token_url() const;
-        std::string get_delete_webhook_url() const;
-        std::string get_execute_webhook_url() const;
     };
 
     class Message : public Object {
@@ -782,18 +758,6 @@ namespace discord {
         std::vector<std::shared_ptr<discord::User>> get_reactions(discord::Emoji const&, snowflake = 0, snowflake = 0, int = 0);
 
         discord::Message& update(nlohmann::json const);
-
-    private:
-        std::string get_remove_all_reactions_url();
-        std::string get_remove_user_reaction_url(discord::Emoji const&, discord::User const&);
-        std::string get_add_reaction_url(discord::Emoji const&) const;
-        std::string get_remove_user_url(discord::User const&, discord::Emoji const&);
-        std::string get_reactions_url(discord::Emoji const&);
-        std::string get_edit_url() const;
-        std::string get_delete_url() const;
-        std::string get_pin_url() const;
-        std::string get_unpin_url() const;
-
 
     public:
         int type;
