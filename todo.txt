@@ -8,3 +8,4 @@ REST:
 General:
     Complete ASYNC
     Complete rewrite to cpprestsdk
+    Complete rewrite to std::optional rather than default constructed fields 
