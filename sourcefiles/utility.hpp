@@ -100,7 +100,7 @@ namespace discord {
         assert(sizeof...(args) == std::count(str.begin(), str.end(), '%') && "Amount of % does not match amount of arguments");
         std::stringstream output_str;
         int start_index = 0;
-        ((format_slice(str, output_str, start_index, args)), ...);
+        ((format_slice(str, output_str, start_index, std::forward<T>(args))), ...);
         output_str << str.substr(start_index, str.length());
         return output_str.str();
     }
@@ -326,6 +326,8 @@ namespace discord {
             return j_resp;
         } else if (to_handle == ratelimit || to_handle == gateway_unavailable) {
             return send_request<method>(j, h, uri);
+        } else {
+            return j_resp;
         }
     }
 
