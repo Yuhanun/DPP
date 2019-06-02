@@ -50,10 +50,10 @@ namespace discord {
     typedef int64_t snowflake;
     typedef boost::posix_time::ptime datetime;
 
-	enum object_type {
-		role,
-		member
-	};
+    enum object_type {
+        role,
+        member
+    };
 
     using namespace boost;
 
@@ -132,25 +132,24 @@ namespace discord {
         snowflake id;
 
 
-        bool operator==(const Object& other) {
+        bool operator==(const Object& other) const {
             return this->id == other.id;
         }
 
-        bool operator==(const snowflake& other) {
+        bool operator==(const snowflake& other) const {
             return this->id == other;
         }
         template <typename T>
-        bool operator!=(T&& other) {
+        bool operator!=(T&& other) const {
             return !(std::forward<T>(other) == this);
         }
 
-        operator snowflake() {
+        operator snowflake() const {
             return id;
         }
 
         friend std::ostream& operator<<(std::ostream& stream, Object& o) {
-            stream << o.id;
-            return stream;
+            return stream << "<discord::Object id=" << o.id << " at " << &o << ">";
         }
     };
 
@@ -569,13 +568,13 @@ namespace discord {
         std::string reason;
 
         struct {
-        	std::string delete_member_days;
-        	std::string members_removed;
-        	snowflake channel_id;
-        	std::string count;
-        	snowflake id;
-        	std::string type;
-        	std::string role_name;
+            std::string delete_member_days;
+            std::string members_removed;
+            snowflake channel_id;
+            std::string count;
+            snowflake id;
+            std::string type;
+            std::string role_name;
         } opts;
         std::vector<decltype(opts)> options;
     };
@@ -590,16 +589,20 @@ namespace discord {
 
     class Asset {
     private:
-    	std::string url;
+        std::string url;
+
     public:
-    	Asset(std::string );
-    	explicit operator std::string();
-    	size_t len() { return url.size(); }
-    	explicit operator bool();
-    	bool operator ==(const Asset& rhs);
-	    bool operator !=(const Asset& rhs);
-	    int hash();
-	    std::string read();
+        Asset(std::string const&);
+        explicit operator std::string();
+        size_t len() {
+            return url.size();
+        }
+        explicit operator bool();
+        std::string const& operator()() const;
+        bool operator==(const Asset& rhs);
+        bool operator!=(const Asset& rhs);
+        int hash();
+        std::string read();
     };
 
     class Invite {

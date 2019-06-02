@@ -18,13 +18,11 @@ int main() {
     std::getline(file, token);
     discord::Bot bot{ token, "." };
 
-    bot.register_callback<discord::events::ready>([&bot]() {
-        std::cout << "Ready!" << std::endl
-                  << "Logged in as: " << bot.username << "#" << bot.discriminator
-                  << std::endl
-                  << "ID: " << bot.id << std::endl
-                  << "-----------------------------" << std::endl;
-    });
+    bot.register_callback<discord::events::ready>([&bot]() { std::cout << "Ready!" << std::endl
+                                                                       << "Logged in as: " << bot.username << "#" << bot.discriminator
+                                                                       << std::endl
+                                                                       << "ID: " << bot.id << std::endl
+                                                                       << "-----------------------------" << std::endl; });
 
     // auto l = [](discord::Message m) {
     //     std::stringstream s;
@@ -46,11 +44,7 @@ int main() {
 
 
     bot.register_command("test", [](discord::Context const& ctx) {
-        std::vector<discord::Message> messages = { ctx.message };
-        for (int i = 0; i < 5; i++) {
-            messages.push_back(ctx.send("test"));
-        }
-        ctx.message.channel->bulk_delete(messages);
+        std::cout << ctx.message << std::endl;
     });
 
 

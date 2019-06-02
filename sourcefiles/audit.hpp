@@ -4,25 +4,24 @@
 
 namespace discord {
 
-	AuditLogEntry::AuditLogEntry(nlohmann::json const& j)
-			: target_id{ to_sf(get_value(j, "target_id", "0")) },
-			  user_id{ to_sf(get_value(j, "user_id", "0")) },
-			  id{ to_sf(get_value(j, "id", "0")) },
-			  action_type{ AuditLogEventType{ get_value(j, "action_type", AuditLogEventType{}) } } {
-			if (j.contains("changes"))
-				for (const auto& each : j["changes"])
-					changes.emplace_back(each);
-			if (j.contains("options"))
-				for (const auto& each : j["options"])
-					options.emplace_back(decltype(opts)({
-						get_value(each, "delete_member_days", ""),
-						get_value(each, "members_removed", ""),
-						to_sf(get_value(each, "channel_id", "0")),
-						get_value(each, "count", ""),
-						to_sf(get_value(each, "type", "")),
-						get_value(each, "role_name", "")
-					}));
-	}
+    AuditLogEntry::AuditLogEntry(nlohmann::json const& j)
+        : target_id{ to_sf(get_value(j, "target_id", "0")) },
+          user_id{ to_sf(get_value(j, "user_id", "0")) },
+          id{ to_sf(get_value(j, "id", "0")) },
+          action_type{ AuditLogEventType{ get_value(j, "action_type", AuditLogEventType{}) } } {
+        if (j.contains("changes"))
+            for (const auto& each : j["changes"])
+                changes.emplace_back(each);
+        if (j.contains("options"))
+            for (const auto& each : j["options"])
+                options.emplace_back(decltype(opts)({ get_value(each, "delete_member_days", ""),
+                                                      get_value(each, "members_removed", ""),
+                                                      to_sf(get_value(each, "channel_id", "0")),
+                                                      get_value(each, "count", ""),
+                                                      to_sf(get_value(each, "channel_id", "0")),
+                                                      get_value(each, "type", ""),
+                                                      get_value(each, "role_name", "") }));
+    }
 
     AuditLogs::AuditLogs(const nlohmann::json& j) {
         audit_log_entries.emplace_back(AuditLogEntry{ j });

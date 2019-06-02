@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 
-#include "discord.hpp"
 #include "cpr/cpr.h"
+#include "discord.hpp"
 #include "nlohmann/json.hpp"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -109,7 +109,7 @@ namespace discord {
         return "https://discordapp.com/api/v6";
     }
 
-    inline std::string get_image_base_url() {
+    inline std::string get_cdn_url() {
         return "https://cdn.discordapp.com/";
     }
 
@@ -206,6 +206,40 @@ namespace discord {
         Patch,
         Delete
     };
+
+    enum asset_type {
+        custom_emoji,
+        guild_icon,
+        guild_splash,
+        guild_banner,
+        default_user_avatar,
+        user_avatar,
+        application_icon,
+        application_asset
+    };
+
+    inline std::string image_url_from_type(int asset_t, snowflake some_id, std::string second_thing = "", bool is_animated = false) {
+        switch (asset_t) {
+            case custom_emoji:
+                return format(is_animated ? "%/emojis/%.gif" : "%/emojis/%.png", get_cdn_url(), some_id);
+            case guild_icon:
+                return format("%/icons/%/%.png", get_cdn_url(), some_id, second_thing);
+            case guild_splash:
+                return format("%/splashes/%/%.png", get_cdn_url(), some_id, second_thing);
+            case guild_banner:
+                return format("%/banners/%/%.png", get_cdn_url(), some_id, second_thing);
+            case default_user_avatar:
+                return format("%/embed/avatars/%.png", get_cdn_url(), some_id % 5);
+            case user_avatar:
+                return format(is_animated ? "%/avatars/%/%.gif" : "%/avatars/%/%.png", get_cdn_url(), some_id, second_thing);
+            case application_icon:
+                return format("%/app-cons/%/%.png", get_cdn_url(), some_id, second_thing);
+            case application_asset:
+                return format("%/app-assets/%/%.png", get_cdn_url(), some_id, second_thing);
+            default:
+                assert(false && "Invalid asset type");
+        }
+    }
 
     discord::datetime time_from_discord_string(const std::string &tempstr) {
         if (tempstr.empty()) {

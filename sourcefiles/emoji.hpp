@@ -20,7 +20,7 @@ discord::Emoji::Emoji(nlohmann::json event) {
     managed = get_value(event, "managed", false);
     animated = get_value(event, "animated", false);
 
-    url = format("%/emojis/%.png", get_image_base_url(), id);
+    url = format("%/emojis/%.png", get_cdn_url(), id);
 }
 
 discord::Emoji::operator std::string() {
