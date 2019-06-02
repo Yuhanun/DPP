@@ -588,6 +588,19 @@ namespace discord {
         std::vector<discord::AuditLogEntry> audit_log_entries;
     };
 
+    class Asset {
+    private:
+    	std::string url;
+    public:
+    	explicit operator std::string();
+    	size_t len() { return url.size(); }
+    	explicit operator bool();
+    	bool operator ==(const Asset& rhs);
+	    bool operator !=(const Asset& rhs);
+	    int hash();
+	    std::string read();
+    };
+
     class Invite {
     public:
         Invite() = default;

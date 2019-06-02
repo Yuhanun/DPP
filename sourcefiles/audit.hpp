@@ -8,7 +8,8 @@ namespace discord {
 			: target_id{ to_sf(get_value(j, "target_id", "0")) },
 			  user_id{ to_sf(get_value(j, "user_id", "0")) },
 			  id{ to_sf(get_value(j, "id", "0")) },
-			  action_type{ AuditLogEventType{ get_value(j, "action_type", AuditLogEventType{}) } } {
+			  action_type{ AuditLogEventType{ get_value(j, "action_type", AuditLogEventType{}) } },
+			  {
 			if (j.contains("changes"))
 				for (const auto& each : j["changes"])
 					changes.emplace_back(each);
