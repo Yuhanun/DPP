@@ -398,8 +398,8 @@ namespace discord {
         client c;
         client::connection_ptr con;
 
-        std::future<void> gateway_thread;
-        std::future<void> heartbeat_thread;
+        std::thread gateway_thread;
+        std::thread heartbeat_thread;
         std::future<void> client_future;
 
         std::vector<discord::Message> messages;
@@ -895,7 +895,7 @@ namespace discord {
     public:
         Role() = default;
         Role(snowflake);
-        Role(nlohmann::json, discord::Guild*);
+        Role(nlohmann::json, std::shared_ptr<discord::Guild>);
 
         void edit_position(int);
         void edit(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);

@@ -16,7 +16,7 @@ discord::Role::Role(snowflake id) {
     });
 }
 
-discord::Role::Role(nlohmann::json data, discord::Guild* g) {
+discord::Role::Role(nlohmann::json data, std::shared_ptr<discord::Guild> g) {
     hoist = data["hoist"];
     managed = data["managed"];
     mentionable = data["mentionable"];
@@ -24,7 +24,7 @@ discord::Role::Role(nlohmann::json data, discord::Guild* g) {
     name = data["name"];
     color = discord::Color(data["color"].get<int>());
     permissions = PermissionOverwrites(data["permissions"].get<int>(), 0, id, object_type::role);
-    guild = std::make_shared<discord::Guild>(*g);
+    guild = g;
 }
 
 void discord::Role::edit_position(int _new_position) {
@@ -45,7 +45,7 @@ void discord::Role::edit(std::string const& _name, PermissionOverwrites& _perms,
                              { "mentionable", _mention } }),
             get_default_headers(),
             format("%/guilds/%/roles/%", get_api(), guild->id, id)),
-        this->guild.get()
+        this->guild
     };
 }
 

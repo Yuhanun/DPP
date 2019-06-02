@@ -54,7 +54,7 @@ namespace discord {
         if (j.is_null() or not j.contains(key))
             return return_vec;
         for (const auto &it : j[key]) {
-            return_vec.emplace_back(it, std::forward<Tys>(args)...);
+            return_vec.push_back({ it, std::forward<Tys>(args)... });
         }
         return return_vec;
     }

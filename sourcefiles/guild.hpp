@@ -39,26 +39,27 @@ discord::Guild::Guild(nlohmann::json const guild)
       banner{ get_value(guild, "banner", "") },
       created_at{ time_from_discord_string(get_value(guild, "joined_at", "")) },
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
-      roles{ from_json_array<discord::Role>(guild, "roles", this) },
+      roles{ from_json_array<discord::Role>(guild, "roles", discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g){
+    return this->id == g->id;})) },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
-	if (guild.contains("members")) {
-		for (auto& each : guild["members"]) {
-			discord::Member member{
-					each,
-					discord::User(each["user"]),
-					this
-			};
-			members.emplace_back(std::make_shared<discord::Member>(member));
-			if (each["user"]["id"] == guild["owner_id"]) {
-				owner = member;
-			}
-		}
-	}
-	if (guild.contains("channels")) {
-		for (auto const& each : guild["channels"]) {
-			channels.emplace_back(std::make_shared<discord::Channel>(each, id));
-		}
-	}
+    if (guild.contains("members")) {
+        for (auto& each : guild["members"]) {
+            discord::Member member{
+                each,
+                discord::User(each["user"]),
+                this
+            };
+            members.emplace_back(std::make_shared<discord::Member>(member));
+            if (each["user"]["id"] == guild["owner_id"]) {
+                owner = member;
+            }
+        }
+    }
+    if (guild.contains("channels")) {
+        for (auto const& each : guild["channels"]) {
+            channels.emplace_back(std::make_shared<discord::Channel>(each, id));
+        }
+    }
 }
 
 std::vector<discord::Webhook> discord::Guild::get_webhooks() {
@@ -221,7 +222,7 @@ discord::Role discord::Guild::create_role(std::string const& _name, PermissionOv
                              { "mentionable", _mention } }),
             get_default_headers(),
             format("%/guilds/%/roles", get_api(), id)),
-        this
+        discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return g->id == this->id; })
     };
 }
 
