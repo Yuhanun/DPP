@@ -1,3 +1,5 @@
+#include <utility>
+
 #pragma once
 #include "discord.hpp"
 
@@ -17,4 +19,6 @@ namespace discord  {
 		// TODO: exception handling & body
 		return {};
 	}
+	Asset::Asset(std::string str)
+	: url{ std::move(str) } {}
 } // namespace discord

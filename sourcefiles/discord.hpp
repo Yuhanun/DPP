@@ -592,6 +592,7 @@ namespace discord {
     private:
     	std::string url;
     public:
+    	Asset(std::string );
     	explicit operator std::string();
     	size_t len() { return url.size(); }
     	explicit operator bool();
