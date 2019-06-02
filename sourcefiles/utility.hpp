@@ -217,7 +217,7 @@ namespace discord {
     template <typename... Tys>
     inline std::string endpoint(std::string endpoint_format, Tys &&... args) {
         endpoint_format = endpoint_format[0] == '/' ? endpoint_format : '/' + endpoint_format;
-        format(std::string("https://discordapp.com/api/v6") + endpoint_format, std::forward<Tys>(args)...);
+        return format(std::string("https://discordapp.com/api/v6") + endpoint_format, std::forward<Tys>(args)...);
     }
 
     inline std::string image_url_from_type(int asset_t, snowflake some_id, std::string second_thing = "", bool is_animated = false) {
