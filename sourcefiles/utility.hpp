@@ -252,6 +252,49 @@ namespace discord {
         return boost::posix_time::time_from_string(time_str);
     }
 
+    enum request_next_action {
+        resend_request,
+        empty_response,
+        not_modified,
+        bad_request,
+        no_auth_header,
+        forbidden,
+        invalid_method,
+        ratelimit,
+        gateway_unavailable,
+        server_error,
+        nothing
+    };
+
+    int handle_http_response(cpr::Response const &resp, nlohmann::json const &parsed_json_resp) {
+        switch (resp.status_code) {
+            case 200:
+                return request_next_action::nothing;
+            case 201:
+                return request_next_action::nothing;
+            case 204:
+                return request_next_action::empty_response;
+            case 304:
+                return request_next_action::not_modified;
+            case 400:
+                return request_next_action::bad_request;
+            case 401:
+                return request_next_action::no_auth_header;
+            case 403:
+                return request_next_action::forbidden;
+            case 405:
+                return request_next_action::invalid_method;
+            case 429:
+                std::this_thread::sleep_for(std::chrono::milliseconds(parsed_json_resp["retry_after"].get<int>() + 1));
+                return request_next_action::ratelimit;
+            case 502:
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                return request_next_action::gateway_unavailable;
+            default:
+                return request_next_action::server_error;
+        }
+    }
+
     template <size_t method>
     inline nlohmann::json send_request(const nlohmann::json &j, const cpr::Header &h, const std::string &uri) {
         auto session = cpr::Session();
@@ -278,14 +321,12 @@ namespace discord {
 #ifdef __DPP_DEBUG
         std::cout << j_resp.dump(4) << std::endl;
 #endif
-
-        if (j_resp.contains("message")) {
-            if (j_resp["message"].get<std::string>() == "You are being rate limited.") {
-                std::this_thread::sleep_for(std::chrono::milliseconds(j_resp["retry_after"].get<int>() + 1));
-                return send_request<method>(j, h, uri);
-            }
+        int to_handle = handle_http_response(response, j_resp);
+        if (to_handle == nothing) {
+            return j_resp;
+        } else if (to_handle == ratelimit || to_handle == gateway_unavailable) {
+            return send_request<method>(j, h, uri);
         }
-        return j_resp;
     }
 
     inline std::string get_os_name() {
