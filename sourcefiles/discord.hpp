@@ -228,9 +228,6 @@ namespace discord {
         std::string avatar;
         std::string mention;
         std::string discriminator;
-
-    private:
-        std::string get_create_dm_url();
     };
 
     class Member : public User {
@@ -354,8 +351,6 @@ namespace discord {
 
         std::string get_gateway_url() const;
         std::string get_identify_packet();
-        std::string get_create_guild_url() const;
-        std::string get_voice_regions_url() const;
 
         cpr::Header get_basic_header() const;
 
@@ -605,10 +600,6 @@ namespace discord {
 
         discord::Invite get_invite();
         void remove();
-
-    private:
-        std::string get_invite_url();
-        std::string get_delete_invite_url();
     };
 
 
@@ -699,16 +690,6 @@ namespace discord {
         // TODO: discord::Emoji create_emoji();
         discord::Emoji edit_emoji(discord::Emoji const&, std::string, std::vector<discord::Role> = {});
         void remove_emoji(discord::Emoji const&);
-
-    private:
-        std::string get_webhooks_url() const;
-        std::string get_leave_url();
-
-        std::string get_list_guild_emojis_url();
-        std::string get_guild_emoji(snowflake);
-        // TODO: std::string get_create_emoji_url();
-        std::string get_modify_guild_emoji_url(snowflake);
-        std::string get_delete_emoji_url(snowflake);
     };
 
     class Webhook : public Object {

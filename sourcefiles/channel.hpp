@@ -134,7 +134,7 @@ void discord::Channel::remove() {
 
 discord::Message discord::Channel::get_message(snowflake id) {
     return discord::Message{
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%/messages/%", this->id, id)
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%/messages/%", this->id, id))
     };
 }
 

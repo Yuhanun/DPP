@@ -136,56 +136,41 @@ discord::Message& discord::Message::update(nlohmann::json const j) {
     return *this;
 }
 
-std::string discord::Message::get_delete_url() const {
-    return endpoint("/%/messages/%", channel->id, id);
-}
 
 void discord::Message::remove() {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_delete_url());
-}
-
-std::string discord::Message::get_edit_url() const {
-    return endpoint("/channels/%/messages/%", channel->id, id);
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/%/messages/%", channel->id, id));
 }
 
 discord::Message discord::Message::edit(std::string content) {
     nlohmann::json j = nlohmann::json({ { "content", content }, { "tts", tts } });
-    auto response = send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
+    auto response = send_request<request_method::Patch>(j, get_default_headers(), endpoint("/channels/%/messages/%", channel->id, id));
     return discord::Message{ response };
 }
 
 discord::Message discord::Message::edit(EmbedBuilder embed, std::string content) {
     nlohmann::json j = nlohmann::json({ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } });
-    auto response = send_request<request_method::Patch>(j, get_default_headers(), get_edit_url());
+    auto response = send_request<request_method::Patch>(j, get_default_headers(), endpoint("/channels/%/messages/%", channel->id, id));
     return discord::Message{ response };
 }
 
-std::string discord::Message::get_pin_url() const {
-    return endpoint("/channels/%/pins/%", channel->id, id);
-}
-
-std::string discord::Message::get_unpin_url() const {
-    return endpoint("/channels/%/pins/%", channel->id, id);
-}
-
 void discord::Message::unpin() {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_pin_url());
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%/pins/%", channel->id, id));
 }
 
 void discord::Message::pin() {
-    send_request<request_method::Put>(nlohmann::json({}), get_default_headers(), get_pin_url());
+    send_request<request_method::Put>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%/pins/%", channel->id, id));
 }
 
 void discord::Message::add_reaction(discord::Emoji const& emote) {
-    send_request<request_method::Put>(nlohmann::json({}), get_default_headers(), get_add_reaction_url(emote));
+    send_request<request_method::Put>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id));
 }
 
 void discord::Message::remove_own_reaction(discord::Emoji const& emote) {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_add_reaction_url(emote));
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id));
 }
 
 void discord::Message::remove_reaction(discord::User const& user, discord::Emoji const& emote) {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_remove_user_reaction_url(emote, user));
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%/messages/%/reactions/%:%/%", channel->id, id, emote.name, emote.id, user.id));
 }
 
 std::vector<std::shared_ptr<discord::User>> discord::Message::get_reactions(discord::Emoji const& emote, snowflake before, snowflake after, int limit) {
@@ -199,29 +184,14 @@ std::vector<std::shared_ptr<discord::User>> discord::Message::get_reactions(disc
     }
 
     return from_json_array<std::shared_ptr<discord::User>>(
-        send_request<request_method::Get>(data, get_default_headers(), get_reactions_url(emote)));
+        send_request<request_method::Get>(data, get_default_headers(), endpoint("/channels/%/messages/%/reactions/%:%", channel->id, id, emote.name, emote.id)));
 }
 
 void discord::Message::remove_all_reactions() {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), get_remove_all_reactions_url());
+    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%/messages/%/reactions", channel->id, id));
 }
 
-std::string discord::Message::get_add_reaction_url(discord::Emoji const& emote) const {
-    return endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id);
-}
 
 std::string discord::Message::get_remove_user_url(discord::User const& user, discord::Emoji const& emote) {
-    return endpoint("/channels/%/messages/%/reactions/%:%/%", channel->id, id, emote.name, emote.id, user.id);
-}
-
-std::string discord::Message::get_reactions_url(discord::Emoji const& emote) {
-    return endpoint("/channels/%/messages/%/reactions/%:%", channel->id, id, emote.name, emote.id);
-}
-
-std::string discord::Message::get_remove_all_reactions_url() {
-    return endpoint("/channels/%/messages/%/reactions", channel->id, id);
-}
-
-std::string discord::Message::get_remove_user_reaction_url(discord::Emoji const& emote, discord::User const& user) {
     return endpoint("/channels/%/messages/%/reactions/%:%/%", channel->id, id, emote.name, emote.id, user.id);
 }
