@@ -61,7 +61,7 @@ discord::Message discord::Channel::send(std::string const &content, std::vector<
         { "content", content },
         { "tts", tts }
     }.dump();
-    multipart_data.parts.emplace_back("payload_json", payload_json.substr(1, payload_json.size() - 2));
+    multipart_data.parts.emplace_back("payload_json", payload_json);
 
     auto response = cpr::Post(
                         cpr::Url(get_channel_link(id)),
@@ -80,14 +80,28 @@ discord::Message discord::Channel::send(std::string const &content, std::vector<
 }
 
 discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<File> const &files, bool tts, std::string const &content) const {
-    (void)files;
-    nlohmann::json j = nlohmann::json({ { "embed", embed.to_json() }, { "tts", tts } });
+    cpr::Multipart multipart_data{};
 
-    if (content != "") {
-        j["content"] = content;
+    for (size_t i = 0; i < files.size(); i++) {
+        multipart_data.parts.emplace_back("file", cpr::File{ files[i].file }, "application/octet-stream");
     }
 
-    return discord::detail::bot_instance->send_message(id, j, tts);
+    multipart_data.parts.emplace_back("payload_json", nlohmann::json{ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } }.dump());
+
+    auto response = cpr::Post(
+                        cpr::Url(get_channel_link(id)),
+                        cpr::Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
+                                     { "Content-Type", "multipart/form-data" },
+                                     { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
+                                     { "Connection", "keep-alive" } },
+                        multipart_data)
+                        .text;
+                        
+#ifdef __DPP_DEBUG
+    std::cout << response << std::endl;
+#endif
+
+    return discord::Message{ nlohmann::json::parse(response) };
 }
 
 std::string discord::Channel::get_bulk_delete_url() const {

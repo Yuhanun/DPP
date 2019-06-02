@@ -24,24 +24,6 @@ int main() {
                                                                        << "ID: " << bot.id << std::endl
                                                                        << "-----------------------------" << std::endl; });
 
-    // auto l = [](discord::Message m) {
-    //     std::stringstream s;
-    //     s << "Embeds: " << m.embeds.size() << std::endl
-    //       << "Attachments: " << m.attachments.size() << std::endl
-    //       << "Content: " << m.content << std::endl
-    //       << "Created at: " << m.timestamp << std::endl
-    //       << "Edited at: " << m.edited_timestamp << std::endl;
-    //     if (m.author) {
-    //         s << "Author: " << m.author->name << "#" << m.author->discriminator << std::endl;
-    //     }
-    //     s << "-----------------------------" << std::endl;
-    //     std::printf("%s", s.str().c_str());
-    // };
-
-    // bot.register_callback<discord::events::message_create>(l);
-    // bot.register_callback<discord::events::message_update>(l);
-    // bot.register_callback<discord::events::message_delete>(l);
-
 
     bot.register_command("test", [](discord::Context const&) {
         std::cout << discord::Object{ 500 } << std::endl;
