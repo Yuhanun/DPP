@@ -1,10 +1,6 @@
 Gateway:
     Caching
 
-REST:
-    Audit logs:
-        Most structs done, just big parsing thing left.
-
 General:
     Complete ASYNC
     Complete rewrite to cpprestsdk

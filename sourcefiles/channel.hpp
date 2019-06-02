@@ -1,4 +1,5 @@
 #pragma once
+#include <cpr/cpr.h>
 #include "discord.hpp"
 #include "invite.hpp"
 #include "permissions.hpp"
@@ -49,11 +50,37 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
     id = to_sf(get_value(data, "id", "0"));
 }
 
-discord::Message discord::Channel::send(std::string const &content, bool tts) const {
-    return discord::detail::bot_instance->send_message(id, content, tts);
+discord::Message discord::Channel::send(std::string const &content, std::vector<File> const &files, bool tts) const {
+    cpr::Multipart multipart_data{};
+
+    for (size_t i = 0; i < files.size(); i++) {
+        multipart_data.parts.emplace_back("file", cpr::File{ files[i].file }, "application/octet-stream");
+    }
+
+    auto payload_json = nlohmann::json{
+        { "content", content },
+        { "tts", tts }
+    }.dump();
+    multipart_data.parts.emplace_back("payload_json", payload_json.substr(1, payload_json.size() - 2));
+
+    auto response = cpr::Post(
+                        cpr::Url(get_channel_link(id)),
+                        cpr::Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
+                                     { "Content-Type", "multipart/form-data" },
+                                     { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
+                                     { "Connection", "keep-alive" } },
+                        multipart_data)
+                        .text;
+
+#ifdef __DPP_DEBUG
+    std::cout << response << std::endl;
+#endif
+
+    return discord::Message{ nlohmann::json::parse(response) };
 }
 
-discord::Message discord::Channel::send(EmbedBuilder const &embed, bool tts, std::string const &content) const {
+discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<File> const &files, bool tts, std::string const &content) const {
+    (void)files;
     nlohmann::json j = nlohmann::json({ { "embed", embed.to_json() }, { "tts", tts } });
 
     if (content != "") {

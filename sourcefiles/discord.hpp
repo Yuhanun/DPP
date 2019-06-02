@@ -206,6 +206,12 @@ namespace discord {
         std::string proxy_url;
     };
 
+    struct File {
+        std::string file;
+        std::string filename;
+        bool spoiler;
+    };
+
     class User : public Object {
     public:
         User() = default;
@@ -432,8 +438,8 @@ namespace discord {
 
         Channel(nlohmann::json const, snowflake);
 
-        discord::Message send(std::string const&, bool = false) const;
-        discord::Message send(EmbedBuilder const&, bool = false, std::string const& = "") const;
+        discord::Message send(std::string const&, std::vector<File> const& = {}, bool = false) const;
+        discord::Message send(EmbedBuilder const&, std::vector<File> const& = {}, bool = false, std::string const& = "") const;
         discord::Message get_message(snowflake);
         discord::Invite create_invite(int = 86400, int = 0, bool = false, bool = false) const;
         std::vector<discord::Invite> get_invites();

@@ -79,9 +79,7 @@ void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl &, const
             heartbeat_acked = true;
             break;
         default:
-            std::string event_name = get_value(j, "t", "WRONG_EVENT");
-            std::cout << "Event: " << event_name << std::endl;
-            handle_event(j, event_name);
+            handle_event(j, get_value(j, "t", ""));
             break;
     }
     packet_counter++;

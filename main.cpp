@@ -16,7 +16,7 @@ int main() {
     std::ifstream file("token.txt");
     std::string token;
     std::getline(file, token);
-    discord::Bot bot{ token, "." };
+    discord::Bot bot{ token, ">" };
 
     bot.register_callback<discord::events::ready>([&bot]() { std::cout << "Ready!" << std::endl
                                                                        << "Logged in as: " << bot.username << "#" << bot.discriminator
@@ -43,19 +43,12 @@ int main() {
     // bot.register_callback<discord::events::message_delete>(l);
 
 
-    bot.register_command("test", [](discord::Context const& ctx) {
-        std::cout << ctx.message << std::endl;
+    bot.register_command("test", [](discord::Context const&) {
+        std::cout << discord::Object{ 500 } << std::endl;
     });
 
-
     bot.register_command("help", [](discord::Context const& ctx) {
-        ctx.send(discord::EmbedBuilder{}
-                     .set_color(0xFFFFFF)
-                     .set_description("Currently testing a different bot module for discord.\nhttps://github.com/yuhanun/dpp")
-                     .set_author(
-                         "Discord++",
-                         "https://github.com/yuhanun/dpp",
-                         ctx.author->avatar));
+        ctx.channel->send("hello", { { "todo.txt", "todo.txt", false } }, false);
     });
 
     bot.run();
