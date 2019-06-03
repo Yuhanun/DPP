@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <variant>
 #include <unordered_map>
 
 #include <boost/asio.hpp>
@@ -130,7 +131,6 @@ namespace discord {
         }
 
         snowflake id;
-
 
         bool operator==(const Object& other) const {
             return this->id == other.id;
@@ -858,12 +858,107 @@ namespace discord {
         PermissionOverwrites permissions;
     };
 
+    struct Err {
+        std::string error;
+        int resp_code;
+        Err(std::string err, int err_code)
+            : error{ std::move(err) }, resp_code{ err_code } {
+        }
+    };
+
+    template <typename T>
+    struct Ok {
+        Ok(T val)
+            : value{ std::move(val) } {
+        }
+        T value;
+    };
+
+    template <typename T>
+    struct Result {
+    private:
+        std::variant<Err, T> var_obj;
+        bool _is_ok;
+
+    public:
+        Result(Ok<T> const& value)
+            : _is_ok{ true }, var_obj{ value.value } {
+        }
+
+        Result(Err const& error)
+            : _is_ok{ false }, var_obj{ error } {
+        }
+
+        ~Result(){};
+
+        Result& operator=(Result&& other) = default;
+        Result& operator=(Result const& other) = default;
+
+        Result(Result&& other) {
+            _is_ok = other.is_ok();
+            if (is_ok()) {
+                var_obj = std::move(other.val);
+            } else {
+                var_obj = std::move(other.err);
+            }
+        }
+
+        Result(Result const& other) {
+            _is_ok = other.is_ok();
+            if (is_ok()) {
+                var_obj = other.val;
+            } else {
+                var_obj = other.err;
+            }
+        }
+
+        auto is_ok() const noexcept -> bool {
+            return _is_ok;
+        }
+
+        auto is_err() const noexcept -> bool {
+            return !is_ok();
+        }
+
+        auto unwrap() const -> T const& {
+            if (is_ok()) {
+                return std::get<T>(var_obj);
+            }
+            throw std::runtime_error{ std::to_string(std::get<Err>(var_obj).resp_code) + std::string(": ") + std::get<Err>(var_obj).error };
+        }
+
+        auto unwrap_or(T const& value) const noexcept -> T const& {
+            if (is_ok()) {
+                return std::get<T>(var_obj);
+            }
+            return value;
+        }
+
+        auto expect(std::string const& msg) const -> T const& {
+            if (!is_ok()) {
+                throw std::runtime_error{ msg };
+            }
+            return std::get<T>(var_obj);
+        }
+
+        auto unwrap_err() const -> Err {
+            if (is_ok()) {
+                throw std::runtime_error{
+                    "Error was unwrapped when contained value was \"Ok\""
+                };
+            }
+            return std::get<Err>(var_obj);
+        }
+
+        auto expect_err(std::string const& msg) const -> Err const& {
+            if (!is_err()) {
+                throw std::runtime_error{ msg };
+            }
+            return std::get<Err>(var_obj);
+        }
+    };
+
     class ImproperToken : public std::exception {
         const char* what() const throw();
     };
-
-    class UnknownChannel : public std::exception {
-        const char* what() const throw();
-    };
-
 }  // namespace discord
