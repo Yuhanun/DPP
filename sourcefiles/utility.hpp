@@ -267,7 +267,7 @@ namespace discord {
         return boost::posix_time::time_from_string(time_str);
     }
 
-    enum request_next_action {
+    enum class request_next_action {
         resend_request,
         empty_response,
         not_modified,
@@ -281,7 +281,7 @@ namespace discord {
         nothing
     };
 
-    int handle_http_response(cpr::Response const &resp, nlohmann::json const &parsed_json_resp) {
+    request_next_action handle_http_response(cpr::Response const &resp, nlohmann::json const &parsed_json_resp) {
         switch (resp.status_code) {
             case 200:
                 return request_next_action::nothing;
@@ -336,10 +336,10 @@ namespace discord {
 #ifdef __DPP_DEBUG
         std::cout << j_resp.dump(4) << std::endl;
 #endif
-        int to_handle = handle_http_response(response, j_resp);
-        if (to_handle == nothing) {
+        request_next_action to_handle = handle_http_response(response, j_resp);
+        if (to_handle == request_next_action::nothing) {
             return j_resp;
-        } else if (to_handle == ratelimit || to_handle == gateway_unavailable) {
+        } else if (to_handle == request_next_action::ratelimit || to_handle == request_next_action::gateway_unavailable) {
             return send_request<method>(j, h, uri);
         } else {
             return j_resp;

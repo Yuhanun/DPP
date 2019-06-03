@@ -64,7 +64,7 @@ discord::Message discord::Channel::send(std::string const &content, std::vector<
     multipart_data.parts.emplace_back("payload_json", payload_json);
 
     auto response = cpr::Post(
-                        cpr::Url(get_channel_link(id)),
+                        cpr::Url{ endpoint("/channels/%/messages", id) },
                         cpr::Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
                                      { "Content-Type", "multipart/form-data" },
                                      { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
@@ -89,7 +89,7 @@ discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<F
     multipart_data.parts.emplace_back("payload_json", nlohmann::json{ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } }.dump());
 
     auto response = cpr::Post(
-                        cpr::Url(get_channel_link(id)),
+                        cpr::Url{ endpoint("/channels/%/messages", id) },
                         cpr::Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
                                      { "Content-Type", "multipart/form-data" },
                                      { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
