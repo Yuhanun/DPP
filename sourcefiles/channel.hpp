@@ -72,11 +72,12 @@ discord::Message discord::Channel::send(std::string const &content, std::vector<
                         multipart_data)
                         .text;
 
-#ifdef __DPP_DEBUG
-    std::cout << response << std::endl;
-#endif
+    auto parsed = response.size() > 0 ? nlohmann::json::parse(response) : nlohmann::json({});
 
-    return discord::Message{ nlohmann::json::parse(response) };
+#ifdef __DPP_DEBUG
+    std::cout << parsed.dump(4) << std::endl;
+#endif
+    return discord::Message{ parsed };
 }
 
 discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<File> const &files, bool tts, std::string const &content) const {
@@ -97,11 +98,12 @@ discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<F
                         multipart_data)
                         .text;
 
-#ifdef __DPP_DEBUG
-    std::cout << response << std::endl;
-#endif
+    auto parsed = response.size() > 0 ? nlohmann::json::parse(response) : nlohmann::json({});
 
-    return discord::Message{ nlohmann::json::parse(response) };
+#ifdef __DPP_DEBUG
+    std::cout << parsed.dump(4) << std::endl;
+#endif
+    return discord::Message{ parsed };
 }
 
 void discord::Channel::bulk_delete(std::vector<discord::Message> &m) {
