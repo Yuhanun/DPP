@@ -174,7 +174,7 @@ namespace discord {
         return cpr::Header{
             { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
             { "Content-Type", "application/json" },
-            { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
+            { "User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)" },
             { "Connection", "keep-alive" }
         };
     }
@@ -344,6 +344,12 @@ namespace discord {
         } else {
             return j_resp;
         }
+    }
+
+    inline std::string read_entire_file(std::string const &filename) {
+        std::ifstream ifs(filename);
+        return std::string((std::istreambuf_iterator<char>(ifs)),
+                           (std::istreambuf_iterator<char>()));
     }
 
     inline std::string get_os_name() {

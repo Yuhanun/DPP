@@ -207,8 +207,8 @@ namespace discord {
     };
 
     struct File {
-        std::string file;
         std::string filename;
+        std::string filepath;
         bool spoiler;
     };
 

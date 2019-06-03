@@ -49,3 +49,4 @@ ipch/*
 
 *.clang-format
 token.txt
+*.png

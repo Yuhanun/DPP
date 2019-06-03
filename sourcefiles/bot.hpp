@@ -89,11 +89,14 @@ void discord::Bot::handle_gateway() {
     std::string hostname = "discord.gg";
     std::string uri = get_gateway_url();
     try {
-        // c.set_access_channels(websocketpp::log::alevel::none)
+
+#ifdef __DPP_DEBUG
         c.set_access_channels(websocketpp::log::alevel::all);
         c.clear_access_channels(websocketpp::log::alevel::frame_payload);
         c.set_error_channels(websocketpp::log::elevel::all);
-
+#else
+        c.set_access_channels(websocketpp::log::alevel::none)
+#endif
         c.init_asio();
 
         c.set_message_handler(std::bind(&Bot::on_incoming_packet, this, websocketpp::lib::placeholders::_1, websocketpp::lib::placeholders::_2));

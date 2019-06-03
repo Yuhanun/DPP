@@ -30,7 +30,7 @@ int main() {
     });
 
     bot.register_command("help", [](discord::Context const& ctx) {
-        ctx.channel->send("hello", { { "todo.txt", "todo.txt", false } }, false);
+        ctx.channel->send("hello", { { "random_test.png", "Test.png", true } }, false);
     });
 
     bot.run();

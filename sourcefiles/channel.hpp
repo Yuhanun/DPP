@@ -54,7 +54,14 @@ discord::Message discord::Channel::send(std::string const &content, std::vector<
     cpr::Multipart multipart_data{};
 
     for (size_t i = 0; i < files.size(); i++) {
-        multipart_data.parts.emplace_back("file", cpr::File{ files[i].file }, "application/octet-stream");
+        std::string entire_file = read_entire_file(files[i].filepath);
+        std::string custom_filename{ files[i].spoiler ? "SPOILER_" : "" };
+        multipart_data.parts.emplace_back("file" + std::to_string(i),
+                                          cpr::Buffer{
+                                              entire_file.begin(),
+                                              entire_file.end(),
+                                              custom_filename + files[i].filename },
+                                          "application/octet-stream");
     }
 
     auto payload_json = nlohmann::json{
@@ -64,10 +71,11 @@ discord::Message discord::Channel::send(std::string const &content, std::vector<
     multipart_data.parts.emplace_back("payload_json", payload_json);
 
     auto response = cpr::Post(
+                        // cpr::Url{ "https://enoq8tobmbkdqqu.m.pipedream.net" },
                         cpr::Url{ endpoint("/channels/%/messages", id) },
                         cpr::Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
                                      { "Content-Type", "multipart/form-data" },
-                                     { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
+                                     { "User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)" },
                                      { "Connection", "keep-alive" } },
                         multipart_data)
                         .text;
@@ -84,7 +92,13 @@ discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<F
     cpr::Multipart multipart_data{};
 
     for (size_t i = 0; i < files.size(); i++) {
-        multipart_data.parts.emplace_back("file", cpr::File{ files[i].file }, "application/octet-stream");
+        std::string entire_file = read_entire_file(files[i].filepath);
+        std::string custom_filename{ files[i].spoiler ? "SPOILER_" : "" };
+        multipart_data.parts.emplace_back("file" + std::to_string(i),
+                                          cpr::Buffer{ entire_file.begin(),
+                                                       entire_file.end(),
+                                                       custom_filename + files[i].filename },
+                                          "application/octet-stream");
     }
 
     multipart_data.parts.emplace_back("payload_json", nlohmann::json{ { "content", content }, { "tts", tts }, { "embed", embed.to_json() } }.dump());
@@ -93,7 +107,7 @@ discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<F
                         cpr::Url{ endpoint("/channels/%/messages", id) },
                         cpr::Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
                                      { "Content-Type", "multipart/form-data" },
-                                     { "User-Agent", "DiscordPP (http://www.github.com/yuhanun/dpp, 0.0.0)" },
+                                     { "User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)" },
                                      { "Connection", "keep-alive" } },
                         multipart_data)
                         .text;
