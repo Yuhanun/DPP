@@ -774,7 +774,7 @@ namespace discord {
         EmbedBuilder& set_description(std::string const&);
         EmbedBuilder& set_url(std::string const&);
         EmbedBuilder& set_timestamp(std::string const&);
-        EmbedBuilder& set_color(const Color);
+        EmbedBuilder& set_color(const discord::Color);
         EmbedBuilder& set_footer(std::string const&, std::string const&);
         EmbedBuilder& set_image(std::string const&, const int = -1, const int = -1);
         EmbedBuilder& set_thumbnail(std::string const&, const int = -1, const int = -1);

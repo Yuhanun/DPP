@@ -5,6 +5,8 @@
 #include "discord.hpp"
 #include "nlohmann/json.hpp"
 
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace discord {
@@ -235,6 +237,17 @@ namespace discord {
         return format(std::string("https://discordapp.com/api/v6") + endpoint_format, std::forward<Tys>(args)...);
     }
 
+    inline std::string get_file_extension(std::string const &f_name) {
+        auto extension = f_name.substr(f_name.find_last_of('.') + 1);
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+        return extension;
+    }
+
+    inline bool is_image_or_gif(std::string const& f_name) {
+        auto extension = get_file_extension(f_name);
+        return (extension == "png" || extension == "jpeg" || extension == "jpg" || extension == "webp" || extension == "gif");
+    }
+
     inline std::string image_url_from_type(int asset_t, snowflake some_id, std::string second_thing = "", bool is_animated = false) {
         switch (asset_t) {
             case custom_emoji:
@@ -352,6 +365,13 @@ namespace discord {
                            (std::istreambuf_iterator<char>()));
     }
 
+    inline std::string encode64(const std::string &val) {
+        using namespace boost::archive::iterators;
+        using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+        auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
+        return tmp.append((3 - val.size() % 3) % 3, '=');
+    }
+
     inline std::string get_os_name() {
 #ifdef _WIN32
         return "Windows 32-bit";
@@ -361,8 +381,6 @@ namespace discord {
         return "Unix";
 #elif __APPLE__ || __MACH__
         return "Mac OSX";
-#elif __linux__
-        return "Linux";
 #elif __FreeBSD__
         return "FreeBSD";
 #else

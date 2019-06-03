@@ -29,8 +29,12 @@ int main() {
         std::cout << discord::Object{ 500 } << std::endl;
     });
 
-    bot.register_command("help", [](discord::Context const& ctx) {
-        ctx.channel->send("hello", { { "random_test.png", "Test.png", true } }, false);
+    bot.register_command("image", [](discord::Context const& ctx) {
+        ctx.channel->send("Here is an image!", { { "", "Test.png", false }, { "", "Test.png", false }, { "test.txt", "todo.txt", false }, { "test2.txt", "todo.txt", false } }, false);
+    });
+
+    bot.register_command("file", [](discord::Context const& ctx) {
+        ctx.channel->send("Here is a file!", { { "test.txt", "todo.txt", true } }, false);
     });
 
     bot.run();
