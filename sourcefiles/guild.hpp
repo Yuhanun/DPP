@@ -301,11 +301,10 @@ std::string discord::Guild::get_vanity_invite_url() {
 }
 
 
-std::string discord::Guild::get_widget_image(std::string const& style) {
-    return cpr::Get(
-               cpr::Url{
-                   endpoint("/guilds/%/widget.png?style=%", id, style) })
-        .text;
+discord::Asset discord::Guild::get_widget_image(std::string const& style) {
+    discord::Asset a{};
+    a.url = endpoint("/guilds/%/widget.png?style=%", id, style);
+    return a;
 }
 
 

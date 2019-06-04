@@ -652,8 +652,8 @@ namespace discord {
         snowflake edit_embed(snowflake = -1);
 
         std::string get_vanity_invite_url();
-        // TODO: turn into an Asset<>
-        std::string get_widget_image(std::string const&);
+        
+        discord::Asset get_widget_image(std::string const&);
         std::vector<discord::Integration> get_integrations();
         void create_integration(discord::Integration const&);
         void edit_integration(discord::Integration const&, int, int, bool);
