@@ -9,6 +9,7 @@
 #include "integration.hpp"
 #include "message.hpp"
 #include "nlohmann/json.hpp"
+#include "assets.hpp"
 
 discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
     : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
@@ -95,7 +96,7 @@ void discord::Bot::handle_gateway() {
         c.clear_access_channels(websocketpp::log::alevel::frame_payload);
         c.set_error_channels(websocketpp::log::elevel::all);
 #else
-        c.set_access_channels(websocketpp::log::alevel::none)
+        c.set_access_channels(websocketpp::log::alevel::none);
 #endif
         c.init_asio();
 
@@ -189,7 +190,14 @@ void discord::Bot::initialize_variables(const std::string raw) {
     mfa_enabled = user["mfa_enabled"];
     bot = user["bot"];
     username = user["username"];
-    avatar = get_value(j, "avatar", "");
+    if (j.contains("avatar")) {
+        if (j["avatar"].is_null()) {
+            avatar = { "", default_user_avatar, false, to_sf(discriminator) };
+        } else {
+            std::string av_hash = j["avatar"];
+            avatar = { j["avatar"], user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
+        }
+    }
     email = get_value(j, "email", "");
 }
 

@@ -42,7 +42,7 @@ namespace discord {
     }
 
     bool Asset::animated() const {
-        return animated;
+        return _animated;
     }
 
     std::string Asset::hash() const {
@@ -53,11 +53,11 @@ namespace discord {
         return obj_id;
     }
 
-    explicit Asset::operator bool() const {
+    Asset::operator bool() const {
         return !url.empty();
     }
 
-    explicit Asset::operator std::string() const {
+    Asset::operator std::string() const {
         return url;
     }
 

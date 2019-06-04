@@ -3,6 +3,7 @@
 #include "color.hpp"
 #include "discord.hpp"
 #include "utility.hpp"
+#include "assets.hpp"
 
 
 discord::User::User(snowflake id)
@@ -21,7 +22,7 @@ discord::User::User(nlohmann::json const j) {
     id = to_sf(j["id"]);
     if (j.contains("avatar")) {
         if (j["avatar"].is_null()) {
-            avatar = { "", default_user_avatar, to_sf(discriminator) };
+            avatar = { "", default_user_avatar, false, to_sf(discriminator) };
         } else {
             std::string av_hash = j["avatar"];
             avatar = { j["avatar"], user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
