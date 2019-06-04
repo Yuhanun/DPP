@@ -19,7 +19,14 @@ discord::User::User(nlohmann::json const j) {
     bot = j.contains("bot");
     discriminator = j["discriminator"];
     id = to_sf(j["id"]);
-    avatar = format("https://cdn.discordapp.com/avatars/%/%.png", this->id, get_value(j, "avatar", ""));
+    if (j.contains("avatar")) {
+        if (j["avatar"].is_null()) {
+            avatar = { "", default_user_avatar, to_sf(discriminator) };
+        } else {
+            std::string av_hash = j["avatar"];
+            avatar = { j["avatar"], user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
+        }
+    }
     name = j["username"];
     mention = "<@" + std::to_string(id) + ">";
 }

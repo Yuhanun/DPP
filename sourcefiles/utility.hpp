@@ -248,24 +248,24 @@ namespace discord {
         return (extension == "png" || extension == "jpeg" || extension == "jpg" || extension == "webp" || extension == "gif");
     }
 
-    inline std::string image_url_from_type(int asset_t, snowflake some_id, std::string second_thing = "", bool is_animated = false) {
+    inline std::string image_url_from_type(int asset_t, snowflake some_id, std::string hash = "", bool is_animated = false) {
         switch (asset_t) {
             case custom_emoji:
                 return format(is_animated ? "%/emojis/%.gif" : "%/emojis/%.png", get_cdn_url(), some_id);
             case guild_icon:
-                return format("%/icons/%/%.png", get_cdn_url(), some_id, second_thing);
+                return format("%/icons/%/%.png", get_cdn_url(), some_id, hash);
             case guild_splash:
-                return format("%/splashes/%/%.png", get_cdn_url(), some_id, second_thing);
+                return format("%/splashes/%/%.png", get_cdn_url(), some_id, hash);
             case guild_banner:
-                return format("%/banners/%/%.png", get_cdn_url(), some_id, second_thing);
+                return format("%/banners/%/%.png", get_cdn_url(), some_id, hash);
             case default_user_avatar:
                 return format("%/embed/avatars/%.png", get_cdn_url(), some_id % 5);
             case user_avatar:
-                return format(is_animated ? "%/avatars/%/%.gif" : "%/avatars/%/%.png", get_cdn_url(), some_id, second_thing);
+                return format(is_animated ? "%/avatars/%/%.gif" : "%/avatars/%/%.png", get_cdn_url(), some_id, hash);
             case application_icon:
-                return format("%/app-cons/%/%.png", get_cdn_url(), some_id, second_thing);
+                return format("%/app-cons/%/%.png", get_cdn_url(), some_id, hash);
             case application_asset:
-                return format("%/app-assets/%/%.png", get_cdn_url(), some_id, second_thing);
+                return format("%/app-assets/%/%.png", get_cdn_url(), some_id, hash);
             default:
                 assert(false && "Invalid asset type");
         }

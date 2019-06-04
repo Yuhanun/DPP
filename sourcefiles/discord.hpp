@@ -225,8 +225,8 @@ namespace discord {
 
         std::string name;
 
-        std::string avatar;
         std::string mention;
+        discord::Asset avatar;
         std::string discriminator;
     };
 
@@ -573,7 +573,8 @@ namespace discord {
         bool _animated;
 
     public:
-        Asset(std::string const&, int, bool = false, snowflake = 0, std::string const& = "");
+        Asset() = default;
+        Asset(std::string const&, int, bool = false, snowflake = 0);
 
         int type() const;
         std::string read();

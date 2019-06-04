@@ -6,12 +6,12 @@
 
 namespace discord {
 
-    Asset::Asset(std::string const& input, int asset_t, bool animat, snowflake some_id, std::string const& add_data)
+    Asset::Asset(std::string const& hash_or_url, int asset_t, bool animat, snowflake some_id)
         : asset_type{ asset_t }, _animated{ animat } {
         if (some_id == 0) {
-            url = input;
+            url = hash_or_url;
         } else {
-            url = image_url_from_type(asset_t, some_id, add_data, animat);
+            url = image_url_from_type(asset_t, some_id, hash_or_url, animat);
         }
     }
 
