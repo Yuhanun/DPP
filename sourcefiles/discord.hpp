@@ -144,11 +144,11 @@ namespace discord {
             return !(std::forward<T>(other) == this);
         }
 
-        operator snowflake() const {
+        explicit operator snowflake() const {
             return id;
         }
 
-        friend std::ostream& operator<<(std::ostream& stream, Object& o) {
+        friend std::ostream& operator<<(std::ostream& stream, Object const& o) {
             return stream << "<discord::Object id=" << o.id << " at " << &o << ">";
         }
     };
