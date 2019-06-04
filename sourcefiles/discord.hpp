@@ -520,9 +520,9 @@ namespace discord {
         std::string name;
         discord::Asset icon;
         discord::Asset splash;
-        snowflake owner_id;
+        discord::User owner; //
         std::string region;
-        snowflake afk_channel_id;
+        std::shared_ptr<discord::Channel> afk_channel; //
         int afk_timeout;
         int mfa_level;
         int verification_level;
@@ -531,20 +531,21 @@ namespace discord {
         std::string vanity_url_code;
         int prune_delete_days;
         bool widget_enabled;
-        snowflake widget_channel_id;
+        std::shared_ptr<discord::Channel> widget_channel;  //
         int position;
         std::string topic;
         int bitrate;
         bool nsfw;
         snowflake application_id;
-        int permission;
+        std::string permissions;
+        std::vector<discord::PermissionOverwrites> permission_overwrites; //
         int color;
         bool hoist;
         bool mentionable;
         int allow;
         int deny;
         std::string code;
-        snowflake channel_id;
+        std::shared_ptr<discord::Channel> channel;
         int max_uses;
         int uses;
         int max_age;
@@ -814,6 +815,7 @@ namespace discord {
         PermissionOverwrite(int, int);
         PermissionOverwrite& add_permission(std::string const&);
 
+        bool has_permission(std::string const&);
         void calculate_value();
         void set_table();
 
@@ -828,6 +830,7 @@ namespace discord {
         PermissionOverwrites() = default;
         PermissionOverwrites(int, int, snowflake, int);
         PermissionOverwrites(snowflake, int);
+        // PermissionOverwrites(int, snowflake, int);
 
         PermissionOverwrites& add_permission(std::string const&, int);
 

@@ -11,19 +11,25 @@ void discord::PermissionOverwrite::calculate_value() {
     value = 0;
     for (auto const& each : ows) {
         if (each.second == allow_type) {
-            value |= discord::permission_overwrites[each.first];
+            value |= discord::utils::permission_overwrites[each.first];
         }
     }
 }
 
 void discord::PermissionOverwrite::set_table() {
     ows.clear();
-    for (auto const& each : discord::permission_overwrites) {
+    for (auto const& each : discord::utils::permission_overwrites) {
         if ((value & each.second) == value) {
             ows[each.first] = allow_type;
         }
     }
 }
+
+bool discord::PermissionOverwrite::has_permission(std::string const& perm_name) {
+    int val = utils::permission_overwrites[perm_name];
+    return (value & val) == val;
+}
+
 
 discord::PermissionOverwrite& discord::PermissionOverwrite::add_permission(std::string const& name) {
     ows[name] = allow_type;
@@ -55,6 +61,7 @@ discord::PermissionOverwrites& discord::PermissionOverwrites::add_permission(std
     } else if (allow_type == deny_perms.allow_type) {
         deny_perms.add_permission(name);
     }
+
     this->base_permissions = 0;
     this->base_permissions &= ~deny_perms.value;
     this->base_permissions |= allow_perms.value;
