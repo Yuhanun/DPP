@@ -9,12 +9,20 @@ discord::Webhook::Webhook(nlohmann::json const data)
       guild{ to_sf(get_value(data, "guild_id", "0")) },
       channel{ to_sf(get_value(data, "channel_id", "0")) },
       name{ get_value(data, "name", "") },
-      avatar{ get_value(data, "avatar", "") },
       token{ get_value(data, "token", "") } {
     if (!data.contains("user")) {
         user = std::nullopt;
     } else {
         user = discord::User{ data["user"] };
+    }
+
+    if (data.contains("avatar")) {
+        if (data["avatar"].is_null()) {
+            avatar = { "", default_user_avatar, false, static_cast<snowflake>(0) };
+        } else {
+            std::string av_hash = data["avatar"];
+            avatar = { av_hash, user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
+        }
     }
 }
 

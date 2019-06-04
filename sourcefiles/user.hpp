@@ -25,7 +25,7 @@ discord::User::User(nlohmann::json const j) {
             avatar = { "", default_user_avatar, false, to_sf(discriminator) };
         } else {
             std::string av_hash = j["avatar"];
-            avatar = { j["avatar"], user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
+            avatar = { av_hash, user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
         }
     }
     name = j["username"];

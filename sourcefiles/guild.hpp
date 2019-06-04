@@ -34,9 +34,7 @@ discord::Guild::Guild(nlohmann::json const guild)
       id{ to_sf(guild["id"]) },
       application_id{ to_sf(get_value(guild, "application_id", "0")) },
       name{ get_value(guild, "name", "") },
-      icon{ get_value(guild, "icon", "") },
       region{ get_value(guild, "region", "") },
-      banner{ get_value(guild, "banner", "") },
       created_at{ time_from_discord_string(get_value(guild, "joined_at", "")) },
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
       roles{ from_json_array<discord::Role>(guild, "roles", discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; })) },
@@ -54,6 +52,21 @@ discord::Guild::Guild(nlohmann::json const guild)
             }
         }
     }
+
+    if (guild.contains("icon")) {
+        std::string av_hash = guild["icon"];
+        icon = Asset{
+            av_hash, guild_icon, av_hash[0] == 'a' && av_hash[1] == '_', id
+        };
+    }
+
+    if (guild.contains("banner")) {
+        std::string av_hash = guild["banner"];
+        icon = Asset{
+            av_hash, guild_banner, av_hash[0] == 'a' && av_hash[1] == '_', id
+        };
+    }
+
     if (guild.contains("channels")) {
         for (auto const& each : guild["channels"]) {
             channels.emplace_back(std::make_shared<discord::Channel>(each, id));

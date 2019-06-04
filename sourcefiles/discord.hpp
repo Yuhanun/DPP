@@ -674,9 +674,9 @@ namespace discord {
         snowflake application_id;
 
         std::string name;
-        std::string icon;
         std::string region;
-        std::string banner;
+        discord::Asset icon;
+        discord::Asset banner;
         datetime created_at{ boost::local_time::not_a_date_time };
         std::string vanity_url_code;
 
@@ -711,7 +711,7 @@ namespace discord {
         discord::Channel channel;
         std::optional<discord::User> user;
         std::string name;
-        std::string avatar;
+        discord::Asset avatar;
         std::string token;
 
         // TODO: avatar edit for both
