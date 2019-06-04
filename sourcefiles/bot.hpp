@@ -387,23 +387,28 @@ void discord::Bot::channel_pins_update_event(nlohmann::json data) {
 
 void discord::Bot::guild_create_event(nlohmann::json data) {
     snowflake guild_id = to_sf(data["id"]);
-    // auto guild = discord::utils::get()
-
-    for (auto const &member : data["members"]) {
-        auto mem_id = to_sf(member["user"]["id"]);
-        for (auto const &each : this->users) {
-            if (*each == mem_id) {
-                break;
-            }
-        }
-        users.emplace_back(std::make_shared<discord::User>(member["user"]));
+    auto guild = discord::utils::get(guilds, [guild_id](auto &gld) { return gld->id == guild_id });
+    if (guild) {
+        guild->update(data);
+        return func_holder.call<events::guild_create>(futures, ready, guild);
     }
 
-    auto guild = discord::Guild(data);
-    guilds.emplace_back(std::make_shared<discord::Guild>(data));
+    auto guild = std::make_shared<discord::Guild>(data);
+    guilds.push_back(guild);
+
+    for (auto const &member : data["members"]) {
+        auto usr_id = to_sf(data["user"]["id"]);
+        auto usr = std::make_shared<discord::User>(member["user"]);
+        if (std::find_if(users.begin(), users.end(),
+                         [usr_id](auto const &usr_ptr) { return usr_ptr->id == usr_id; }) != users.end()) {
+            users.push_back(usr);
+        }
+    }
 
     for (auto const &channel : data["channels"]) {
-        channels.emplace_back(std::make_shared<discord::Channel>(channel, guild_id));
+        auto chan = std::make_shared<discord::Channel>(channel, guild_id);
+        channels.push_back(chan);
+        guild->channels.push_back(chan);
     }
 
     if (!ready) {
@@ -414,28 +419,28 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
             }
         }
         ready = true;
-        func_holder.call<events::ready>(futures, true);
+        func_holder.call<events::ready>(futures, ready);
     }
     func_holder.call<events::guild_create>(futures, ready, guild);
 }
 
 void discord::Bot::guild_update_event(nlohmann::json data) {
-    snowflake new_guild = to_sf(data["id"]);
-    Guild g;
-    for (auto &each : guilds) {
-        if (new_guild == each->id) {
-            g = *(std::make_shared<Guild>(data));
-        }
-    }
-    func_holder.call<events::guild_update>(futures, true, g);
+    snowflake updated_guild = to_sf(data["id"]);
+    auto g = discord::utils::get(guilds, [updated_guild](auto &gld) { return gld->id == new_guild; });
+    g->update(data);
+    func_holder.call<events::guild_update>(futures, ready, g);
 }
 
 void discord::Bot::guild_delete_event(nlohmann::json data) {
     snowflake to_remove = to_sf(data["id"]);
-    guilds.erase(std::remove_if(guilds.begin(), guilds.end(), [to_remove](auto const &g) {
-                     return g->id == to_remove;
-                 }),
-                 guilds.end());
+    std::shared_ptr<discord::Guild> g_ptr;
+    for (size_t i = 0; i < guilds.size(); i++) {
+        if (guilds[i]->id == to_remove) {
+            g_ptr = guilds[i];
+            guilds.erase(guilds.begin() + i);
+        }
+    }
+    func_holder.call<events::guild_delete>(futures, ready, g_ptr);
 }
 
 void discord::Bot::guild_ban_add_event(nlohmann::json data) {

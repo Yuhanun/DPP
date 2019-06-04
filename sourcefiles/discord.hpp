@@ -73,8 +73,8 @@ namespace discord {
         void(std::shared_ptr<discord::Channel> const),                  // CHANNEL_UPDATE
         void(std::shared_ptr<discord::Channel> const),                  // CHANNEL_DELETE
         void(std::shared_ptr<discord::Channel> const, datetime const),  // CHANNEL_PINS_UPDATE
-        void(discord::Guild),                                           // GUILD_CREATE
-        void(discord::Guild),                                           // GUILD_UPDATE
+        void(std::shared_ptr<discord::Guild> const),                    // GUILD_CREATE
+        void(std::shared_ptr<discord::Guild> const),                    // GUILD_UPDATE
         void(discord::Guild),                                           // GUILD_DELETE
         void(discord::Guild, discord::User),                            // GUILD_BAN_ADD,
         void(discord::Guild, discord::User),                            // GUILD_BAN_REMOVE,

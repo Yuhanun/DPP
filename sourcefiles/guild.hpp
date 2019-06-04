@@ -75,7 +75,7 @@ discord::Guild::Guild(nlohmann::json const guild)
         }
     }
 
-    if (guild.contains("channels")) {
+    if (guild.contains("channels") && channels.empty()) {
         for (auto const& each : guild["channels"]) {
             channels.emplace_back(std::make_shared<discord::Channel>(each, id));
         }
