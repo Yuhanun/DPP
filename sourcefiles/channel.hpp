@@ -51,24 +51,15 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
 }
 
 discord::Channel &discord::Channel::update(nlohmann::json const data) {
-    // update_object_bulk(data,
-    //                    "id",
-    //                    this->id,
-    //                    "type",
-    //                    this->type,
-    //                    "bitrate",
-    //                    this->bitrate,
-    //                    "user_limit",
-    //                    this->user_limit);
-    update_object(data, "id", this->id);
-    update_object(data, "type", this->type);
-    update_object(data, "bitrate", this->bitrate);
-    update_object(data, "user_limit", this->user_limit);
-    update_object(data, "parent_id", this->parent_id);
-    update_object(data, "rate_limit_per_user", this->rate_limit_per_user);
-    update_object(data, "topic", this->topic);
-    update_object(data, "name", this->name);
-    update_object(data, "position", this->position);
+    update_object_bulk(data,
+                       "id", this->id,
+                       "type", this->type,
+                       "bitrate", this->bitrate,
+                       "user_limit", this->user_limit,
+                       "parent_id", this->parent_id,
+                       "rate_limit_per_user", this->rate_limit_per_user,
+                       "topic", this->topic,
+                       "name", this->name, "position", this->position);
 
     if (type == channel_type::dm_channel || type == channel_type::group_dm_channel) {
         if (data.contains("recipients")) {
@@ -78,6 +69,7 @@ discord::Channel &discord::Channel::update(nlohmann::json const data) {
             }
         }
     }
+
     return *this;
 }
 

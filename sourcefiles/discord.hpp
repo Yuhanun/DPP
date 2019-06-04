@@ -69,9 +69,9 @@ namespace discord {
         void(),                                             // READY
         void(),                                             // RESUMED
         void(),                                             // INVALID_SESSION,
-        void(std::shared_ptr<discord::Channel> const&),     // CHANNEL_CREATE
-        void(discord::Channel),                             // CHANNEL_UPDATE
-        void(discord::Channel),                             // CHANNEL_DELETE
+        void(std::shared_ptr<discord::Channel> const),      // CHANNEL_CREATE
+        void(std::shared_ptr<discord::Channel> const),      // CHANNEL_UPDATE
+        void(std::shared_ptr<discord::Channel> const),      // CHANNEL_DELETE
         void(discord::Channel),                             // CHANNEL_PINS_UPDATE
         void(discord::Guild),                               // GUILD_CREATE
         void(discord::Guild),                               // GUILD_UPDATE

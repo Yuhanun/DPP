@@ -354,27 +354,28 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
     snowflake chan_id = to_sf(get_value(data, "id", "0"));
     std::shared_ptr<discord::Channel> event_chan;
     if (!chan_id) {
-        return func_holder.call<events::channel_delete>(futures, true, discord::Channel{});
+        return func_holder.call<events::channel_delete>(futures, true, event_chan);
     }
-    for (auto &guild : this->guilds) {
-        for (std::size_t i = 0; i < guild->channels.size(); i++) {
-            if (guild->channels[i]->id != chan_id) {
-                continue;
+
+    for (auto &guild : guilds) {
+        for (size_t i = 0; i < guild->channels.size(); i++) {
+            if (guild->channels[i]->id == chan_id) {
+                event_chan = guild->channels[i];
+                guild->channels.erase(guild->channels.begin() + i);
             }
-            event_chan = guild->channels[i];
-            guild->channels.erase(guild->channels.begin() + i);
         }
     }
 
-    for (std::size_t i = 0; i < channels.size(); i++) {
-        if (channels[i]->id != chan_id) {
-            continue;
+    for (size_t i = 0; i < channels.size(); i++) {
+        if (channels[i]->id == chan_id) {
+            if (!event_chan) {
+                event_chan = channels[i];
+            }
+            channels.erase(channels.begin() + i);
         }
-        event_chan = channels[i];
-        channels.erase(channels.begin() + i);
-        break;
     }
-    func_holder.call<events::channel_delete>(futures, true, *event_chan);
+
+    func_holder.call<events::channel_delete>(futures, true, event_chan);
 }
 
 void discord::Bot::channel_pins_update_event(nlohmann::json data) {

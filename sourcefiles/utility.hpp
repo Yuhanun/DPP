@@ -171,15 +171,14 @@ namespace discord {
         }
     }
 
-    template <typename T_t1, typename T_t2>
-    inline void update_helper(nlohmann::json const &j, std::pair<T_t1 &&, T_t2 &&> args) {
-        update_object(j, args.first, args.second);
-    }
-
-    template <typename... Tys>
-    inline void update_object_bulk(nlohmann::json const &j, Tys &&... args) {
+    template <typename T, typename T2, typename... Tys>
+    inline void update_object_bulk(nlohmann::json const &j, T const* one, T2& two, Tys&... args) {
         static_assert(sizeof...(args) % 2 == 0, "Invalid amount of arguments passed to update_object_bulk");
-        (update_helper(j, { std::forward<Tys>(args)... }));
+
+        update_object(j, one, two);
+        if constexpr(sizeof...(args) > 2) {
+            update_object_bulk(j, args...);
+        }
     }
 
     inline std::string get_channel_link(uint64_t id) {
