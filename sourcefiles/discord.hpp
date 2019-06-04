@@ -8,8 +8,8 @@
 #include <sstream>
 #include <string>
 #include <thread>
-#include <variant>
 #include <unordered_map>
+#include <variant>
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -565,21 +565,27 @@ namespace discord {
     };
 
     class Asset {
-    private:
+        std::string byte_arr;
+        bool gotten_data;
+        snowflake obj_id;
         std::string url;
+        int asset_type;
+        bool _animated;
 
     public:
-        Asset(std::string const&);
-        explicit operator std::string();
-        size_t len() {
-            return url.size();
-        }
-        explicit operator bool();
-        std::string const& operator()() const;
-        bool operator==(const Asset& rhs);
-        bool operator!=(const Asset& rhs);
-        int hash();
+        Asset(std::string const&, int, bool = false, snowflake = 0, std::string const& = "");
+
+        int type() const;
         std::string read();
+        size_t len() const;
+        bool animated() const;
+        std::string hash() const;
+        snowflake object_id() const;
+        void save(std::string const&);
+        explicit operator bool() const;
+        explicit operator std::string() const;
+        bool operator==(Asset const&) const;
+        bool operator!=(Asset const&) const;
     };
 
     class Invite {

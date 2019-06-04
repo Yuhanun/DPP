@@ -1,34 +1,71 @@
+#pragma once
 #include <utility>
 
-#pragma once
+#include <utility.hpp>
 #include "discord.hpp"
 
 namespace discord {
-    bool Asset::operator==(const Asset& rhs) {
-        return url == rhs.url;
-    }
-    bool Asset::operator!=(const Asset& rhs) {
-        return url != rhs.url;
-    }
-    Asset::operator bool() {
-        return url.empty();
-    }
-    Asset::operator std::string() {
-        return url;
-    }
-    int Asset::hash() {
-        return std::hash<std::string>{}(url);
-    }
 
-    std::string const& operator()() const {
-        return url;
+    Asset::Asset(std::string const& input, int asset_t, bool animat, snowflake some_id, std::string const& add_data)
+        : asset_type{ asset_t }, _animated{ animat } {
+        if (some_id == 0) {
+            url = input;
+        } else {
+            url = image_url_from_type(asset_t, some_id, add_data, animat);
+        }
     }
 
     std::string Asset::read() {
-        // TODO: exception handling & body
-        return {};
+        if (!gotten_data) {
+            byte_arr = cpr::Get(cpr::Url{ url }).text;
+            gotten_data = true;
+        }
+        return byte_arr;
     }
-    Asset::Asset(std::string const& str)
-        : url{ str } {
+
+    void Asset::save(std::string const& f_name) {
+        std::ofstream file{ f_name, std::ios::binary };
+        if (!gotten_data) {
+            file << read();
+        } else {
+            file << byte_arr;
+        }
+    }
+
+    int Asset::type() const {
+        return asset_type;
+    }
+
+
+    size_t Asset::len() const {
+        return byte_arr.size();
+    }
+
+    bool Asset::animated() const {
+        return animated;
+    }
+
+    std::string Asset::hash() const {
+        return "";
+    }
+
+    snowflake Asset::object_id() const {
+        return obj_id;
+    }
+
+    explicit Asset::operator bool() const {
+        return !url.empty();
+    }
+
+    explicit Asset::operator std::string() const {
+        return url;
+    }
+
+    bool Asset::operator==(Asset const& rhs) const {
+        return this->url == rhs.url;
+    }
+
+    bool Asset::operator!=(Asset const& rhs) const {
+        return !(*this == rhs);
     }
 }  // namespace discord
