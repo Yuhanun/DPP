@@ -444,15 +444,36 @@ void discord::Bot::guild_delete_event(nlohmann::json data) {
 }
 
 void discord::Bot::guild_ban_add_event(nlohmann::json data) {
-    discord::Guild banned_guild{ to_sf(data["guild_id"]) };
-    discord::User user{ data["user"] };
-    func_holder.call<events::guild_ban_add>(futures, ready, banned_guild, user);
+    snowflake banned_guild = to_sf(data["guild_id"]);
+    auto g = discord::utils::get(guilds, [banned_guild](auto &gld) {
+        return gld->id == banned_guild;
+    });
+
+    snowflake usr_id = to_sf(data["user"]["id"]);
+    for (size_t i = 0; i < g->members.size(); i++) {
+        if (g->members[i]->id == usr_id) {
+            g->members.erase(g->members.begin() + i);
+        }
+    }
+
+    std::shared_ptr<discord::User> usr_ptr = discord::utils::get(users, [usr_id](auto const &usr) { return urs->id == usr_id; });
+    func_holder.call<events::guild_ban_add>(futures, ready, g, usr_ptr);
 }
 
 void discord::Bot::guild_ban_remove_event(nlohmann::json data) {
-    discord::Guild banned_guild{ to_sf(data["guild_id"]) };
-    discord::User user{ data["user"] };
-    func_holder.call<events::guild_ban_remove>(futures, ready, banned_guild, user);
+    snowflake banned_guild = to_sf(data["guild_id"]);
+    auto g = discord::utils::get(guilds, [banned_guild](auto &gld) {
+        return gld->id == banned_guild;
+    });
+
+    snowflake usr_id = to_sf(data["user"]["id"]);
+
+    std::shared_ptr<discord::User> usr_ptr = discord::utils::get(users, [usr_id](auto const &usr) { return urs->id == usr_id; });
+    if (!usr_ptr) {
+        usr_ptr = std::make_shared<discord::User>(data["user"]);
+        users.push_back(usr_ptr);
+    }
+    func_holder.call<events::guild_ban_remove>(futures, ready, banned_guild, usr_ptr);
 }
 
 void discord::Bot::guild_emojis_update_event(nlohmann::json data) {
