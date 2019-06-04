@@ -334,9 +334,9 @@ void discord::Guild::sync_integration(discord::Integration const& integr) {
         endpoint("/guilds/%/integrations/%/sync", id, integr.id));
 }
 
-discord::Emoji discord::Guild::create_emoji(std::string const& name, discord::Emoji const& emote_data, std::vector<discord::Role> roles) {
+discord::Emoji discord::Guild::create_emoji(std::string const& name, discord::Emoji& emote_data, std::vector<discord::Role> roles) {
     nlohmann::json data({ { "name", name },
-                          { "image", emote_data.url },
+                          { "image", encode64(emote_data.image.read()) },
                           { "roles", nlohmann::json::array() } });
     for (auto const& each : roles) {
         data["roles"].push_back(each.id);

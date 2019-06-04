@@ -16,11 +16,16 @@ discord::Emoji::Emoji(nlohmann::json event) {
         user = discord::User{ event["user"] };
     }
 
+    is_custom = event.contains("require_colons") && event.contains("animated");
     require_colons = get_value(event, "require_colons", false);
     managed = get_value(event, "managed", false);
     animated = get_value(event, "animated", false);
 
-    url = format("%/emojis/%.png", get_cdn_url(), id);
+    image = discord::Asset{};
+    image.url = image_url_from_type(custom_emoji, id, "", animated);
+    image.obj_id = id;
+    image.asset_type = custom_emoji;
+    image._animated = animated;
 }
 
 discord::Emoji::operator std::string() {

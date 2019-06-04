@@ -155,6 +155,7 @@ namespace discord {
     };
 
     class Asset {
+    public:
         std::string byte_arr;
         bool gotten_data;
         snowflake obj_id;
@@ -162,7 +163,6 @@ namespace discord {
         int asset_type;
         bool _animated;
 
-    public:
         Asset() = default;
         Asset(std::string const&, int, bool = false, snowflake = 0);
 
@@ -504,12 +504,13 @@ namespace discord {
     public:
         bool managed;
         bool animated;
+        bool is_custom;
         bool require_colons;
 
         snowflake id;
-        std::string url;
         std::string name;
         discord::User user;
+        discord::Asset image;
         std::vector<discord::Role> roles;
     };
 
@@ -634,8 +635,7 @@ namespace discord {
 
         void unban(discord::Object const&);
 
-        // TODO: Asset<>
-        discord::Emoji create_emoji(std::string const&, discord::Emoji const&, std::vector<discord::Role> = {});
+        discord::Emoji create_emoji(std::string const&, discord::Emoji&, std::vector<discord::Role> = {});
 
         std::vector<discord::Role> get_roles();
 
@@ -695,7 +695,6 @@ namespace discord {
 
         std::vector<discord::Emoji> list_emojis();
         discord::Emoji get_emoji(discord::Emoji const&);
-        // TODO: discord::Emoji create_emoji();
         discord::Emoji edit_emoji(discord::Emoji const&, std::string, std::vector<discord::Role> = {});
         void remove_emoji(discord::Emoji const&);
     };

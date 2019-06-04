@@ -7,7 +7,7 @@
 namespace discord {
 
     Asset::Asset(std::string const& hash_or_url, int asset_t, bool animat, snowflake some_id)
-        : asset_type{ asset_t }, _animated{ animat } {
+        : obj_id{ some_id }, asset_type{ asset_t }, _animated{ animat } {
         if (some_id == 0) {
             url = hash_or_url;
         } else {
