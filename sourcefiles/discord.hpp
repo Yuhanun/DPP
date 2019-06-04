@@ -69,7 +69,7 @@ namespace discord {
         void(),                                             // READY
         void(),                                             // RESUMED
         void(),                                             // INVALID_SESSION,
-        void(discord::Channel),                             // CHANNEL_CREATE
+        void(std::shared_ptr<discord::Channel> const&),     // CHANNEL_CREATE
         void(discord::Channel),                             // CHANNEL_UPDATE
         void(discord::Channel),                             // CHANNEL_DELETE
         void(discord::Channel),                             // CHANNEL_PINS_UPDATE
@@ -261,6 +261,7 @@ namespace discord {
         Member() = default;
         Member(snowflake);
         Member(nlohmann::json const, discord::User const&, discord::Guild*);
+        Member& update(nlohmann::json const);  // TODO
 
         void edit(std::string const&, bool, bool, std::vector<discord::Role> const& = {}, snowflake = -1);
         void add_role(discord::Role const&);
@@ -314,7 +315,7 @@ namespace discord {
         void on_incoming_packet(const websocketpp::connection_hdl&, const client::message_ptr&);
         void handle_gateway();
 
-        void run();
+        int run();
 
         std::vector<VoiceRegion> get_voice_regions() const;
 
@@ -452,6 +453,8 @@ namespace discord {
 
         Channel(nlohmann::json const, snowflake);
 
+        Channel& update(nlohmann::json const);
+
         discord::Message send(std::string const&, std::vector<File> const& = {}, bool = false) const;
         discord::Message send(EmbedBuilder const&, std::vector<File> const& = {}, bool = false, std::string const& = "") const;
         discord::Message get_message(snowflake);
@@ -520,9 +523,9 @@ namespace discord {
         std::string name;
         discord::Asset icon;
         discord::Asset splash;
-        discord::User owner; //
+        discord::User owner;  //
         std::string region;
-        std::shared_ptr<discord::Channel> afk_channel; //
+        std::shared_ptr<discord::Channel> afk_channel;  //
         int afk_timeout;
         int mfa_level;
         int verification_level;
@@ -538,7 +541,7 @@ namespace discord {
         bool nsfw;
         snowflake application_id;
         std::string permissions;
-        std::vector<discord::PermissionOverwrites> permission_overwrites; //
+        std::vector<discord::PermissionOverwrites> permission_overwrites;  //
         int color;
         bool hoist;
         bool mentionable;
@@ -619,6 +622,7 @@ namespace discord {
         Guild(snowflake);
 
         Guild(nlohmann::json const);
+        Guild& update(nlohmann::json const);  // TODO
 
         void edit(std::string const&, std::string const& = "", int = -1, int = -1, int = -1, snowflake = -1, int = -1, std::string const& = "", snowflake = -1, std::string const& = "", snowflake = -1);
         void remove();
@@ -652,7 +656,7 @@ namespace discord {
         snowflake edit_embed(snowflake = -1);
 
         std::string get_vanity_invite_url();
-        
+
         discord::Asset get_widget_image(std::string const&);
         std::vector<discord::Integration> get_integrations();
         void create_integration(discord::Integration const&);
@@ -733,6 +737,7 @@ namespace discord {
         Message() = default;
         Message(snowflake);
         Message(nlohmann::json const);
+        Message& update(nlohmann::json const);  // TODO
 
         discord::Message edit(std::string);
         discord::Message edit(EmbedBuilder, std::string = "");
@@ -745,8 +750,6 @@ namespace discord {
         void remove_reaction(discord::User const&, discord::Emoji const&);
         void remove_all_reactions();
         std::vector<std::shared_ptr<discord::User>> get_reactions(discord::Emoji const&, snowflake = 0, snowflake = 0, int = 0);
-
-        discord::Message& update(nlohmann::json const);
 
     public:
         int type;
@@ -851,6 +854,7 @@ namespace discord {
         Role() = default;
         Role(snowflake);
         Role(nlohmann::json, std::shared_ptr<discord::Guild>);
+        Role& update(nlohmann::json const);
 
         void edit_position(int);
         void edit(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);

@@ -54,17 +54,25 @@ discord::Guild::Guild(nlohmann::json const guild)
     }
 
     if (guild.contains("icon")) {
-        std::string av_hash = guild["icon"];
-        icon = Asset{
-            av_hash, guild_icon, av_hash[0] == 'a' && av_hash[1] == '_', id
-        };
+        if (!guild["icon"].is_null()) {
+            std::string av_hash = guild["icon"];
+            icon = Asset{
+                av_hash, guild_icon, av_hash[0] == 'a' && av_hash[1] == '_', id
+            };
+        } else {
+            icon = Asset{};
+        }
     }
 
     if (guild.contains("banner")) {
-        std::string av_hash = guild["banner"];
-        icon = Asset{
-            av_hash, guild_banner, av_hash[0] == 'a' && av_hash[1] == '_', id
-        };
+        if (!guild["banner"].is_null()) {
+            std::string av_hash = guild["banner"];
+            icon = Asset{
+                av_hash, guild_banner, av_hash[0] == 'a' && av_hash[1] == '_', id
+            };
+        } else {
+            icon = Asset{};
+        }
     }
 
     if (guild.contains("channels")) {

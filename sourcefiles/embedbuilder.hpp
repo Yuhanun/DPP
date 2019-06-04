@@ -46,7 +46,7 @@ discord::EmbedBuilder &discord::EmbedBuilder::set_footer(std::string const &text
 }
 
 discord::EmbedBuilder &discord::EmbedBuilder::set_image(std::string const &url, int w, int h) {
-    embed["image"] = nlohmann::json({ { "image", { "url", url } } });
+    embed["image"] = nlohmann::json({ { "url", url } });
     if (w != -1) {
         embed["image"]["width"] = w;
     }
@@ -57,8 +57,7 @@ discord::EmbedBuilder &discord::EmbedBuilder::set_image(std::string const &url, 
 }
 
 discord::EmbedBuilder &discord::EmbedBuilder::set_thumbnail(std::string const &url, int w, int h) {
-    embed["thumbnail"] = nlohmann::json({ { "thumbnail",
-                                            { "url", url } } });
+    embed["thumbnail"] = nlohmann::json({ { "url", url } });
     if (w != -1) {
         embed["thumbnail"]["width"] = w;
     }

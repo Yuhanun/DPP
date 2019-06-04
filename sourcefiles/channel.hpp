@@ -50,6 +50,37 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
     id = to_sf(get_value(data, "id", "0"));
 }
 
+discord::Channel &discord::Channel::update(nlohmann::json const data) {
+    // update_object_bulk(data,
+    //                    "id",
+    //                    this->id,
+    //                    "type",
+    //                    this->type,
+    //                    "bitrate",
+    //                    this->bitrate,
+    //                    "user_limit",
+    //                    this->user_limit);
+    update_object(data, "id", this->id);
+    update_object(data, "type", this->type);
+    update_object(data, "bitrate", this->bitrate);
+    update_object(data, "user_limit", this->user_limit);
+    update_object(data, "parent_id", this->parent_id);
+    update_object(data, "rate_limit_per_user", this->rate_limit_per_user);
+    update_object(data, "topic", this->topic);
+    update_object(data, "name", this->name);
+    update_object(data, "position", this->position);
+
+    if (type == channel_type::dm_channel || type == channel_type::group_dm_channel) {
+        if (data.contains("recipients")) {
+            recipients.clear();
+            for (auto const &each : data["recipients"]) {
+                recipients.emplace_back(each);
+            }
+        }
+    }
+    return *this;
+}
+
 discord::Message discord::Channel::send(std::string const &content, std::vector<File> const &files, bool tts) const {
     cpr::Multipart multipart_data{};
 

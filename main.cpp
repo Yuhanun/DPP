@@ -30,13 +30,15 @@ int main() {
     });
 
     bot.register_command("image", [](discord::Context const& ctx) {
-        ctx.channel->send("Here is an image!", { { "", "Test.png", false }, { "", "Test.png", false }, { "test.txt", "todo.txt", false }, { "test2.txt", "todo.txt", false } }, false);
+        ctx.send(discord::EmbedBuilder()
+                     .set_description("Test")
+                     .set_image(ctx.message.author->avatar.url));
     });
 
     bot.register_command("file", [](discord::Context const& ctx) {
         ctx.channel->send("Here is a file!", { { "test.txt", "todo.txt", true } }, false);
     });
 
-    bot.run();
-    return 0;
+    return bot.run();
 }
+

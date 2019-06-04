@@ -140,11 +140,11 @@ namespace discord {
     }
 
     inline std::string get_cdn_url() {
-        return "https://cdn.discordapp.com/";
+        return "https://cdn.discordapp.com";
     }
 
     template <typename T>
-    T get_value(nlohmann::json const &j, const char *s, T default_value) {
+    inline T get_value(nlohmann::json const &j, const char *s, T default_value) {
         return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<T>()) : default_value;
     }
 
@@ -154,6 +154,32 @@ namespace discord {
 
     inline nlohmann::json get_value(nlohmann::json const &j, const char *s) {
         return j.contains(s) ? j[s] : nlohmann::json{};
+    }
+
+    template <typename T>
+    inline void update_object(nlohmann::json const &j, const char *key, T &var) {
+        if (!j.contains(key)) {
+            return;
+        }
+        if (j["key"].is_null()) {
+            return;
+        }
+        if constexpr (std::is_same<T, snowflake>::value) {
+            var = to_sf(j["key"]);
+        } else {
+            var = j["key"];
+        }
+    }
+
+    template <typename T_t1, typename T_t2>
+    inline void update_helper(nlohmann::json const &j, std::pair<T_t1 &&, T_t2 &&> args) {
+        update_object(j, args.first, args.second);
+    }
+
+    template <typename... Tys>
+    inline void update_object_bulk(nlohmann::json const &j, Tys &&... args) {
+        static_assert(sizeof...(args) % 2 == 0, "Invalid amount of arguments passed to update_object_bulk");
+        (update_helper(j, { std::forward<Tys>(args)... }));
     }
 
     inline std::string get_channel_link(uint64_t id) {
@@ -329,6 +355,11 @@ namespace discord {
         auto body = cpr::Body{ j.dump() };
 
         static_assert(method < 5, "Invalid request method.");
+
+#ifdef __DPP_DEBUG
+        std::cout << j.dump(4) << "\n"
+                  << uri << std::endl;
+#endif
 
         cpr::Response response;
         if (method == request_method::Get) {

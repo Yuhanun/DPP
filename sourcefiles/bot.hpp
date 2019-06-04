@@ -1,4 +1,5 @@
 #pragma once
+#include "assets.hpp"
 #include "context.hpp"
 #include "cpr/cpr.h"
 #include "discord.hpp"
@@ -9,7 +10,6 @@
 #include "integration.hpp"
 #include "message.hpp"
 #include "nlohmann/json.hpp"
-#include "assets.hpp"
 
 discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
     : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
@@ -90,7 +90,6 @@ void discord::Bot::handle_gateway() {
     std::string hostname = "discord.gg";
     std::string uri = get_gateway_url();
     try {
-
 #ifdef __DPP_DEBUG
         c.set_access_channels(websocketpp::log::alevel::all);
         c.clear_access_channels(websocketpp::log::alevel::frame_payload);
@@ -120,7 +119,7 @@ void discord::Bot::handle_gateway() {
     }
 }
 
-void discord::Bot::run() {
+int discord::Bot::run() {
     gateway_auth();
     while (true) {
         if (!futures.size()) {
@@ -129,6 +128,7 @@ void discord::Bot::run() {
         }
         futures.erase(futures.begin());
     }
+    return 0;
 }
 
 std::string discord::Bot::get_identify_packet() {
@@ -307,7 +307,7 @@ void discord::Bot::hello_event(nlohmann::json) {
 }
 
 void discord::Bot::ready_event(nlohmann::json data) {
-    this->session_id = data["session_id"].get<std::string>();
+    session_id = data["session_id"];
     heartbeat_thread = std::thread{ &Bot::handle_heartbeat, this };
     initialize_variables(data.dump());
     ready_packet = data;
@@ -323,30 +323,28 @@ void discord::Bot::invalid_session_event(nlohmann::json) {
 
 void discord::Bot::channel_create_event(nlohmann::json j) {
     const auto data = j["d"];
-    auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
-    if (channel.guild) {
-        auto guild = discord::utils::get(this->guilds, [channel](auto &guild) {
-            return channel.guild->id == guild->id;
+
+    auto channel = std::make_shared<discord::Channel>(data, to_sf(get_value(data, "guild_id", "0")));
+    if (channel->guild) {
+        auto guild = discord::utils::get(guilds, [channel](auto &guild) {
+            return channel->guild->id == guild->id;
         });
         if (guild) {
-            guild->channels.push_back(std::make_shared<discord::Channel>(channel));
+            guild->channels.push_back(channel);
         }
     }
-    channels.emplace_back(std::make_shared<discord::Channel>(channel));
+    channels.push_back(channel);
     func_holder.call<events::channel_create>(futures, true, channel);
 }
 
 void discord::Bot::channel_update_event(nlohmann::json j) {
     const nlohmann::json data = j["d"];
-    auto channel = Channel{ data, to_sf(get_value(data, "guild_id", "0")) };
+    auto c_id = to_sf(data["id"]);
+    auto channel = discord::utils::get(channels, [=](auto &chan) {
+        return chan->id == c_id;
+    });
 
-    // TODO: perfect this loop below idk what i did here
-    // for (auto &each : channel.guild->channels) {
-    //     if (each.id == channel.id) {
-    //         each = channel;
-    //         return;
-    //     }
-    // }
+    channel->update(data);
 
     func_holder.call<events::channel_create>(futures, true, channel);
 }
