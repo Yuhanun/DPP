@@ -379,11 +379,16 @@ void discord::Bot::channel_delete_event(nlohmann::json j) {
 }
 
 void discord::Bot::channel_pins_update_event(nlohmann::json data) {
-    func_holder.call<events::channel_pins_update>(futures, true, Channel{ to_sf(data["channel_id"]) });
+    auto c_id = to_sf(data["channel_id"]);
+    auto channel = discord::utils::get(channels, [=](auto const &chn) { return chn->id == c_id; });
+    func_holder.call<events::channel_pins_update>(futures, true, channel,
+                                                  time_from_discord_string(get_value(data, "last_pin_timestamp", "")));
 }
 
 void discord::Bot::guild_create_event(nlohmann::json data) {
-    snowflake guild_id = to_sf(get_value(data, "id", "0"));
+    snowflake guild_id = to_sf(data["id"]);
+    // auto guild = discord::utils::get()
+
     for (auto const &member : data["members"]) {
         auto mem_id = to_sf(member["user"]["id"]);
         for (auto const &each : this->users) {

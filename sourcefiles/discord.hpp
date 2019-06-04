@@ -65,41 +65,41 @@ namespace discord {
     using websocketpp::lib::bind;
 
     typedef Events<
-        void(),                                             // HELLO
-        void(),                                             // READY
-        void(),                                             // RESUMED
-        void(),                                             // INVALID_SESSION,
-        void(std::shared_ptr<discord::Channel> const),      // CHANNEL_CREATE
-        void(std::shared_ptr<discord::Channel> const),      // CHANNEL_UPDATE
-        void(std::shared_ptr<discord::Channel> const),      // CHANNEL_DELETE
-        void(discord::Channel),                             // CHANNEL_PINS_UPDATE
-        void(discord::Guild),                               // GUILD_CREATE
-        void(discord::Guild),                               // GUILD_UPDATE
-        void(discord::Guild),                               // GUILD_DELETE
-        void(discord::Guild, discord::User),                // GUILD_BAN_ADD,
-        void(discord::Guild, discord::User),                // GUILD_BAN_REMOVE,
-        void(discord::Guild, std::vector<discord::Emoji>),  // GUILD_EMOJIS_UPDATE
-        void(discord::Guild),                               // GUILD_INTEGRATIONS_UPDATE
-        void(discord::Member),                              // GUILD_MEMBER_ADD
-        void(discord::User),                                // GUILD_MEMBER_REMOVE
-        void(discord::Member),                              // GUILD_MEMBER_UPDATE
-        void(),                                             // GUILD_MEMBERS_CHUNK
-        void(discord::Role),                                // GUILD_ROLE_CREATE
-        void(discord::Role),                                // GUILD_ROLE_UPDATE
-        void(discord::Role),                                // GUILD_ROLE_DELETE
-        void(discord::Message),                             // MESSAGE_CREATE
-        void(discord::Message),                             // MESSAGE_UPDATE
-        void(discord::Message),                             // MESSAGE_DELETE
-        void(std::vector<discord::Message>),                // MESSAGE_DELETE_BULK
-        void(discord::Message),                             // MESSAGE_REACTION_ADD
-        void(discord::Message),                             // MESSAGE_REACTION_REMOVE
-        void(discord::Message),                             // MESSAGE_REACTION_REMOVE_ALL
-        void(discord::User),                                // PRECENSE_UPDATE
-        void(discord::Member, discord::Channel),            // PRESENCE_UPDATE
-        void(discord::User),                                // USER_UPDATE
-        void(discord::Member, discord::Channel),            // VOICE_STATE_UPDATE
-        void(discord::Guild),                               // VOICE_SERVER_UPDATE
-        void(discord::Guild)>                               // WEBHOOKS_UPDATE
+        void(),                                                         // HELLO
+        void(),                                                         // READY
+        void(),                                                         // RESUMED
+        void(),                                                         // INVALID_SESSION,
+        void(std::shared_ptr<discord::Channel> const),                  // CHANNEL_CREATE
+        void(std::shared_ptr<discord::Channel> const),                  // CHANNEL_UPDATE
+        void(std::shared_ptr<discord::Channel> const),                  // CHANNEL_DELETE
+        void(std::shared_ptr<discord::Channel> const, datetime const),  // CHANNEL_PINS_UPDATE
+        void(discord::Guild),                                           // GUILD_CREATE
+        void(discord::Guild),                                           // GUILD_UPDATE
+        void(discord::Guild),                                           // GUILD_DELETE
+        void(discord::Guild, discord::User),                            // GUILD_BAN_ADD,
+        void(discord::Guild, discord::User),                            // GUILD_BAN_REMOVE,
+        void(discord::Guild, std::vector<discord::Emoji>),              // GUILD_EMOJIS_UPDATE
+        void(discord::Guild),                                           // GUILD_INTEGRATIONS_UPDATE
+        void(discord::Member),                                          // GUILD_MEMBER_ADD
+        void(discord::User),                                            // GUILD_MEMBER_REMOVE
+        void(discord::Member),                                          // GUILD_MEMBER_UPDATE
+        void(),                                                         // GUILD_MEMBERS_CHUNK
+        void(discord::Role),                                            // GUILD_ROLE_CREATE
+        void(discord::Role),                                            // GUILD_ROLE_UPDATE
+        void(discord::Role),                                            // GUILD_ROLE_DELETE
+        void(discord::Message),                                         // MESSAGE_CREATE
+        void(discord::Message),                                         // MESSAGE_UPDATE
+        void(discord::Message),                                         // MESSAGE_DELETE
+        void(std::vector<discord::Message>),                            // MESSAGE_DELETE_BULK
+        void(discord::Message),                                         // MESSAGE_REACTION_ADD
+        void(discord::Message),                                         // MESSAGE_REACTION_REMOVE
+        void(discord::Message),                                         // MESSAGE_REACTION_REMOVE_ALL
+        void(discord::User),                                            // PRECENSE_UPDATE
+        void(discord::Member, discord::Channel),                        // PRESENCE_UPDATE
+        void(discord::User),                                            // USER_UPDATE
+        void(discord::Member, discord::Channel),                        // VOICE_STATE_UPDATE
+        void(discord::Guild),                                           // VOICE_SERVER_UPDATE
+        void(discord::Guild)>                                           // WEBHOOKS_UPDATE
         function_handler;
 
     using websocketpp::lib::bind;

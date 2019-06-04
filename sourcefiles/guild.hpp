@@ -82,6 +82,50 @@ discord::Guild::Guild(nlohmann::json const guild)
     }
 }
 
+discord::Guild& discord::Guild::update(nlohmann::json const data) {
+    update_object_bulk(data,
+                       "splash", splash,
+                       "mfa_level", mfa_level,
+                       "afk_timeout", afk_timeout,
+                       "verification_level", verification_level,
+                       "explicit_content_filter", explicit_content_filter,
+                       "unavailable", unavailable,
+                       "application_id", application_id,
+                       "name", name,
+                       "region", region,
+                       "vanity_url_code", vanity_url_code);
+
+    if (data.contains("roles")) {
+        roles = from_json_array<discord::Role>(data["roles"], discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; }));
+    }
+
+    if (data.contains("emojis")) {
+        emojis = from_json_array<discord::Emoji>(data["emojis"]);
+    }
+
+    if (data.contains("icon")) {
+        if (!data["icon"].is_null()) {
+            std::string av_hash = data["icon"];
+            icon = Asset{
+                av_hash, guild_icon, av_hash[0] == 'a' && av_hash[1] == '_', id
+            };
+        } else {
+            icon = Asset{};
+        }
+    }
+
+    if (data.contains("banner")) {
+        if (!data["banner"].is_null()) {
+            std::string av_hash = data["banner"];
+            icon = Asset{
+                av_hash, guild_banner, av_hash[0] == 'a' && av_hash[1] == '_', id
+            };
+        } else {
+            icon = Asset{};
+        }
+    }
+}
+
 std::vector<discord::Webhook> discord::Guild::get_webhooks() {
     return from_json_array<discord::Webhook>(
         send_request<request_method::Get>(nlohmann::json(),

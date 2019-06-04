@@ -59,7 +59,8 @@ discord::Channel &discord::Channel::update(nlohmann::json const data) {
                        "parent_id", this->parent_id,
                        "rate_limit_per_user", this->rate_limit_per_user,
                        "topic", this->topic,
-                       "name", this->name, "position", this->position);
+                       "name", this->name,
+                       "position", this->position);
 
     if (type == channel_type::dm_channel || type == channel_type::group_dm_channel) {
         if (data.contains("recipients")) {
