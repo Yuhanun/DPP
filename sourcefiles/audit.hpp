@@ -1,5 +1,6 @@
 #pragma once
 #include "discord.hpp"
+#include "user.hpp"
 #include "utility.hpp"
 
 namespace discord {
@@ -11,7 +12,7 @@ namespace discord {
           action_type{ AuditLogEventType{ get_value(j, "action_type", AuditLogEventType{}) } } {
         if (j.contains("changes"))
             for (const auto& each : j["changes"])
-                changes.emplace_back(each);
+                changes.emplace_back(each, target_id);
         if (j.contains("options"))
             for (const auto& each : j["options"])
                 options.emplace_back(decltype(opts)({ get_value(each, "delete_member_days", ""),
@@ -27,10 +28,8 @@ namespace discord {
         audit_log_entries.emplace_back(AuditLogEntry{ j });
     }
 
-    AuditLogKeyChange::AuditLogKeyChange(const nlohmann::json& j)
+    AuditLogKeyChange::AuditLogKeyChange(const nlohmann::json& j, snowflake edited_obj)
         : name{ get_value(j, "name", "") },
-          icon_hash{ get_value(j, "icon_hash", "") },
-          splash_hash{ get_value(j, "splash_hash", "") },
           owner_id{ to_sf(get_value(j, "owner_id", "0")) },
           region{ get_value(j, "region", "") },
           afk_channel_id{ to_sf(get_value(j, "afk_channel_id", "0")) },
@@ -63,8 +62,34 @@ namespace discord {
           deaf{ get_value(j, "deaf", false) },
           mute{ get_value(j, "mute", false) },
           nick{ get_value(j, "nick", "") },
-          avatar_hash{ get_value(j, "avatar_hash", "") },
           id{ to_sf(get_value(j, "id", "0")) },
           type{ get_value(j, "type", "") } {
+        if (j.contains("avatar")) {
+            auto usr = discord::utils::get(discord::detail::bot_instance->users, [edited_obj](auto const& usr) {
+                return usr->id == edited_obj;
+            });
+
+            if (j["avatar"].is_null()) {
+                avatar = { "", default_user_avatar, false, to_sf(usr->discriminator) };
+            } else {
+                std::string av_hash = j["avatar"];
+                avatar = { j["avatar"], user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
+            }
+        }
+
+        if (j.contains("splash_hash")) {
+            std::string av_hash = j["splash_hash"];
+            splash = Asset{
+                av_hash, guild_splash, av_hash[0] == 'a' && av_hash[1] == '_', edited_obj
+            };
+        }
+
+        if (j.contains("icon_hash")) {
+            std::string av_hash = j["icon_hash"];
+            icon = Asset {
+                av_hash, guild_icon, av_hash[0] == 'a' && av_hash[1] == '_', edited_obj
+            };
+        }
     }
+
 }  // namespace discord

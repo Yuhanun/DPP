@@ -515,11 +515,11 @@ namespace discord {
     };
 
     struct AuditLogKeyChange {
-        AuditLogKeyChange(const nlohmann::json&);
+        AuditLogKeyChange(const nlohmann::json&, snowflake);
         AuditLogKeyChange() = default;
         std::string name;
-        std::string icon_hash;
-        std::string splash_hash;
+        discord::Asset icon;
+        discord::Asset splash;
         snowflake owner_id;
         std::string region;
         snowflake afk_channel_id;
@@ -552,7 +552,7 @@ namespace discord {
         bool deaf;
         bool mute;
         std::string nick;
-        std::string avatar_hash;
+        discord::Asset avatar;
         snowflake id;
         std::string type;
     };
