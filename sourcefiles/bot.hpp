@@ -257,6 +257,7 @@ std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
     return return_vec;
 }
 
+
 void discord::Bot::update_presence(Activity const &act) {
     con->send(nlohmann::json({ { "op", 3 }, { "d", act.to_json() } }).dump());
 }
@@ -369,7 +370,7 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
     guilds.push_back(guild);
 
     for (auto const &member : data["members"]) {
-        auto usr_id = to_sf(data["user"]["id"]);
+        auto usr_id = to_sf(member["user"]["id"]);
         auto usr = std::make_shared<discord::User>(member["user"]);
         if (std::find_if(users.begin(), users.end(),
                          [usr_id](auto const &usr_ptr) { return usr_ptr->id == usr_id; }) != users.end()) {
