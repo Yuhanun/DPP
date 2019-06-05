@@ -617,18 +617,35 @@ void discord::Bot::message_reaction_add_event(nlohmann::json data) {
     message->id = m_id;
     auto c_id = to_sf(data["channel_id"]);
     if (!message->channel) {
-        message->channel = discord::utils::get(channels, [=](auto &chan) { chan->id == c_id; });
+        message->channel = discord::utils::get(channels, [=](auto &chan) { return chan->id == c_id; });
     }
     message->channel->id = c_id;
 
     if (data.contains("guild_id") && !message->channel->guild) {
         auto g_id = to_sf(data["guild_id"]);
-        message->channel->guild = discord::utils::get(guilds, [=](auto &gld) { gld->id == g_id });
+        message->channel->guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
     }
     func_holder.call<events::message_reaction_add>(futures, ready, message, discord::Emoji{ data["emoji"] });
 }
 
 void discord::Bot::message_reaction_remove_event(nlohmann::json data) {
+    auto m_id = to_sf(data["message_id"]);
+    auto message = discord::utils::get(messages, [=](auto &msg) { return msg->id == m_id; });
+    if (!message) {
+        message = std::make_shared<discord::Message>();
+    }
+    message->id = m_id;
+    auto c_id = to_sf(data["channel_id"]);
+    if (!message->channel) {
+        message->channel = discord::utils::get(channels, [=](auto &chan) { return chan->id == c_id; });
+    }
+    message->channel->id = c_id;
+
+    if (data.contains("guild_id") && !message->channel->guild) {
+        auto g_id = to_sf(data["guild_id"]);
+        message->channel->guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
+    }
+    func_holder.call<events::message_reaction_remove>(futures, ready, message, discord::Emoji{ data["emoji"] });
 }
 
 void discord::Bot::message_reaction_remove_all_event(nlohmann::json) {
