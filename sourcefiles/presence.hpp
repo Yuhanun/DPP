@@ -51,7 +51,8 @@ void discord::Presence::update(nlohmann::json const data) {
     if (data.contains("roles")) {
         roles.clear();
         for (const auto& each : data["roles"]) {
-            roles.emplace_back(each, guild);
+            auto r_id = to_sf(each);
+            roles.push_back(*discord::utils::get(guild->roles, [r_id](auto const& rl) { return rl.id == r_id; }));
         }
     }
 

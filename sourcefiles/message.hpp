@@ -8,10 +8,11 @@
 #include "member.hpp"
 
 discord::Message::Message(snowflake id)
-    : id{ id } {
+    : discord::Object(id) {
 }
 
-discord::Message::Message(nlohmann::json const j) {
+discord::Message::Message(nlohmann::json const j)
+    : discord::Object(to_sf(j["id"])) {
     token = discord::detail::bot_instance->token;
     snowflake sender_id = to_sf(get_value(get_value(j, "author", nlohmann::json({ { "id", "0" } })), "id", "0"));
     pinned = get_value(j, "pinned", false);

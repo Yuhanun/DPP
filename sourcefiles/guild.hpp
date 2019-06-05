@@ -23,7 +23,8 @@ discord::Guild::Guild(snowflake id)
 }
 
 discord::Guild::Guild(nlohmann::json const guild)
-    : splash{ get_value(guild, "splash", 0) },
+    : discord::Object(to_sf(guild["id"])),
+      splash{ get_value(guild, "splash", 0) },
       mfa_level{ get_value(guild, "mfa_level", 0) },
       afk_timeout{ get_value(guild, "afk_timeout", 0) },
       member_count{ get_value(guild, "member_count", 0) },
@@ -31,7 +32,6 @@ discord::Guild::Guild(nlohmann::json const guild)
       explicit_content_filter{ get_value(guild, "explicit_content_filter", 0) },
       large{ get_value(guild, "large", true) },
       unavailable{ get_value(guild, "unavailable", false) },
-      id{ to_sf(guild["id"]) },
       application_id{ to_sf(get_value(guild, "application_id", "0")) },
       name{ get_value(guild, "name", "") },
       region{ get_value(guild, "region", "") },
@@ -41,7 +41,7 @@ discord::Guild::Guild(nlohmann::json const guild)
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
     if (guild.contains("members")) {
         for (auto& each : guild["members"]) {
-            discord::Member member {
+            discord::Member member{
                 each, discord::utils::get(discord::detail::bot_instance->guilds, [=](auto& gld) { return gld->id == this->id; })
             };
             members.emplace_back(std::make_shared<discord::Member>(member));

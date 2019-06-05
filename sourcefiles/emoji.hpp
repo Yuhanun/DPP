@@ -2,8 +2,8 @@
 #include "discord.hpp"
 #include "role.hpp"
 
-discord::Emoji::Emoji(nlohmann::json event) {
-    id = to_sf(event["id"]);
+discord::Emoji::Emoji(nlohmann::json event)
+    : discord::Object(to_sf(event["id"])) {
     name = event["name"];
 
     if (event.contains("roles")) {

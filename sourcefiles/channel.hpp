@@ -5,8 +5,8 @@
 #include "permissions.hpp"
 #include "utility.hpp"
 
-discord::Channel::Channel(snowflake id) {
-    this->id = id;
+discord::Channel::Channel(snowflake id)
+    : discord::Object(id) {
     auto c = discord::utils::get(discord::detail::bot_instance->channels, [id](auto const &c) {
         return c->id == id;
     });
@@ -16,7 +16,8 @@ discord::Channel::Channel(snowflake id) {
     *this = *c;
 }
 
-discord::Channel::Channel(nlohmann::json const data, snowflake guild_id) {
+discord::Channel::Channel(nlohmann::json const data, snowflake guild_id)
+    : discord::Object(to_sf(data["id"])) {
     type = get_value(data, "type", 0);
     bitrate = get_value(data, "bitrate", 0);
     user_limit = get_value(data, "user_limit", 0);

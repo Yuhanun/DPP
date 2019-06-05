@@ -4,7 +4,8 @@
 #include "permissions.hpp"
 #include "utility.hpp"
 
-discord::Role::Role(snowflake id) {
+discord::Role::Role(snowflake id)
+    : discord::Object(id) {
     discord::utils::get(discord::detail::bot_instance->guilds, [id, this](auto const& g) {
         for (auto const& role : g->roles) {
             if (role.id == id) {
@@ -16,7 +17,8 @@ discord::Role::Role(snowflake id) {
     });
 }
 
-discord::Role::Role(nlohmann::json data, std::shared_ptr<discord::Guild> g) {
+discord::Role::Role(nlohmann::json data, std::shared_ptr<discord::Guild> g)
+    : discord::Object(to_sf(data["id"])) {
     hoist = data["hoist"];
     managed = data["managed"];
     mentionable = data["mentionable"];
@@ -37,7 +39,7 @@ discord::Role& discord::Role::update(nlohmann::json data) {
     if (data.contains("permissions")) {
         permissions = PermissionOverwrites(data["permissions"].get<int>(), 0, id, object_type::role);
     }
-    
+
     return *this;
 }
 

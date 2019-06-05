@@ -728,7 +728,6 @@ namespace discord {
         bool large;
         bool unavailable;
 
-        snowflake id;
         snowflake application_id;
 
         std::string name;
@@ -741,8 +740,7 @@ namespace discord {
         std::vector<int> features;
         std::vector<discord::Role> roles;
         std::vector<discord::Emoji> emojis;
-        // TODO:
-        // std::vector<discord::Presence> presences;
+
         std::vector<std::shared_ptr<discord::Member>> members;
         std::vector<std::shared_ptr<discord::Channel>> channels;
 

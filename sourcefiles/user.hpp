@@ -16,10 +16,10 @@ discord::User::User(snowflake id)
     }
 }
 
-discord::User::User(nlohmann::json const j) {
+discord::User::User(nlohmann::json const j)
+    : discord::Object(to_sf(j["id"])) {
     bot = j.contains("bot");
     discriminator = j["discriminator"];
-    id = to_sf(j["id"]);
     if (j.contains("avatar")) {
         if (j["avatar"].is_null()) {
             avatar = { "", default_user_avatar, false, to_sf(discriminator) };
@@ -47,7 +47,7 @@ discord::User& discord::User::update(nlohmann::json const data) {
             avatar = { av_hash, user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
         }
     }
-    
+
     mention = "<@" + std::to_string(id) + ">";
     return *this;
 }
