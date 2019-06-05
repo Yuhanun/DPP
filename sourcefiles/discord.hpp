@@ -718,7 +718,6 @@ namespace discord {
         void sync_integration(discord::Integration const&);
 
     public:
-        int splash;
         int mfa_level;
         int afk_timeout;
         int member_count;
@@ -734,6 +733,7 @@ namespace discord {
         std::string region;
         discord::Asset icon;
         discord::Asset banner;
+        discord::Asset splash;
         datetime created_at{ boost::local_time::not_a_date_time };
         std::string vanity_url_code;
 

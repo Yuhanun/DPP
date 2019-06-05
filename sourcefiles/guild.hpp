@@ -24,7 +24,6 @@ discord::Guild::Guild(snowflake id)
 
 discord::Guild::Guild(nlohmann::json const guild)
     : discord::Object(to_sf(guild["id"])),
-      splash{ get_value(guild, "splash", 0) },
       mfa_level{ get_value(guild, "mfa_level", 0) },
       afk_timeout{ get_value(guild, "afk_timeout", 0) },
       member_count{ get_value(guild, "member_count", 0) },
@@ -53,6 +52,17 @@ discord::Guild::Guild(nlohmann::json const guild)
                     member.presence = discord::Presence{ pres };
                 }
             }
+        }
+    }
+
+    if (guild.contains("splash")) {
+        if (!guild["splash"].is_null()) {
+            std::string splash_hash = guild["splash"];
+            icon = Asset{
+                splash_hash, guild_splash, splash_hash[0] == 'a' && splash_hash[1] == '_', id
+            };
+        } else {
+            icon = Asset{};
         }
     }
 
@@ -104,6 +114,17 @@ discord::Guild& discord::Guild::update(nlohmann::json const data) {
 
     if (data.contains("emojis")) {
         emojis = from_json_array<discord::Emoji>(data["emojis"]);
+    }
+
+    if (data.contains("splash")) {
+        if (!data["splash"].is_null()) {
+            std::string splash_hash = data["splash"];
+            icon = Asset{
+                splash_hash, guild_splash, splash_hash[0] == 'a' && splash_hash[1] == '_', id
+            };
+        } else {
+            icon = Asset{};
+        }
     }
 
     if (data.contains("icon")) {
