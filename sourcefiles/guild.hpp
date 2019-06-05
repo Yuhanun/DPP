@@ -39,6 +39,7 @@ discord::Guild::Guild(nlohmann::json const guild)
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
       roles{ from_json_array<discord::Role>(guild, "roles", discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; })) },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
+
     if (guild.contains("members")) {
         for (auto& each : guild["members"]) {
             discord::Member member{

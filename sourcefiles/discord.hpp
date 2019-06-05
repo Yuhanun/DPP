@@ -657,7 +657,7 @@ namespace discord {
         Guild(snowflake);
 
         Guild(nlohmann::json const);
-        Guild& update(nlohmann::json const);  // TODO
+        Guild& update(nlohmann::json const);
 
         void edit(std::string const&, std::string const& = "", int = -1, int = -1, int = -1, snowflake = -1, int = -1, std::string const& = "", snowflake = -1, std::string const& = "", snowflake = -1);
         void remove();
@@ -723,6 +723,8 @@ namespace discord {
         std::vector<int> features;
         std::vector<discord::Role> roles;
         std::vector<discord::Emoji> emojis;
+        // TODO: 
+        // std::vector<discord::Presence> presences;
         std::vector<std::shared_ptr<discord::Member>> members;
         std::vector<std::shared_ptr<discord::Channel>> channels;
 
