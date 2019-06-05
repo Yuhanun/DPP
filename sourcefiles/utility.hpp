@@ -164,8 +164,7 @@ namespace discord {
         if (j[key].is_null()) {
             return;
         }
-
-        if constexpr (std::is_same<T, snowflake>::value) { // sometimes wrong
+        if constexpr (std::is_same<T, snowflake>::value) {
             var = to_sf(j[key]);
         } else {
             var = j[key];
@@ -173,11 +172,11 @@ namespace discord {
     }
 
     template <typename T, typename T2, typename... Tys>
-    inline void update_object_bulk(nlohmann::json const &j, T const* one, T2& two, Tys&... args) {
+    inline void update_object_bulk(nlohmann::json const &j, T const *one, T2 &two, Tys &... args) {
         static_assert(sizeof...(args) % 2 == 0, "Invalid amount of arguments passed to update_object_bulk");
 
         update_object(j, one, two);
-        if constexpr(sizeof...(args) > 2) {
+        if constexpr (sizeof...(args) > 2) {
             update_object_bulk(j, args...);
         }
     }

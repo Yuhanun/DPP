@@ -21,7 +21,8 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id)
     type = get_value(data, "type", 0);
     bitrate = get_value(data, "bitrate", 0);
     user_limit = get_value(data, "user_limit", 0);
-    parent_id = to_sf(get_value(data, "parent_id", "0"));
+    auto parent_id = to_sf(get_value(data, "parent_id", "0"));
+    parent = discord::utils::get(discord::detail::bot_instance->channels, [parent_id](auto const &chn) { return chn->id == parent_id; });
     rate_limit_per_user = get_value(data, "rate_limit_per_user", 0);
     topic = get_value(data, "topic", "");
 
@@ -52,16 +53,18 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id)
 }
 
 discord::Channel &discord::Channel::update(nlohmann::json const data) {
-    update_object_bulk(data,
-                       "id", this->id,
-                       "type", this->type,
-                       "bitrate", this->bitrate,
-                       "user_limit", this->user_limit,
-                       "parent_id", this->parent_id,
-                       "rate_limit_per_user", this->rate_limit_per_user,
-                       "topic", this->topic,
-                       "name", this->name,
-                       "position", this->position);
+    update_object(data, "id", id);
+    update_object(data, "bitrate", bitrate);
+    update_object(data, "user_limit", user_limit);
+    if (data.contains("parent_id")) {
+        auto parent_id = to_sf(get_value(data, "parent_id", "0"));
+        parent = discord::utils::get(discord::detail::bot_instance->channels, [parent_id](auto const &chn) { return chn->id == parent_id; });
+    }
+    update_object(data, "rate_limit_per_user", rate_limit_per_user);
+    update_object(data, "topic", topic);
+    update_object(data, "name", name);
+    update_object(data, "position", position);
+    update_object(data, "type", type);
 
     if (type == channel_type::dm_channel || type == channel_type::group_dm_channel) {
         if (data.contains("recipients")) {

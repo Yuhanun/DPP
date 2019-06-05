@@ -537,10 +537,10 @@ namespace discord {
         int type;
         int bitrate;
         int position;
-        int parent_id;
         int user_limit;
         int rate_limit_per_user;
 
+        std::shared_ptr<discord::Channel> parent;
         snowflake last_message_id;
 
         std::string name;
