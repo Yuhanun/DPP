@@ -374,7 +374,7 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
         auto usr_id = to_sf(member["user"]["id"]);
         auto usr = std::make_shared<discord::User>(member["user"]);
         if (std::find_if(users.begin(), users.end(),
-                         [usr_id](auto const &usr_ptr) { return usr_ptr->id == usr_id; }) != users.end()) {
+                         [usr_id](auto const &usr_ptr) { return usr_ptr->id == usr_id; }) == users.end()) {
             users.push_back(usr);
         }
     }
@@ -492,7 +492,7 @@ void discord::Bot::guild_member_remove_event(nlohmann::json data) {
         usr_ptr = std::make_shared<discord::User>(data["user"]);
         users.push_back(usr_ptr);
     }
-    
+
     auto g_id = to_sf(data["guild_id"]);
     auto guild = discord::utils::get(guilds, [g_id](auto &gld) { return gld->id == g_id; });
 
