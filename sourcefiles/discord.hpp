@@ -221,6 +221,24 @@ namespace discord {
         int visibility;
     };
 
+    class Presence {
+    public:
+    	Presence() = default;
+	    Presence(const nlohmann::json&);
+    private:
+    	std::shared_ptr<discord::User> user;
+    	std::vector<discord::Role> roles;
+//	    discord::Activity game; Incomplete type :thinking:
+    	std::shared_ptr<discord::Guild> guild_id;
+    	std::string status;
+    	std::vector<discord::Activity> activities;
+	    struct {
+		    std::string desktop;
+		    std::string mobile;
+		    std::string web;
+	    } client_status;
+    };
+
     class Attachment {
     public:
         Attachment() = default;
