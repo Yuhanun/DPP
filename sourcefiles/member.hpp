@@ -19,11 +19,13 @@ discord::Member::Member(nlohmann::json const j, std::shared_ptr<discord::Guild> 
     nick = get_value(j, "nick", "");
     joined_at = time_from_discord_string(get_value(j, "joined_at", ""));
     guild = g;
+    auto usr_id = to_sf(j["user"]["id"]);
+    user = discord::utils::get(discord::detail::bot_instance->users, [=](auto& usr) { return usr->id == usr_id; });
     id = user->id;
-    user = discord::utils::get(discord::detail::bot_instance->users, [=](auto& usr) { return usr->id == id; });
     if (!j.contains("roles")) {
         return;
     }
+    
     for (auto const& role : j["roles"]) {
         roles.emplace_back(to_sf(role));
     }
