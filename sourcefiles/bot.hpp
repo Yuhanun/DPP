@@ -10,6 +10,7 @@
 #include "integration.hpp"
 #include "message.hpp"
 #include "nlohmann/json.hpp"
+#include "presence.hpp"
 
 discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
     : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
@@ -669,16 +670,37 @@ void discord::Bot::message_reaction_remove_all_event(nlohmann::json data) {
     func_holder.call<events::message_reaction_remove_all>(futures, ready, message);
 }
 
-void discord::Bot::presence_update_event(nlohmann::json) {
+void discord::Bot::presence_update_event(nlohmann::json data) {
+    auto g_id = to_sf(data["guild_id"]);
+    auto mem_id = to_sf(data["user"]["id"]);
+    auto guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
+    auto member = discord::utils::get(guild->members, [=](auto &mem) { return mem->id == mem_id; });
+    member->presence.update(data);
+    func_holder.call<events::presence_update>(futures, ready, member);
 }
-void discord::Bot::typing_start_event(nlohmann::json) {
+
+void discord::Bot::typing_start_event(nlohmann::json data) {
+    // std::shared_ptr<discord::User> const, std::shared_ptr<discord::Channel> const, snowflake
+    auto c_id = to_sf(data["channel_id"]);
+    auto usr_id = to_sf(data["user_id"]);
+    auto channel = discord::utils::get(channels, [=](auto const &c) { return c->id == c_id; });
+    auto user = discord::utils::get(users, [=](auto const &usr) { return usr->id == usr_id; });
+    func_holder.call<events::typing_start>(futures, ready, user, channel, boost::posix_time::from_time_t(time_t{ data["timestamp"].get<int>() }));
 }
-void discord::Bot::user_update_event(nlohmann::json) {
+
+void discord::Bot::user_update_event(nlohmann::json data) {
+    auto usr_id = to_sf(data["id"]);
+    auto user = discord::utils::get(users, [=](auto &usr) { return usr->id == usr_id; });
+    user->update(data);
+    func_holder.call<events::user_update>(futures, ready, user);
 }
+
 void discord::Bot::voice_state_update_event(nlohmann::json) {
 }
+
 void discord::Bot::voice_server_update_event(nlohmann::json) {
 }
+
 void discord::Bot::webhooks_update_event(nlohmann::json) {
 }
 

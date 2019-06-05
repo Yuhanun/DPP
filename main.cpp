@@ -24,7 +24,6 @@ int main() {
                                                                        << "ID: " << bot.id << std::endl
                                                                        << "-----------------------------" << std::endl; });
 
-
     bot.register_command("test", [](discord::Context const&) {
         std::cout << discord::Object{ 500 } << std::endl;
     });

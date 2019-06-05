@@ -39,7 +39,6 @@ discord::Guild::Guild(nlohmann::json const guild)
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
       roles{ from_json_array<discord::Role>(guild, "roles", discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; })) },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
-
     if (guild.contains("members")) {
         for (auto& each : guild["members"]) {
             discord::Member member{
@@ -50,6 +49,11 @@ discord::Guild::Guild(nlohmann::json const guild)
             members.emplace_back(std::make_shared<discord::Member>(member));
             if (each["user"]["id"] == guild["owner_id"]) {
                 owner = member;
+            }
+            for (auto& pres : guild["presences"]) {
+                if (to_sf(pres["user"]["id"]) == member.id) {
+                    member.presence = discord::Presence{ pres };
+                }
             }
         }
     }

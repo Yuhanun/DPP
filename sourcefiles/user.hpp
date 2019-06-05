@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
+#include "assets.hpp"
 #include "color.hpp"
 #include "discord.hpp"
 #include "utility.hpp"
-#include "assets.hpp"
 
 
 discord::User::User(snowflake id)
@@ -30,6 +30,26 @@ discord::User::User(nlohmann::json const j) {
     }
     name = j["username"];
     mention = "<@" + std::to_string(id) + ">";
+}
+
+discord::User& discord::User::update(nlohmann::json const data) {
+    update_object_bulk(data,
+                       "bot", bot,
+                       "discriminator", discriminator,
+                       "id", id,
+                       "username", name);
+
+    if (data.contains("avatar")) {
+        if (data["avatar"].is_null()) {
+            avatar = { "", default_user_avatar, false, to_sf(discriminator) };
+        } else {
+            std::string av_hash = data["avatar"];
+            avatar = { av_hash, user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
+        }
+    }
+    
+    mention = "<@" + std::to_string(id) + ">";
+    return *this;
 }
 
 discord::Channel discord::User::create_dm() {
