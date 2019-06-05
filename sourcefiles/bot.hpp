@@ -680,7 +680,6 @@ void discord::Bot::presence_update_event(nlohmann::json data) {
 }
 
 void discord::Bot::typing_start_event(nlohmann::json data) {
-    // std::shared_ptr<discord::User> const, std::shared_ptr<discord::Channel> const, snowflake
     auto c_id = to_sf(data["channel_id"]);
     auto usr_id = to_sf(data["user_id"]);
     auto channel = discord::utils::get(channels, [=](auto const &c) { return c->id == c_id; });
