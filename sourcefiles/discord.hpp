@@ -93,7 +93,7 @@ namespace discord {
         void(std::vector<std::shared_ptr<discord::Message>> const),                         // MESSAGE_DELETE_BULK
         void(std::shared_ptr<discord::Message> const, discord::Emoji const),                // MESSAGE_REACTION_ADD
         void(std::shared_ptr<discord::Message> const, discord::Emoji const),                // MESSAGE_REACTION_REMOVE
-        void(discord::Message),                                                             // MESSAGE_REACTION_REMOVE_ALL
+        void(std::shared_ptr<discord::Message> const),                                      // MESSAGE_REACTION_REMOVE_ALL
         void(discord::User),                                                                // PRECENSE_UPDATE
         void(discord::Member, discord::Channel),                                            // PRESENCE_UPDATE
         void(discord::User),                                                                // USER_UPDATE
