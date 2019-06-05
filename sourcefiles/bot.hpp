@@ -695,13 +695,18 @@ void discord::Bot::user_update_event(nlohmann::json data) {
     func_holder.call<events::user_update>(futures, ready, user);
 }
 
-void discord::Bot::voice_state_update_event(nlohmann::json) {
+void discord::Bot::voice_state_update_event(nlohmann::json data) {
+    func_holder.call<events::voice_state_update>(futures, ready, data);
 }
 
-void discord::Bot::voice_server_update_event(nlohmann::json) {
+void discord::Bot::voice_server_update_event(nlohmann::json data) {
+    func_holder.call<events::voice_server_update>(futures, ready, data);
 }
 
-void discord::Bot::webhooks_update_event(nlohmann::json) {
+void discord::Bot::webhooks_update_event(nlohmann::json data) {
+    auto c_id = to_sf(data["channel_id"]);
+    auto channel = discord::utils::get(channels, [=](auto const &chan) { return chan->id == c_id; });
+    func_holder.call<events::webhooks_update>(futures, ready, channel);
 }
 
 discord::User discord::Bot::get_current_user() {

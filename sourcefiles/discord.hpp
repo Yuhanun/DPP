@@ -97,8 +97,8 @@ namespace discord {
         void(std::shared_ptr<discord::Member> const),                                                   // PRECENSE_UPDATE
         void(std::shared_ptr<discord::User> const, std::shared_ptr<discord::Channel> const, datetime),  // TYPING_START
         void(std::shared_ptr<discord::User> const),                                                     // USER_UPDATE
-        void(discord::Member, discord::Channel),                                                        // VOICE_STATE_UPDATE
-        void(discord::Guild),                                                                           // VOICE_SERVER_UPDATE
+        void(nlohmann::json const),                                                                     // VOICE_STATE_UPDATE
+        void(nlohmann::json const),                                                                     // VOICE_SERVER_UPDATE
         void(discord::Guild),                                                                           // WEBHOOKS_UPDATE
         void(snowflake, snowflake, nlohmann::json const),                                               // RAW_MESSAGE_UPDATE
         void(snowflake, snowflake, nlohmann::json const),                                               // RAW_MESSAGE_DELETE
