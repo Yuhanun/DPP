@@ -10,8 +10,12 @@ discord::Activity::Activity(std::string const& name, presence::activity const& t
 discord::Activity::Activity(nlohmann::json const data) {
     name = data["name"];
     type = data["type"];
-    if (static_cast<int>(type) == 1) url = data["url"];
-
+    
+    if (static_cast<int>(type) == 1) {
+        if (data.contains("url")) {
+            url = data["url"];
+        }
+    }
     auto ts_obj = get_value(data, "timestamps", nlohmann::json({}));
 
     auto millis = get_value(ts_obj, "start", 0);
