@@ -551,9 +551,17 @@ void discord::Bot::guild_member_update_event(nlohmann::json data) {
 
 // TODO: implement
 void discord::Bot::guild_members_chunk_event(nlohmann::json) {
+    // we don't do this.
 }
-void discord::Bot::guild_role_create_event(nlohmann::json) {
+
+void discord::Bot::guild_role_create_event(nlohmann::json data) {
+    auto g_id = to_sf(data["guild_id"]);
+    auto guild = discord::utils::get(guilds, [=](auto &g) { return g->id == g_id; });
+    discord::Role role{ data["role"] };
+    guild->roles.push_back(role);
+    func_holder.call<events::guild_role_create>(futures, ready, role);
 }
+
 void discord::Bot::guild_role_update_event(nlohmann::json) {
 }
 void discord::Bot::guild_role_delete_event(nlohmann::json) {
