@@ -744,7 +744,7 @@ namespace discord {
         std::vector<std::shared_ptr<discord::Member>> members;
         std::vector<std::shared_ptr<discord::Channel>> channels;
 
-        discord::Member owner;
+        std::shared_ptr<discord::Member> owner;
         discord::Channel afk_channel;
         discord::Channel system_channel;
 

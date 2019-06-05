@@ -164,7 +164,8 @@ namespace discord {
         if (j[key].is_null()) {
             return;
         }
-        if constexpr (std::is_same<T, snowflake>::value) {
+
+        if constexpr (std::is_same<T, snowflake>::value) { // sometimes wrong
             var = to_sf(j[key]);
         } else {
             var = j[key];

@@ -295,9 +295,7 @@ void discord::Bot::invalid_session_event(nlohmann::json) {
     func_holder.call<events::invalid_session>(futures, true);
 }
 
-void discord::Bot::channel_create_event(nlohmann::json j) {
-    const auto data = j["d"];
-
+void discord::Bot::channel_create_event(nlohmann::json data) {
     auto channel = std::make_shared<discord::Channel>(data, to_sf(get_value(data, "guild_id", "0")));
     if (channel->guild) {
         auto guild = discord::utils::get(guilds, [channel](auto &guild) {
@@ -311,8 +309,7 @@ void discord::Bot::channel_create_event(nlohmann::json j) {
     func_holder.call<events::channel_create>(futures, true, channel);
 }
 
-void discord::Bot::channel_update_event(nlohmann::json j) {
-    const nlohmann::json data = j["d"];
+void discord::Bot::channel_update_event(nlohmann::json data) {
     auto c_id = to_sf(data["id"]);
     auto channel = discord::utils::get(channels, [=](auto &chan) {
         return chan->id == c_id;
@@ -676,6 +673,7 @@ void discord::Bot::presence_update_event(nlohmann::json data) {
     auto mem_id = to_sf(data["user"]["id"]);
     auto guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
     auto member = discord::utils::get(guild->members, [=](auto &mem) { return mem->id == mem_id; });
+    // member is nullptr sometimes
     member->presence.update(data);
     func_holder.call<events::presence_update>(futures, ready, member);
 }

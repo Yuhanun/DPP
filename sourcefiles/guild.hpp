@@ -36,20 +36,22 @@ discord::Guild::Guild(nlohmann::json const guild)
       region{ get_value(guild, "region", "") },
       created_at{ time_from_discord_string(get_value(guild, "joined_at", "")) },
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
-      roles{ from_json_array<discord::Role>(guild, "roles", discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; })) },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
+    auto g = discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; });
+    for (auto const& each : guild["roles"]) {
+        roles.emplace_back(each, g);
+    }
+
     if (guild.contains("members")) {
         for (auto& each : guild["members"]) {
-            discord::Member member{
-                each, discord::utils::get(discord::detail::bot_instance->guilds, [=](auto& gld) { return gld->id == this->id; })
-            };
-            members.emplace_back(std::make_shared<discord::Member>(member));
+            auto member = std::make_shared<discord::Member>(each, discord::utils::get(discord::detail::bot_instance->guilds, [=](auto& gld) { return gld->id == this->id; }));
+            members.push_back(member);
             if (each["user"]["id"] == guild["owner_id"]) {
                 owner = member;
             }
             for (auto& pres : guild["presences"]) {
-                if (to_sf(pres["user"]["id"]) == member.id) {
-                    member.presence = discord::Presence{ pres };
+                if (to_sf(pres["user"]["id"]) == member->id) {
+                    member->presence = discord::Presence{ pres };
                 }
             }
         }
