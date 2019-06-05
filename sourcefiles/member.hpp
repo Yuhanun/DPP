@@ -25,7 +25,7 @@ discord::Member::Member(nlohmann::json const j, std::shared_ptr<discord::Guild> 
     if (!j.contains("roles")) {
         return;
     }
-    
+
     for (auto const& role : j["roles"]) {
         roles.emplace_back(to_sf(role));
     }

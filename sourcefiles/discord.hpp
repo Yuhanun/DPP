@@ -293,7 +293,7 @@ namespace discord {
     class Presence {
     public:
         Presence() = default;
-        Presence(const nlohmann::json&);
+        Presence(const nlohmann::json);
         void update(nlohmann::json const);
 
         std::vector<discord::Role> roles;

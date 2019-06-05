@@ -367,9 +367,6 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
         return func_holder.call<events::guild_create>(futures, ready, guild);
     }
 
-    guild = std::make_shared<discord::Guild>(data);
-    guilds.push_back(guild);
-
     for (auto const &member : data["members"]) {
         auto usr_id = to_sf(member["user"]["id"]);
         auto usr = std::make_shared<discord::User>(member["user"]);
@@ -378,6 +375,9 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
             users.push_back(usr);
         }
     }
+
+    guild = std::make_shared<discord::Guild>(data);
+    guilds.push_back(guild);
 
     for (auto const &channel : data["channels"]) {
         auto chan = std::make_shared<discord::Channel>(channel, guild_id);

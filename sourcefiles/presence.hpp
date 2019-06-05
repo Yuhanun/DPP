@@ -3,7 +3,7 @@
 #include "discord.hpp"
 #include "utility.hpp"
 
-discord::Presence::Presence(const nlohmann::json& j)
+discord::Presence::Presence(const nlohmann::json j)
     : status(discord::get_value(j, "status", "")) {
     auto client_status_obj = get_value(j, "client_status", nlohmann::json({}));
     client_status = {

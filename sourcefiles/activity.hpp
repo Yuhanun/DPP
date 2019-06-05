@@ -13,8 +13,15 @@ discord::Activity::Activity(nlohmann::json const data) {
     if (static_cast<int>(type) == 1) url = data["url"];
 
     auto ts_obj = get_value(data, "timestamps", nlohmann::json({}));
-    timestamps.start = time_from_discord_string(get_value(ts_obj, "start", ""));
-    timestamps.end = time_from_discord_string(get_value(ts_obj, "end", ""));
+
+    auto millis = get_value(ts_obj, "start", 0);
+    if (millis != 0) {
+        timestamps.start = boost::posix_time::from_time_t(millis / 1000) + boost::posix_time::millisec(millis % 1000);
+    }
+    millis = get_value(ts_obj, "end", 0);
+    if (millis != 0) {
+        timestamps.end = boost::posix_time::from_time_t(millis / 1000) + boost::posix_time::millisec(millis % 1000);
+    }
 
     application_id = to_sf(get_value(data, "application_id", "0"));
     details = get_value(data, "details", "");
