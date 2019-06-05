@@ -1,6 +1,3 @@
-Gateway:
-    Caching
-
 General:
     Complete ASYNC
     Complete rewrite to cpprestsdk
