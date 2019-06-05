@@ -562,9 +562,17 @@ void discord::Bot::guild_role_create_event(nlohmann::json data) {
     func_holder.call<events::guild_role_create>(futures, ready, role);
 }
 
-void discord::Bot::guild_role_update_event(nlohmann::json) {
+void discord::Bot::guild_role_update_event(nlohmann::json data) {
+    auto g_id = to_sf(data["guild_id"]);
+    auto guild = discord::utils::get(guilds, [=](auto &g) { return g->id == g_id; });
+    auto role_id = to_sf(data["role"]["id"]);
+    auto* role = discord::utils::get(guild->roles, [=](auto &rl) { return role_id == r1.id; });
+    role->update(data);
+    func_holder.call<events::guild_role_update>(futures, ready, *role);
 }
+
 void discord::Bot::guild_role_delete_event(nlohmann::json) {
+    
 }
 
 void discord::Bot::message_create_event(nlohmann::json data) {
