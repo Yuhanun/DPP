@@ -221,24 +221,6 @@ namespace discord {
         int visibility;
     };
 
-    class Presence {
-    public:
-    	Presence() = default;
-	    Presence(const nlohmann::json&);
-    private:
-    	std::shared_ptr<discord::User> user;
-    	std::vector<discord::Role> roles;
-//	    discord::Activity game; Incomplete type :thinking:
-    	std::shared_ptr<discord::Guild> guild_id;
-    	std::string status;
-    	std::vector<discord::Activity> activities;
-	    struct {
-		    std::string desktop;
-		    std::string mobile;
-		    std::string web;
-	    } client_status;
-    };
-
     class Attachment {
     public:
         Attachment() = default;
@@ -257,6 +239,74 @@ namespace discord {
         std::string filename;
         std::string filepath;
         bool spoiler;
+    };
+
+    class Activity {
+    public:
+        Activity() = default;
+        Activity(nlohmann::json const);
+        Activity(std::string const&, presence::activity const&, std::string const& = "online", bool const& = false, std::string const& = "");
+
+        nlohmann::json to_json() const;
+
+    private:
+        bool afk;
+
+        struct {
+            std::string id;
+            size_t current_size;
+            size_t max_size;
+        } party;
+
+        struct {
+            std::string large_image;
+            std::string large_text;
+            std::string small_image;
+            std::string small_text;
+        } assets;
+
+        struct {
+            std::string join;
+            std::string spectate;
+            std::string match;
+        } secrets;
+
+        bool instance;
+        int flags;
+
+        struct {
+            discord::datetime start;
+            discord::datetime end;
+        } timestamps;
+
+        std::string state;
+        std::string details;
+        snowflake application_id;
+
+        std::string url;
+        std::string name;
+        std::string status;
+
+        presence::activity type;
+    };
+
+    class Presence {
+    public:
+        Presence() = default;
+        Presence(const nlohmann::json&);
+
+    private:
+        std::shared_ptr<discord::User> user;
+        std::vector<discord::Role> roles;
+        discord::Activity game;
+        std::shared_ptr<discord::Guild> guild_id;
+        std::string status;
+        std::vector<discord::Activity> activities;
+        struct {
+            std::string desktop;
+            std::string mobile;
+            std::string web;
+        } client_status;
     };
 
     class User : public Object {
@@ -448,55 +498,6 @@ namespace discord {
         std::vector<std::shared_ptr<discord::Message>> messages;
         std::unordered_map<std::string, std::function<void(discord::Context const&)>> command_map;
         std::unordered_map<std::string, std::function<void(nlohmann::json)>> internal_event_map;
-    };
-
-    class Activity {
-    public:
-        Activity() = default;
-        Activity(nlohmann::json const);
-        Activity(std::string const&, presence::activity const&, std::string const& = "online", bool const& = false, std::string const& = "");
-
-        nlohmann::json to_json() const;
-
-    private:
-        bool afk;
-
-        struct {
-            std::string id;
-            size_t current_size;
-            size_t max_size;
-        } party;
-
-        struct {
-            std::string large_image;
-            std::string large_text;
-            std::string small_image;
-            std::string small_text;
-        } assets;
-
-        struct {
-            std::string join;
-            std::string spectate;
-            std::string match;
-        } secrets;
-
-        bool instance;
-        int flags;
-
-        struct {
-            discord::datetime start;
-            discord::datetime end;
-        } timestamps;
-
-        std::string state;
-        std::string details;
-        snowflake application_id;
-
-        std::string url;
-        std::string name;
-        std::string status;
-
-        presence::activity type;
     };
 
     class Channel : public Object {
@@ -741,7 +742,7 @@ namespace discord {
         std::vector<int> features;
         std::vector<discord::Role> roles;
         std::vector<discord::Emoji> emojis;
-        // TODO: 
+        // TODO:
         // std::vector<discord::Presence> presences;
         std::vector<std::shared_ptr<discord::Member>> members;
         std::vector<std::shared_ptr<discord::Channel>> channels;
