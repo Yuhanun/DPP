@@ -33,6 +33,23 @@ discord::Member::Member(nlohmann::json const j, discord::User const& user, disco
     }
 }
 
+discord::Member& discord::Member::update(nlohmann::json const data) {
+    update_object(data, "nick", nick);
+    update_object(data["user"], "username", name);
+    update_object(data["user"], "discriminator", discriminator);
+
+    if (data["user"].contains("avatar")) {
+        if (data["user"]["avatar"].is_null()) {
+            avatar = { "", default_user_avatar, false, to_sf(discriminator) };
+        } else {
+            std::string av_hash = data["user"]["avatar"];
+            avatar = { av_hash, user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
+        }
+    }
+
+    update_object(data["user"], "bot", bot);
+}
+
 void discord::Member::edit(std::string const& t_name, bool t_mute, bool t_deaf, std::vector<discord::Role> const& t_roles, snowflake channel_id) {
     nlohmann::json data({ { "name", t_name },
                           { "mute", t_mute },

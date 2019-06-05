@@ -509,33 +509,44 @@ void discord::Bot::guild_member_add_event(nlohmann::json data) {
 }
 
 void discord::Bot::guild_member_remove_event(nlohmann::json data) {
-    discord::User user{ data["user"] };
-    snowflake guild_id = to_sf(data["guild_id"]);
-    auto guild = discord::utils::get(this->guilds, [guild_id](auto &g) {
-        return g->id == guild_id;
+    auto usr_id = to_sf(data["user"]["id"]);
+    auto usr_ptr = discord::utils::get(users, [usr_id](auto const &usr) {
+        return usr->id == usr_id;
     });
-    guild->members.erase(std::remove_if(guild->members.begin(), guild->members.end(), [&user](auto const &i) {
-                             return i->id == user.id;
+
+    if (!usr_ptr) {
+        usr_ptr = std::make_shared<discord::User>(data["user"]);
+        users.push_back(usr_ptr);
+    }
+    auto g_id = to_sf(data["guild_id"]);
+    auto guild = discord::utils::get(guilds, [g_id](auto &gld) { return gld->id == g_id; });
+
+    guild->members.erase(std::remove_if(guild->members.begin(), guild->members.end(), [&usr_id](auto const &i) {
+                             return i->id == usr_id;
                          }),
                          guild->members.end());
-    func_holder.call<events::guild_member_remove>(futures, ready, user);
+    func_holder.call<events::guild_member_remove>(futures, ready, guild, usr_ptr);
 }
 
 void discord::Bot::guild_member_update_event(nlohmann::json data) {
-    discord::User user{ data["user"] };
+    auto usr_id = to_sf(data["user"]["id"]);
+
     snowflake guild_id = to_sf(data["guild_id"]);
     auto guild = discord::utils::get(this->guilds, [guild_id](auto &g) {
         return g->id == guild_id;
     });
-    auto member = discord::utils::get(guild->members, [user](auto &usr) {
-        return usr->id == user.id;
-    });
-    member->nick = get_value(data, "nick", member->nick);  // member is 0x0
-    member->roles.clear();
-    for (auto const &each_id : data["roles"]) {
-        member->roles.emplace_back(to_sf(each_id));
+
+    auto member = discord::utils::get(guild->members, [usr_id](auto &mem) { return mem->id == usr_id; });
+
+    update_object(data, "nick", member->nick);
+    if (data.contains("roles")) {
+        member->roles.clear();
+        for (auto const &each_id : data["roles"]) {
+            member->roles.emplace_back(*discord::utils::get(
+                guild->roles, [each_id](auto const &role) { return role.id == each_id; }));
+        }
     }
-    func_holder.call<events::guild_member_update>(futures, ready, *member);
+    func_holder.call<events::guild_member_update>(futures, ready, member);
 }
 
 // TODO: implement
