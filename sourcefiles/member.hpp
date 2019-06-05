@@ -2,8 +2,8 @@
 #include "discord.hpp"
 #include "user.hpp"
 
-discord::Member::Member(snowflake id)
-    : discord::User(id) {
+discord::Member::Member(snowflake id) {
+    user->id = id;
     for (auto const& guild : discord::detail::bot_instance->guilds) {
         for (auto const& mem : guild->members) {
             if (id == mem->id) {
@@ -13,18 +13,14 @@ discord::Member::Member(snowflake id)
     }
 }
 
-discord::Member::Member(nlohmann::json const j, discord::User const& user, discord::Guild* g) {
+discord::Member::Member(nlohmann::json const j, std::shared_ptr<discord::Guild> g) {
     deaf = get_value(j, "deaf", false);
     muted = get_value(j, "mute", false);
     nick = get_value(j, "nick", "");
     joined_at = time_from_discord_string(get_value(j, "joined_at", ""));
-    guild = std::make_shared<discord::Guild>(*g);
-    id = user.id;
-    bot = user.bot;
-    name = user.name;
-    avatar = user.avatar;
-    mention = user.mention;
-    discriminator = user.discriminator;
+    guild = g;
+    id = user->id;
+    user = discord::utils::get(discord::detail::bot_instance->users, [=](auto& usr) { return usr->id == id; });
     if (!j.contains("roles")) {
         return;
     }
@@ -35,19 +31,8 @@ discord::Member::Member(nlohmann::json const j, discord::User const& user, disco
 
 discord::Member& discord::Member::update(nlohmann::json const data) {
     update_object(data, "nick", nick);
-    update_object(data["user"], "username", name);
-    update_object(data["user"], "discriminator", discriminator);
-
-    if (data["user"].contains("avatar")) {
-        if (data["user"]["avatar"].is_null()) {
-            avatar = { "", default_user_avatar, false, to_sf(discriminator) };
-        } else {
-            std::string av_hash = data["user"]["avatar"];
-            avatar = { av_hash, user_avatar, av_hash[0] == 'a' && av_hash[1] == '_', id };
-        }
-    }
-
-    update_object(data["user"], "bot", bot);
+    update_object(data, "deaf", deaf);
+    update_object(data, "mute", muted);
     return *this;
 }
 

@@ -31,7 +31,7 @@ int main() {
     bot.register_command("image", [](discord::Context const& ctx) {
         ctx.send(discord::EmbedBuilder()
                      .set_description("Test")
-                     .set_image(ctx.message.author->avatar.url));
+                     .set_image(ctx.message.author->user->avatar.url));
     });
 
     bot.register_command("file", [](discord::Context const& ctx) {

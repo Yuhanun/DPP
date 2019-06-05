@@ -476,7 +476,7 @@ void discord::Bot::guild_member_add_event(nlohmann::json data) {
         users.push_back(usr_ptr);
     }
 
-    auto mem_ptr = std::make_shared<discord::Member>(data, *usr_ptr, guild.get());
+    auto mem_ptr = std::make_shared<discord::Member>(data, guild);
     guild->members.push_back(mem_ptr);
 
     func_holder.call<events::guild_member_add>(futures, ready, mem_ptr);
@@ -492,6 +492,7 @@ void discord::Bot::guild_member_remove_event(nlohmann::json data) {
         usr_ptr = std::make_shared<discord::User>(data["user"]);
         users.push_back(usr_ptr);
     }
+    
     auto g_id = to_sf(data["guild_id"]);
     auto guild = discord::utils::get(guilds, [g_id](auto &gld) { return gld->id == g_id; });
 

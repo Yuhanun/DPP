@@ -41,10 +41,8 @@ discord::Guild::Guild(nlohmann::json const guild)
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
     if (guild.contains("members")) {
         for (auto& each : guild["members"]) {
-            discord::Member member{
-                each,
-                discord::User(each["user"]),
-                this
+            discord::Member member {
+                each, discord::utils::get(discord::detail::bot_instance->guilds, [=](auto& gld) { return gld->id == this->id; })
             };
             members.emplace_back(std::make_shared<discord::Member>(member));
             if (each["user"]["id"] == guild["owner_id"]) {
@@ -234,8 +232,7 @@ discord::Member discord::Guild::get_member(snowflake m_id) {
     auto req_data = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/members/%", this->id, m_id));
     return discord::Member{
         req_data,
-        req_data["user"],
-        this
+        discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; })
     };
 }
 

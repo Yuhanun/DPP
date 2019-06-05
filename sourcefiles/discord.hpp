@@ -99,7 +99,7 @@ namespace discord {
         void(std::shared_ptr<discord::User> const),                                                     // USER_UPDATE
         void(nlohmann::json const),                                                                     // VOICE_STATE_UPDATE
         void(nlohmann::json const),                                                                     // VOICE_SERVER_UPDATE
-        void(std::shared_ptr<discord::Channel>),                                                        // WEBHOOKS_UPDATE
+        void(std::shared_ptr<discord::Channel> const),                                                  // WEBHOOKS_UPDATE
         void(snowflake, snowflake, nlohmann::json const),                                               // RAW_MESSAGE_UPDATE
         void(snowflake, snowflake, nlohmann::json const),                                               // RAW_MESSAGE_DELETE
         void(snowflake, nlohmann::json const)>                                                          // RAW_MESSAGE_DELETE_BULK
@@ -326,11 +326,11 @@ namespace discord {
         std::string discriminator;
     };
 
-    class Member : public User {
+    class Member : public Object {
     public:
         Member() = default;
         Member(snowflake);
-        Member(nlohmann::json const, discord::User const&, discord::Guild*);
+        Member(nlohmann::json const, std::shared_ptr<discord::Guild>);
         Member& update(nlohmann::json const);  // TODO
 
         void edit(std::string const&, bool, bool, std::vector<discord::Role> const& = {}, snowflake = -1);
@@ -344,9 +344,9 @@ namespace discord {
         bool deaf;
         bool muted;
         discord::Presence presence;
-        std::shared_ptr<discord::Guild> guild;
-
         std::vector<discord::Role> roles;
+        std::shared_ptr<discord::User> user;
+        std::shared_ptr<discord::Guild> guild;
 
         std::string nick;
         datetime joined_at{ boost::local_time::not_a_date_time };
