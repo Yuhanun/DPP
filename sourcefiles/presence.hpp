@@ -45,15 +45,18 @@ void discord::Presence::update(nlohmann::json const data) {
         }
     }
 
+    auto g_id = to_sf(data["guild_id"]);
+    auto guild = discord::utils::get(discord::detail::bot_instance->guilds, [=](auto const& g) { return g->id == g_id; });
+
     if (data.contains("roles")) {
         roles.clear();
         for (const auto& each : data["roles"]) {
-            roles.emplace_back(each);
+            roles.emplace_back(each, guild);
         }
     }
 
     if (data.contains("activities")) {
-		activities.clear();
+        activities.clear();
         for (const auto& each : data["activities"]) {
             activities.emplace_back(each);
         }
