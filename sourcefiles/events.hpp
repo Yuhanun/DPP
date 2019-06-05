@@ -84,6 +84,7 @@ namespace discord {
         webhooks_update,
         raw_message_update,
         raw_message_delete,
+        raw_message_delete_bulk,
     };
 
     enum class AuditLogEventType : short {

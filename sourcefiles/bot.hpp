@@ -587,24 +587,50 @@ void discord::Bot::message_delete_event(nlohmann::json data) {
             break;
         }
     }
-    
+
     func_holder.call<events::raw_message_delete>(futures, ready, m_id, to_sf(data["channel_id"]), data);
 }
 
 void discord::Bot::message_delete_bulk_event(nlohmann::json data) {
-    // for (auto const &each : data) {
-    //     bool found = false;
-    //     auto message = Message{ each };
-    //     message = process_message_cache<2>(&message, found);
-    //     func_holder.call<events::message_delete>(futures, found, message);
-    // }
+    std::vector<std::shared_ptr<discord::Message>> r_vec;
+    for (auto const &each_m : data["id"]) {
+        auto m_id = to_sf(each_m);
+        for (size_t i = 0; i < messages.size(); i++) {
+            if (messages[i]->id == m_id) {
+                r_vec.push_back(messages[i]);
+                messages.erase(messages.begin() + i);
+                break;
+            }
+        }
+    }
+
+    func_holder.call<events::message_delete_bulk>(futures, ready, r_vec);
+    func_holder.call<events::raw_message_delete_bulk>(futures, ready, to_sf(data["channel_id"]), data);
 }
 
-// TODO: implement
-void discord::Bot::message_reaction_add_event(nlohmann::json) {
+void discord::Bot::message_reaction_add_event(nlohmann::json data) {
+    auto m_id = to_sf(data["message_id"]);
+    auto message = discord::utils::get(messages, [=](auto &msg) { return msg->id == m_id; });
+    if (!message) {
+        message = std::make_shared<discord::Message>();
+    }
+    message->id = m_id;
+    auto c_id = to_sf(data["channel_id"]);
+    if (!message->channel) {
+        message->channel = discord::utils::get(channels, [=](auto &chan) { chan->id == c_id; });
+    }
+    message->channel->id = c_id;
+
+    if (data.contains("guild_id") && !message->channel->guild) {
+        auto g_id = to_sf(data["guild_id"]);
+        message->channel->guild = discord::utils::get(guilds, [=](auto &gld) { gld->id == g_id });
+    }
+    func_holder.call<events::message_reaction_add>(futures, ready, message, discord::Emoji{ data["emoji"] });
 }
-void discord::Bot::message_reaction_remove_event(nlohmann::json) {
+
+void discord::Bot::message_reaction_remove_event(nlohmann::json data) {
 }
+
 void discord::Bot::message_reaction_remove_all_event(nlohmann::json) {
 }
 void discord::Bot::presence_update_event(nlohmann::json) {

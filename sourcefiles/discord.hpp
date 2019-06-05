@@ -90,8 +90,8 @@ namespace discord {
         void(std::shared_ptr<discord::Message> const),                                      // MESSAGE_CREATE
         void(std::shared_ptr<discord::Message> const),                                      // MESSAGE_UPDATE
         void(std::shared_ptr<discord::Message> const),                                      // MESSAGE_DELETE
-        void(std::vector<discord::Message>),                                                // MESSAGE_DELETE_BULK
-        void(discord::Message),                                                             // MESSAGE_REACTION_ADD
+        void(std::vector<std::shared_ptr<discord::Message>> const),                         // MESSAGE_DELETE_BULK
+        void(std::shared_ptr<discord::Message> const, discord::Emoji const),                // MESSAGE_REACTION_ADD
         void(discord::Message),                                                             // MESSAGE_REACTION_REMOVE
         void(discord::Message),                                                             // MESSAGE_REACTION_REMOVE_ALL
         void(discord::User),                                                                // PRECENSE_UPDATE
@@ -101,7 +101,8 @@ namespace discord {
         void(discord::Guild),                                                               // VOICE_SERVER_UPDATE
         void(discord::Guild),                                                               // WEBHOOKS_UPDATE
         void(snowflake, snowflake, nlohmann::json const),                                   // RAW_MESSAGE_UPDATE
-        void(snowflake, snowflake, nlohmann::json const)>                                   // RAW_MESSAGE_DELETE
+        void(snowflake, snowflake, nlohmann::json const),                                   // RAW_MESSAGE_DELETE
+        void(snowflake, nlohmann::json const)>                                              // RAW_MESSAGE_DELETE_BULK
         function_handler;
 
     using websocketpp::lib::bind;
