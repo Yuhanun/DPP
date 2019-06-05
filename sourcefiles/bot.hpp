@@ -477,9 +477,10 @@ void discord::Bot::guild_ban_remove_event(nlohmann::json data) {
 }
 
 void discord::Bot::guild_emojis_update_event(nlohmann::json data) {
-    discord::Guild emote_guild{ to_sf(get_value(data, "guild", "0")) };
-    auto emote_vec = from_json_array<discord::Emoji>(data["emojis"]);
-    func_holder.call<events::guild_emojis_update>(futures, ready, emote_guild, emote_vec);
+    auto g_id = to_sf(data["guild_id"]);
+    auto g_ptr = discord::utils::get(guilds, [g_id](auto &gld) { return gld->id == g_id; });
+    g_ptr->emojis = from_json_array<discord::Emoji>(data["emojis"]);
+    func_holder.call<events::guild_emojis_update>(futures, ready, g_ptr);
 }
 
 void discord::Bot::guild_integrations_update_event(nlohmann::json data) {
