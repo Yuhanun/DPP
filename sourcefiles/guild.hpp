@@ -97,7 +97,6 @@ discord::Guild::Guild(nlohmann::json const guild)
 
 discord::Guild& discord::Guild::update(nlohmann::json const data) {
     update_object_bulk(data,
-                       "splash", splash,
                        "mfa_level", mfa_level,
                        "afk_timeout", afk_timeout,
                        "verification_level", verification_level,

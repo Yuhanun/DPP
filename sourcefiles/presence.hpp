@@ -30,11 +30,17 @@ discord::Presence::Presence(const nlohmann::json j)
 void discord::Presence::update(nlohmann::json const data) {
     if (data.contains("client_status")) {
         auto client_status_obj = data["client_status"];
-        client_status = {
-            get_value(client_status_obj, "desktop", ""),
-            get_value(client_status_obj, "mobile", ""),
-            get_value(client_status_obj, "web", "")
-        };
+        if (client_status_obj.contains("desktop")) {
+            client_status.desktop = client_status_obj["desktop"];
+        }
+
+        if (client_status_obj.contains("mobile")) {
+            client_status.mobile = client_status_obj["mobile"];
+        }
+
+        if (client_status_obj.contains("web")) {
+            client_status.web = client_status_obj["web"];
+        }
     }
 
     update_object(data, "status", status);
