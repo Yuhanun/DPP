@@ -264,7 +264,7 @@ void discord::Bot::update_presence(Activity const &act) {
 void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) {
     const nlohmann::json data = j["d"];
     last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
-    std::printf("Incoming event: %s\n", event_name.c_str());
+    std::cout << "Incoming event: " << event_name << std::endl;
     if (internal_event_map.find(event_name) != internal_event_map.end()) {
         internal_event_map[event_name](data);
     } else {
