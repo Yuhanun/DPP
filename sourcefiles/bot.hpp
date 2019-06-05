@@ -606,7 +606,7 @@ void discord::Bot::message_delete_bulk_event(nlohmann::json data) {
         }
     }
 
-    func_holder.call<events::message_delete_bulk>(futures, ready, r_vec);
+    func_holder.call<events::message_delete_bulk>(futures, !r_vec.empty(), r_vec);
     func_holder.call<events::raw_message_delete_bulk>(futures, ready, to_sf(data["channel_id"]), data);
 }
 

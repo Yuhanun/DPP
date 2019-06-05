@@ -99,7 +99,7 @@ namespace discord {
         void(std::shared_ptr<discord::User> const),                                                     // USER_UPDATE
         void(nlohmann::json const),                                                                     // VOICE_STATE_UPDATE
         void(nlohmann::json const),                                                                     // VOICE_SERVER_UPDATE
-        void(discord::Guild),                                                                           // WEBHOOKS_UPDATE
+        void(std::shared_ptr<discord::Channel>),                                                        // WEBHOOKS_UPDATE
         void(snowflake, snowflake, nlohmann::json const),                                               // RAW_MESSAGE_UPDATE
         void(snowflake, snowflake, nlohmann::json const),                                               // RAW_MESSAGE_DELETE
         void(snowflake, nlohmann::json const)>                                                          // RAW_MESSAGE_DELETE_BULK
