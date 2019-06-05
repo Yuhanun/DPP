@@ -79,8 +79,8 @@ namespace discord {
         void(std::shared_ptr<discord::Guild> const, std::shared_ptr<discord::User> const),  // GUILD_BAN_ADD,
         void(std::shared_ptr<discord::Guild> const, std::shared_ptr<discord::User> const),  // GUILD_BAN_REMOVE,
         void(std::shared_ptr<discord::Guild> const),                                        // GUILD_EMOJIS_UPDATE
-        void(discord::Guild),                                                               // GUILD_INTEGRATIONS_UPDATE
-        void(discord::Member),                                                              // GUILD_MEMBER_ADD
+        void(std::shared_ptr<discord::Guild> const),                                        // GUILD_INTEGRATIONS_UPDATE
+        void(std::shared_ptr<discord::Member> const),                                       // GUILD_MEMBER_ADD
         void(discord::User),                                                                // GUILD_MEMBER_REMOVE
         void(discord::Member),                                                              // GUILD_MEMBER_UPDATE
         void(),                                                                             // GUILD_MEMBERS_CHUNK

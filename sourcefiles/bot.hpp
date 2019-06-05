@@ -484,19 +484,28 @@ void discord::Bot::guild_emojis_update_event(nlohmann::json data) {
 }
 
 void discord::Bot::guild_integrations_update_event(nlohmann::json data) {
+    auto g_id = to_sf(data["guild_id"]);
     func_holder.call<events::guild_integrations_update>(
-        futures, ready, discord::Guild{ to_sf(data["guild_id"]) });
+        futures, ready, discord::utils::get(guilds, [g_id](auto const &gld) { return gld->id == g_id; }));
 }
 
 void discord::Bot::guild_member_add_event(nlohmann::json data) {
     snowflake guild_id = to_sf(data["guild_id"]);
-    auto guild = discord::utils::get(this->guilds, [guild_id](auto &g) {
+    auto guild = discord::utils::get(guilds, [guild_id](auto &g) {
         return g->id == guild_id;
     });
-    discord::User user{ data["user"] };
-    std::shared_ptr<discord::Member> mem = std::make_shared<discord::Member>(data, user, guild.get());
-    guild->members.emplace_back(mem.get());
-    func_holder.call<events::guild_member_add>(futures, ready, *mem);
+
+    snowflake mem_id = to_sf(data["user"]["id"]);
+    std::shared_ptr<discord::User> usr_ptr = discord::utils::get(users, [mem_id](auto const &usr) { return urs->id == mem_id; });
+    if (!usr_ptr) {
+        usr_ptr = std::make_shared<discord::User>(data["user"]);
+        users.push_back(usr_ptr);
+    }
+
+    auto mem_ptr = std::make_shared<discord::Member>(data, *usr_ptr, guild.get());
+    guild->members.push_back(mem_ptr);
+
+    func_holder.call<events::guild_member_add>(futures, ready, mem_ptr);
 }
 
 void discord::Bot::guild_member_remove_event(nlohmann::json data) {
