@@ -96,7 +96,7 @@ discord::Guild& discord::Guild::update(nlohmann::json const data) {
                        "vanity_url_code", vanity_url_code);
 
     if (data.contains("roles")) {
-        roles = from_json_array<discord::Role>(data["roles"], discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; }));
+        roles = from_json_array_special<discord::Role>(data["roles"], discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; }));
     }
 
     if (data.contains("emojis")) {
@@ -124,6 +124,7 @@ discord::Guild& discord::Guild::update(nlohmann::json const data) {
             icon = Asset{};
         }
     }
+    return *this;
 }
 
 std::vector<discord::Webhook> discord::Guild::get_webhooks() {

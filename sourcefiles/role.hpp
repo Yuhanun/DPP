@@ -27,6 +27,20 @@ discord::Role::Role(nlohmann::json data, std::shared_ptr<discord::Guild> g) {
     guild = g;
 }
 
+discord::Role& discord::Role::update(nlohmann::json data) {
+    update_object_bulk(data,
+                       "hoist", hoist,
+                       "mentionable", mentionable,
+                       "name", name,
+                       "color", color);
+
+    if (data.contains("permissions")) {
+        permissions = PermissionOverwrites(data["permissions"].get<int>(), 0, id, object_type::role);
+    }
+    
+    return *this;
+}
+
 void discord::Role::edit_position(int _new_position) {
     send_request<request_method::Post>(
         nlohmann::json({ { "id", id },

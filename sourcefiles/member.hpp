@@ -48,6 +48,7 @@ discord::Member& discord::Member::update(nlohmann::json const data) {
     }
 
     update_object(data["user"], "bot", bot);
+    return *this;
 }
 
 void discord::Member::edit(std::string const& t_name, bool t_mute, bool t_deaf, std::vector<discord::Role> const& t_roles, snowflake channel_id) {

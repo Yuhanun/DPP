@@ -245,30 +245,21 @@ discord::Guild discord::Bot::create_guild(std::string const &name, std::string c
 template <std::size_t event_type>
 discord::Message discord::Bot::process_message_cache(discord::Message *m, bool &found) {
     static_assert(event_type >= 0 && event_type < 3);
-    auto return_m = *m;
-    if (event_type == 0) {  // create
-        if (messages.size() >= message_cache_count) {
-            messages.erase(messages.begin());
-        }
-        messages.push_back(*m);
-    } else if (event_type == 1) {  // update
-        for (std::size_t i = 0; i < messages.size(); i++) {
-            if (messages[i].id != m->id) {
-                continue;
-            }
-            messages[i] = *m;
-        }
-    } else if (event_type == 2) {  // delete
-        for (std::size_t i = 0; i < messages.size(); i++) {
-            if (messages[i].id != m->id) {
-                continue;
-            }
-            return_m = messages[i];
-            found = true;
-            messages.erase(messages.begin() + i);
-        }
-    }
-    return return_m;
+
+
+    // } else if (event_type == 1) {  // update
+
+    // } else if (event_type == 2) {  // delete
+    //     for (std::size_t i = 0; i < messages.size(); i++) {
+    //         if (messages[i].id != m->id) {
+    //             continue;
+    //         }
+    //         return_m = messages[i];
+    //         found = true;
+    //         messages.erase(messages.begin() + i);
+    //     }
+    // }
+    // return return_m;
 }
 
 std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
@@ -387,13 +378,13 @@ void discord::Bot::channel_pins_update_event(nlohmann::json data) {
 
 void discord::Bot::guild_create_event(nlohmann::json data) {
     snowflake guild_id = to_sf(data["id"]);
-    auto guild = discord::utils::get(guilds, [guild_id](auto &gld) { return gld->id == guild_id });
+    auto guild = discord::utils::get(guilds, [guild_id](auto &gld) { return gld->id == guild_id; });
     if (guild) {
         guild->update(data);
         return func_holder.call<events::guild_create>(futures, ready, guild);
     }
 
-    auto guild = std::make_shared<discord::Guild>(data);
+    guild = std::make_shared<discord::Guild>(data);
     guilds.push_back(guild);
 
     for (auto const &member : data["members"]) {
@@ -426,7 +417,7 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
 
 void discord::Bot::guild_update_event(nlohmann::json data) {
     snowflake updated_guild = to_sf(data["id"]);
-    auto g = discord::utils::get(guilds, [updated_guild](auto &gld) { return gld->id == new_guild; });
+    auto g = discord::utils::get(guilds, [updated_guild](auto &gld) { return gld->id == updated_guild; });
     g->update(data);
     func_holder.call<events::guild_update>(futures, ready, g);
 }
@@ -456,7 +447,7 @@ void discord::Bot::guild_ban_add_event(nlohmann::json data) {
         }
     }
 
-    std::shared_ptr<discord::User> usr_ptr = discord::utils::get(users, [usr_id](auto const &usr) { return urs->id == usr_id; });
+    std::shared_ptr<discord::User> usr_ptr = discord::utils::get(users, [usr_id](auto const &usr) { return usr->id == usr_id; });
     func_holder.call<events::guild_ban_add>(futures, ready, g, usr_ptr);
 }
 
@@ -468,12 +459,12 @@ void discord::Bot::guild_ban_remove_event(nlohmann::json data) {
 
     snowflake usr_id = to_sf(data["user"]["id"]);
 
-    std::shared_ptr<discord::User> usr_ptr = discord::utils::get(users, [usr_id](auto const &usr) { return urs->id == usr_id; });
+    std::shared_ptr<discord::User> usr_ptr = discord::utils::get(users, [usr_id](auto const &usr) { return usr->id == usr_id; });
     if (!usr_ptr) {
         usr_ptr = std::make_shared<discord::User>(data["user"]);
         users.push_back(usr_ptr);
     }
-    func_holder.call<events::guild_ban_remove>(futures, ready, banned_guild, usr_ptr);
+    func_holder.call<events::guild_ban_remove>(futures, ready, g, usr_ptr);
 }
 
 void discord::Bot::guild_emojis_update_event(nlohmann::json data) {
@@ -496,7 +487,7 @@ void discord::Bot::guild_member_add_event(nlohmann::json data) {
     });
 
     snowflake mem_id = to_sf(data["user"]["id"]);
-    std::shared_ptr<discord::User> usr_ptr = discord::utils::get(users, [mem_id](auto const &usr) { return urs->id == mem_id; });
+    std::shared_ptr<discord::User> usr_ptr = discord::utils::get(users, [mem_id](auto const &usr) { return usr->id == mem_id; });
     if (!usr_ptr) {
         usr_ptr = std::make_shared<discord::User>(data["user"]);
         users.push_back(usr_ptr);
@@ -566,22 +557,29 @@ void discord::Bot::guild_role_update_event(nlohmann::json data) {
     auto g_id = to_sf(data["guild_id"]);
     auto guild = discord::utils::get(guilds, [=](auto &g) { return g->id == g_id; });
     auto role_id = to_sf(data["role"]["id"]);
-    auto* role = discord::utils::get(guild->roles, [=](auto &rl) { return role_id == r1.id; });
+    auto *role = discord::utils::get(guild->roles, [=](auto &rl) { return role_id == rl.id; });
     role->update(data);
     func_holder.call<events::guild_role_update>(futures, ready, *role);
 }
 
-void discord::Bot::guild_role_delete_event(nlohmann::json) {
-    
+void discord::Bot::guild_role_delete_event(nlohmann::json data) {
+    auto r_id = to_sf(data["role_id"]);
+    auto g_id = to_sf(data["guild_id"]);
+    auto guild = discord::utils::get(guilds, [=](auto &g) { return g_id == g->id; });
+    for (size_t i = 0; i < guild->roles.size(); i++) {
+        if (guild->roles[i].id == r_id) {
+            func_holder.call<events::guild_role_delete>(futures, ready, guild->roles[i]);
+            guild->roles.erase(guild->roles.begin() + i);
+        }
+    }
 }
 
 void discord::Bot::message_create_event(nlohmann::json data) {
-    bool found = false;
-    auto message = Message{ data };
-    process_message_cache<0>(&message, found);
-    if (message.author && message.author->id != this->id) {
-        fire_commands(message);
+    auto message = std::make_shared<discord::Message>(data);
+    if (messages.size() >= message_cache_count) {
+        messages.erase(messages.begin());
     }
+    messages.push_back(message);
     func_holder.call<events::message_create>(futures, ready, message);
 }
 
