@@ -82,14 +82,14 @@ namespace discord {
         void(std::shared_ptr<discord::Guild> const),                                        // GUILD_INTEGRATIONS_UPDATE
         void(std::shared_ptr<discord::Member> const),                                       // GUILD_MEMBER_ADD
         void(std::shared_ptr<discord::Guild> const, std::shared_ptr<discord::User> const),  // GUILD_MEMBER_REMOVE
-        void(std::shared_ptr<discord::Member>),                                             // GUILD_MEMBER_UPDATE
+        void(std::shared_ptr<discord::Member> const),                                       // GUILD_MEMBER_UPDATE
         void(),                                                                             // GUILD_MEMBERS_CHUNK
         void(discord::Role const),                                                          // GUILD_ROLE_CREATE
         void(discord::Role const),                                                          // GUILD_ROLE_UPDATE
         void(discord::Role const),                                                          // GUILD_ROLE_DELETE
         void(std::shared_ptr<discord::Message> const),                                      // MESSAGE_CREATE
         void(std::shared_ptr<discord::Message> const),                                      // MESSAGE_UPDATE
-        void(discord::Message),                                                             // MESSAGE_DELETE
+        void(std::shared_ptr<discord::Message> const),                                      // MESSAGE_DELETE
         void(std::vector<discord::Message>),                                                // MESSAGE_DELETE_BULK
         void(discord::Message),                                                             // MESSAGE_REACTION_ADD
         void(discord::Message),                                                             // MESSAGE_REACTION_REMOVE
@@ -99,7 +99,9 @@ namespace discord {
         void(discord::User),                                                                // USER_UPDATE
         void(discord::Member, discord::Channel),                                            // VOICE_STATE_UPDATE
         void(discord::Guild),                                                               // VOICE_SERVER_UPDATE
-        void(discord::Guild)>                                                               // WEBHOOKS_UPDATE
+        void(discord::Guild),                                                               // WEBHOOKS_UPDATE
+        void(snowflake, snowflake, nlohmann::json const),                                   // RAW_MESSAGE_UPDATE
+        void(snowflake, snowflake, nlohmann::json const)>                                   // RAW_MESSAGE_DELETE
         function_handler;
 
     using websocketpp::lib::bind;

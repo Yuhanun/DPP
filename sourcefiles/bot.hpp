@@ -242,25 +242,6 @@ discord::Guild discord::Bot::create_guild(std::string const &name, std::string c
     };
 }
 
-template <std::size_t event_type>
-discord::Message discord::Bot::process_message_cache(discord::Message *m, bool &found) {
-    static_assert(event_type >= 0 && event_type < 3);
-
-
-    // } else if (event_type == 1) {  // update
-
-    // } else if (event_type == 2) {  // delete
-    //     for (std::size_t i = 0; i < messages.size(); i++) {
-    //         if (messages[i].id != m->id) {
-    //             continue;
-    //         }
-    //         return_m = messages[i];
-    //         found = true;
-    //         messages.erase(messages.begin() + i);
-    //     }
-    // }
-    // return return_m;
-}
 
 std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
     std::vector<VoiceRegion> return_vec = {};
@@ -584,27 +565,39 @@ void discord::Bot::message_create_event(nlohmann::json data) {
 }
 
 void discord::Bot::message_update_event(nlohmann::json data) {
-    bool found = false;
-    auto message = Message{ data };
-    process_message_cache<1>(&message, found);
-    func_holder.call<events::message_update>(futures, ready, message);
+    auto m_id = to_sf(data["id"]);
+    for (std::size_t i = 0; i < messages.size(); i++) {
+        if (messages[i]->id == m_id) {
+            messages[i]->update(data);
+            func_holder.call<events::message_update>(futures, ready, messages[i]);
+            break;
+        }
+    }
+    func_holder.call<events::raw_message_update>(futures, ready, m_id, to_sf(data["channel_id"]), data);
 }
 
 void discord::Bot::message_delete_event(nlohmann::json data) {
-    // TODO RAW_MESSAGE_DELETE EVENT
-    bool found = false;
-    auto message = Message{ data };
-    message = process_message_cache<2>(&message, found);
-    func_holder.call<events::message_delete>(futures, found, message);
+    auto m_id = to_sf(data["id"]);
+
+    for (std::size_t i = 0; i < messages.size(); i++) {
+        if (messages[i]->id == m_id) {
+            auto return_m = messages[i];
+            messages.erase(messages.begin() + i);
+            func_holder.call<events::message_delete>(futures, ready, return_m);
+            break;
+        }
+    }
+    
+    func_holder.call<events::raw_message_delete>(futures, ready, m_id, to_sf(data["channel_id"]), data);
 }
 
 void discord::Bot::message_delete_bulk_event(nlohmann::json data) {
-    for (auto const &each : data) {
-        bool found = false;
-        auto message = Message{ each };
-        message = process_message_cache<2>(&message, found);
-        func_holder.call<events::message_delete>(futures, found, message);
-    }
+    // for (auto const &each : data) {
+    //     bool found = false;
+    //     auto message = Message{ each };
+    //     message = process_message_cache<2>(&message, found);
+    //     func_holder.call<events::message_delete>(futures, found, message);
+    // }
 }
 
 // TODO: implement

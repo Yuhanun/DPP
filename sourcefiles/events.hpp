@@ -81,7 +81,9 @@ namespace discord {
         user_update,
         voice_state_update,
         voice_server_update,
-        webhooks_update
+        webhooks_update,
+        raw_message_update,
+        raw_message_delete,
     };
 
     enum class AuditLogEventType : short {
