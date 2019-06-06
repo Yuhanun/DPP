@@ -366,6 +366,11 @@ namespace discord {
         discord::Message send(Tys&&... args) const;
     };
 
+    struct RateLimit {
+        int rate_limit_limit;
+        int rate_limit_remaining;
+        datetime ratelimit_reset;
+    };
 
     class Bot {
     public:
@@ -399,6 +404,9 @@ namespace discord {
         std::vector<discord::Connection> get_connections();
         discord::Channel get_channel(snowflake);
         discord::Guild get_guild(snowflake);
+        
+        void wait_for_ratelimits(snowflake, int);
+        void handle_ratelimits(cpr::Response const&, snowflake, int);
 
     private:
         void fire_commands(discord::Message&) const;
@@ -409,6 +417,7 @@ namespace discord {
         void initialize_variables(const std::string);
         template <std::size_t event_type>
         discord::Message process_message_cache(discord::Message* m, bool&);
+
 
         void hello_event(nlohmann::json);
         void ready_event(nlohmann::json);
@@ -496,6 +505,11 @@ namespace discord {
         std::vector<std::shared_ptr<discord::Message>> messages;
         std::unordered_map<std::string, std::function<void(discord::Context const&)>> command_map;
         std::unordered_map<std::string, std::function<void(nlohmann::json)>> internal_event_map;
+
+        std::unordered_map<snowflake, RateLimit> guild_ratelimits;
+        std::unordered_map<snowflake, RateLimit> channel_ratelimits;
+        std::unordered_map<snowflake, RateLimit> webhook_ratelimits;
+        RateLimit global_ratelimits;
     };
 
     class Channel : public Object {

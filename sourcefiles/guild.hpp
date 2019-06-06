@@ -38,7 +38,7 @@ discord::Guild::Guild(nlohmann::json const guild)
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
     auto g = discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; });
-    
+
     for (auto const& each : guild["roles"]) {
         roles.push_back(std::make_shared<discord::Role>(each, g));
     }
@@ -162,22 +162,30 @@ std::vector<discord::Webhook> discord::Guild::get_webhooks() {
     return from_json_array<discord::Webhook>(
         send_request<request_method::Get>(nlohmann::json(),
                                           get_default_headers(),
-                                          endpoint("/guilds/%/webhooks", id)));
+                                          endpoint("/guilds/%/webhooks", id), id, guild));
 }
 
 void discord::Guild::leave() {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/users/@me/guilds/%", id));
+    send_request<request_method::Delete>(
+        nlohmann::json({}),
+        get_default_headers(),
+        endpoint("/users/@me/guilds/%", id),
+        id, guild);
 }
 
 std::vector<discord::Emoji> discord::Guild::list_emojis() {
     return from_json_array<discord::Emoji>(
         send_request<request_method::Get>(
-            nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/emojis", id)));
+            nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/emojis", id),
+            id, guild));
 }
 
 discord::Emoji discord::Guild::get_emoji(discord::Emoji const& e) {
     return discord::Emoji{
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/emojis/%", id, e.id))
+        send_request<request_method::Get>(
+            nlohmann::json({}),
+            get_default_headers(),
+            endpoint("/guilds/%/emojis/%", id, e.id), id, guild)
     };
 }
 
@@ -192,7 +200,8 @@ discord::Emoji discord::Guild::edit_emoji(discord::Emoji const& emote, std::stri
         send_request<request_method::Patch>(
             data,
             get_default_headers(),
-            endpoint("/guilds/%/emojis/%", id, emote.id))
+            endpoint("/guilds/%/emojis/%", id, emote.id),
+            id, guild)
     };
 }
 
@@ -214,16 +223,21 @@ void discord::Guild::edit(std::string const& name, std::string const& rg, int ve
     send_request<request_method::Patch>(
         data,
         get_default_headers(),
-        endpoint("/guilds/%", id));
+        endpoint("/guilds/%", id),
+        id, guild);
 }
 
 void discord::Guild::remove() {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%", id));
+    send_request<request_method::Delete>(
+        nlohmann::json({}),
+        get_default_headers(),
+        endpoint("/guilds/%", id),
+        id, guild);
 }
 
 std::vector<discord::Channel> discord::Guild::get_channels() {
     return from_json_array_special<discord::Channel>(
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/channels", id)), id);
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/channels", id), id, guild), id);
 }
 
 discord::Channel discord::Guild::create_channel(std::string const& name, bool nsfw, int type, std::string const& topic, int bitrate, int user_limit, int rate_limit_per_user, int position, std::vector<discord::PermissionOverwrites> const& permission_overwrites, snowflake parent_id) {
@@ -244,7 +258,7 @@ discord::Channel discord::Guild::create_channel(std::string const& name, bool ns
     if (parent_id != -1) data["parent_id"] = parent_id;
 
     return discord::Channel{
-        send_request<request_method::Post>(data, get_default_headers(), endpoint("/guilds/%/channels", id))
+        send_request<request_method::Post>(data, get_default_headers(), endpoint("/guilds/%/channels", id), id, guild)
     };
 }
 
@@ -253,11 +267,14 @@ void discord::Guild::remove_emoji(discord::Emoji const& emote) {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        endpoint("/guilds/%/emojis/%", id, emote.id));
+        endpoint("/guilds/%/emojis/%", id, emote.id), id, guild);
 }
 
 discord::Member discord::Guild::get_member(snowflake m_id) {
-    auto req_data = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/members/%", this->id, m_id));
+    auto req_data = send_request<request_method::Get>(
+        nlohmann::json({}),
+        get_default_headers(),
+        endpoint("/guilds/%/members/%", this->id, m_id), this->id, guild);
     return discord::Member{
         req_data,
         discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; })
@@ -269,11 +286,15 @@ std::vector<discord::Member> discord::Guild::get_members(int limit, snowflake af
         send_request<request_method::Get>(
             nlohmann::json({ { "limit", limit }, { "after", after } }),
             get_default_headers(),
-            endpoint("/guilds/%/members", this->id)));
+            endpoint("/guilds/%/members", this->id), id, guild));
 }
 
 std::vector<std::pair<std::string, discord::User>> discord::Guild::get_bans() {
-    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/bans", id));
+    auto response = send_request<request_method::Get>(
+        nlohmann::json({}),
+        get_default_headers(),
+        endpoint("/guilds/%/bans", id),
+        id, guild);
     std::vector<std::pair<std::string, discord::User>> ret_vec;
     for (auto const& each : response) {
         ret_vec.push_back({ each["reason"], discord::User{ each["user"] } });
@@ -282,29 +303,36 @@ std::vector<std::pair<std::string, discord::User>> discord::Guild::get_bans() {
 }
 
 std::pair<std::string, discord::User> discord::Guild::get_ban(discord::Object const& banned_obj) {
-    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/bans/%", id, banned_obj.id));
+    auto response = send_request<request_method::Get>(
+        nlohmann::json({}),
+        get_default_headers(),
+        endpoint("/guilds/%/bans/%", id, banned_obj.id),
+        id, guild);
     return { response["reason"], discord::User{ response["user"] } };
 }
 
 
 void discord::Guild::add_member(nlohmann::json const& data, snowflake user_id) {
-    send_request<request_method::Put>(data, get_default_headers(), endpoint("/guilds/%/members/%", this->id, user_id));
+    send_request<request_method::Put>(data, get_default_headers(), endpoint("/guilds/%/members/%", this->id, user_id), id, guild);
 }
 
 void discord::Guild::edit_bot_username(std::string const& new_nick) {
-    send_request<request_method::Patch>(nlohmann::json({ { "nick", new_nick } }), get_default_headers(), endpoint("/guilds/%/members/@me/nick", discord::detail::bot_instance->id));
+    send_request<request_method::Patch>(
+        nlohmann::json({ { "nick", new_nick } }),
+        get_default_headers(),
+        endpoint("/guilds/%/members/@me/nick", id), id, guild);
 }
 
 void discord::Guild::unban(discord::Object const& obj) {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        endpoint("/guilds/%/bans/%", id, obj.id));
+        endpoint("/guilds/%/bans/%", id, obj.id), id, guild);
 }
 
 std::vector<discord::Role> discord::Guild::get_roles() {
     return from_json_array<discord::Role>(
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/roles", id)));
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/roles", id), id, guild));
 }
 
 discord::Role discord::Guild::create_role(std::string const& _name, PermissionOverwrites& _perms, discord::Color _color, bool _hoist, bool _mention) {
@@ -316,7 +344,7 @@ discord::Role discord::Guild::create_role(std::string const& _name, PermissionOv
                              { "hoist", _hoist },
                              { "mentionable", _mention } }),
             get_default_headers(),
-            endpoint("/guilds/%/roles", id)),
+            endpoint("/guilds/%/roles", id), id, guild),
         discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return g->id == this->id; })
     };
 }
@@ -324,7 +352,7 @@ discord::Role discord::Guild::create_role(std::string const& _name, PermissionOv
 
 int discord::Guild::get_prune_count(int days) {
     return send_request<request_method::Get>(
-        nlohmann::json({ { "days", days } }), get_default_headers(), endpoint("/guilds/%/prune", id))["pruned"];
+        nlohmann::json({ { "days", days } }), get_default_headers(), endpoint("/guilds/%/prune", id), id, guild)["pruned"];
 }
 
 int discord::Guild::begin_prune(int days, bool compute_prune_count) {
@@ -332,14 +360,14 @@ int discord::Guild::begin_prune(int days, bool compute_prune_count) {
                          nlohmann::json({ { "days", days },
                                           { "compute_prune_count", compute_prune_count } }),
                          get_default_headers(),
-                         endpoint("/guilds/%/prune", id)),
+                         endpoint("/guilds/%/prune", id), id, guild),
                      "pruned",
                      0);
 }
 
 
 std::vector<discord::VoiceRegion> discord::Guild::get_voice_regions() {
-    auto resp = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/regions", id));
+    auto resp = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/regions", id), id, guild);
     std::vector<VoiceRegion> ret_val;
     for (auto const& each : resp) {
         ret_val.push_back({ each["id"],
@@ -357,12 +385,12 @@ std::vector<discord::Invite> discord::Guild::get_invites() {
         send_request<request_method::Get>(
             nlohmann::json({}),
             get_default_headers(),
-            endpoint("/guilds/%/invites", id)));
+            endpoint("/guilds/%/invites", id), id, guild));
 }
 
 discord::snowflake discord::Guild::get_embed() {
     return get_value(send_request<request_method::Get>(
-                         nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/embed", id)),
+                         nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/embed", id), id, guild),
                      "channel_id",
                      0);
 }
@@ -371,14 +399,14 @@ discord::snowflake discord::Guild::edit_embed(snowflake c_id) {
     return get_value(send_request<request_method::Patch>(
                          nlohmann::json({ { "enabled", c_id != -1 }, { "channel_id", c_id } }),
                          get_default_headers(),
-                         endpoint("/guilds/%/embed", id)),
+                         endpoint("/guilds/%/embed", id), id, guild),
                      "channel_id",
                      0);
 }
 
 std::string discord::Guild::get_vanity_invite_url() {
     return get_value(send_request<request_method::Get>(
-                         nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/vanity-url", id)),
+                         nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/vanity-url", id), id, guild),
                      "code",
                      "");
 }
@@ -394,7 +422,7 @@ discord::Asset discord::Guild::get_widget_image(std::string const& style) {
 std::vector<discord::Integration> discord::Guild::get_integrations() {
     return from_json_array<discord::Integration>(
         send_request<request_method::Get>(
-            nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/integrations", id)));
+            nlohmann::json({}), get_default_headers(), endpoint("/guilds/%/integrations", id), id, guild));
 }
 
 
@@ -402,7 +430,7 @@ void discord::Guild::create_integration(discord::Integration const& integr) {
     send_request<request_method::Post>(
         nlohmann::json({ { "type", integr.type }, { "id", integr.id } }),
         get_default_headers(),
-        endpoint("/guilds/%/integrations", id));
+        endpoint("/guilds/%/integrations", id), id, guild);
 }
 
 void discord::Guild::edit_integration(discord::Integration const& integr, int expire_behavior, int expire_grace_period, bool enable_emotes) {
@@ -411,7 +439,7 @@ void discord::Guild::edit_integration(discord::Integration const& integr, int ex
                          { "expire_grace_period", expire_grace_period },
                          { "enable_emoticons", enable_emotes } }),
         get_default_headers(),
-        endpoint("/guilds/%/integrations/%", id, integr.id));
+        endpoint("/guilds/%/integrations/%", id, integr.id), id, guild);
 }
 
 
@@ -419,14 +447,16 @@ void discord::Guild::remove_integration(discord::Integration const& integr) {
     send_request<request_method::Delete>(
         nlohmann::json({}),
         get_default_headers(),
-        endpoint("/guilds/%/integrations/%", id, integr.id));
+        endpoint("/guilds/%/integrations/%", id, integr.id),
+        id, guild);
 }
 
 void discord::Guild::sync_integration(discord::Integration const& integr) {
     send_request<request_method::Post>(
         nlohmann::json({}),
         get_default_headers(),
-        endpoint("/guilds/%/integrations/%/sync", id, integr.id));
+        endpoint("/guilds/%/integrations/%/sync", id, integr.id),
+        id, guild);
 }
 
 discord::Emoji discord::Guild::create_emoji(std::string const& name, discord::Emoji& emote_data, std::vector<discord::Role> roles) {
@@ -440,7 +470,8 @@ discord::Emoji discord::Guild::create_emoji(std::string const& name, discord::Em
         send_request<request_method::Post>(
             data,
             get_default_headers(),
-            endpoint("/guilds/%/emojis", id))
+            endpoint("/guilds/%/emojis", id),
+            id, guild)
     };
 }
 
@@ -449,6 +480,7 @@ discord::AuditLogs discord::Guild::get_audit_logs() {
         send_request<request_method::Get>(
             nlohmann::json({}),
             get_default_headers(),
-            endpoint("/guilds/%/audit-logs", id))
+            endpoint("/guilds/%/audit-logs", id),
+            id, guild)
     };
 }

@@ -54,13 +54,13 @@ discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_
 
 discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
     nlohmann::json j = nlohmann::json({ { "content", message_content }, { "tts", tts } });
-    auto response = send_request<request_method::Post>(j, get_default_headers(), get_channel_link(channel_id));
+    auto response = send_request<request_method::Post>(j, get_default_headers(), get_channel_link(channel_id), channel_id, channel);
     return discord::Message{ response };
 }
 
 discord::Message discord::Bot::send_message(snowflake channel_id, nlohmann::json message_content, bool tts) {
     message_content["tts"] = tts;
-    auto response = send_request<request_method::Post>(message_content, get_default_headers(), get_channel_link(channel_id));
+    auto response = send_request<request_method::Post>(message_content, get_default_headers(), get_channel_link(channel_id), channel_id, channel);
     return discord::Message{ response };
 }
 
@@ -150,7 +150,7 @@ void discord::Bot::gateway_auth() {
 }
 
 std::string discord::Bot::get_gateway_url() const {
-    auto r = send_request<request_method::Get>(nlohmann::json({}), get_basic_header(), endpoint("/gateway/bot"));
+    auto r = send_request<request_method::Get>(nlohmann::json({}), get_basic_header(), endpoint("/gateway/bot"), 0, global);
     if (!r.contains("url")) {
         throw discord::ImproperToken();
     }
@@ -239,14 +239,14 @@ discord::Guild discord::Bot::create_guild(std::string const &name, std::string c
                                                             { "roles", {} },
                                                             { "channels", {} } }),
                                            get_default_headers(),
-                                           endpoint("/guilds"))
+                                           endpoint("/guilds"), 0, global)
     };
 }
 
 
 std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
     std::vector<VoiceRegion> return_vec = {};
-    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("%/voice/regions"));
+    auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("%/voice/regions"), 0, global);
     for (auto const &each : response) {
         return_vec.push_back({ get_value(each, "id", ""),
                                get_value(each, "name", ""),
@@ -258,7 +258,6 @@ std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
     return return_vec;
 }
 
-
 void discord::Bot::update_presence(Activity const &act) {
     con->send(nlohmann::json({ { "op", 3 }, { "d", act.to_json() } }).dump());
 }
@@ -268,7 +267,11 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
     std::cout << "Incoming event: " << event_name << std::endl;
     if (internal_event_map.find(event_name) != internal_event_map.end()) {
-        internal_event_map[event_name](data);
+        if (!ready) {
+            internal_event_map[event_name](data);
+        } else {
+            futures.push_back(std::async(std::launch::async, internal_event_map[event_name], data));
+        }
     } else {
 #ifdef __DPP_DEBUG
         std::cout << "Unknown event: " << event_name << std::endl;
@@ -711,18 +714,18 @@ void discord::Bot::webhooks_update_event(nlohmann::json data) {
 }
 
 discord::User discord::Bot::get_current_user() {
-    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/users/@me")) };
+    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/users/@me"), 0, global) };
 }
 
 discord::User discord::Bot::get_user(snowflake id) {
-    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/users/%", id)) };
+    return discord::User{ send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/users/%", id), 0, global) };
 }
 
 discord::User discord::Bot::edit(std::string const &username) {
     discord::User user{ send_request<request_method::Patch>(
         nlohmann::json({ { "username", username } }),
         get_default_headers(),
-        endpoint("/users/@me")) };
+        endpoint("/users/@me"), 0, global) };
     this->username = user.name;
     this->avatar = user.avatar;
     return user;
@@ -740,7 +743,7 @@ std::vector<discord::Guild> discord::Bot::get_user_guilds(int limit, snowflake b
         data["after"] = after;
     }
 
-    auto d = send_request<request_method::Get>(data, get_default_headers(), endpoint("/users/@me/guilds"));
+    auto d = send_request<request_method::Get>(data, get_default_headers(), endpoint("/users/@me/guilds"), 0, global);
     for (auto const &each : d) {
         snowflake guild_id = to_sf(each["id"]);
         g_vec.push_back(*discord::utils::get(this->guilds, [guild_id](auto const &guild) {
@@ -756,7 +759,7 @@ discord::Channel discord::Bot::create_group_dm(std::vector<std::string> const &a
         data["access_tokens"].push_back(each);
     }
     return discord::Channel{
-        send_request<request_method::Post>(data, get_default_headers(), endpoint("/users/@me/channels"))
+        send_request<request_method::Post>(data, get_default_headers(), endpoint("/users/@me/channels"), 0, global)
     };
 }
 
@@ -765,7 +768,7 @@ std::vector<discord::Connection> discord::Bot::get_connections() {
     auto response = send_request<request_method::Get>(
         nlohmann::json({}),
         get_default_headers(),
-        endpoint("/users/@me/connections"));
+        endpoint("/users/@me/connections"), 0, global);
     for (auto const &each : response) {
         conn_vec.push_back({ to_sf(each["id"]),
                              each["name"],
@@ -782,12 +785,76 @@ std::vector<discord::Connection> discord::Bot::get_connections() {
 
 discord::Guild discord::Bot::get_guild(snowflake g_id) {
     return discord::Guild{
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%", g_id))
+        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/guilds/%", g_id), id, 0)
     };
 }
 
 discord::Channel discord::Bot::get_channel(snowflake chan_id) {
     return discord::Channel{
-        send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%", chan_id))
+        send_request<request_method::Get>(
+            nlohmann::json({}),
+            get_default_headers(),
+            endpoint("/channels/%", chan_id), chan_id, channel)
     };
+}
+
+void discord::Bot::wait_for_ratelimits(snowflake obj_id, int bucket_) {
+    if (bucket_ == bucket_type::channel) {
+        RateLimit rlmt = channel_ratelimits[obj_id];
+        if (rlmt.rate_limit_remaining == 0) {
+            while (!(boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+        }
+    } else if (bucket_ == bucket_type::guild) {
+        RateLimit rlmt = guild_ratelimits[obj_id];
+        if (rlmt.rate_limit_remaining == 0) {
+            while (!(boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+        }
+    } else if (bucket_ == bucket_type::webhook) {
+        RateLimit rlmt = webhook_ratelimits[obj_id];
+        if (rlmt.rate_limit_remaining == 0) {
+            while (!(boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+        }
+    }
+
+    if (global_ratelimits.rate_limit_remaining == 0) {
+        while (!(boost::posix_time::second_clock::universal_time() - global_ratelimits.ratelimit_reset).is_negative()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    }
+}
+
+void discord::Bot::handle_ratelimits(cpr::Response const &resp, snowflake obj_id, int bucket_) {
+    auto headers = resp.header;
+
+    if (headers.find("X-RateLimit-Global") != headers.end()) {
+        global_ratelimits.rate_limit_limit = std::stoi(headers["X-RateLimit-Limit"]);
+        global_ratelimits.rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
+        global_ratelimits.ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
+        return;
+    }
+
+    if (headers.find("X-RateLimit-Limit") != headers.end()) {
+        if (bucket_ == bucket_type::channel) {
+            auto &obj = channel_ratelimits[obj_id];
+            obj.rate_limit_limit = std::stoi(headers["X-RateLimit-Limit"]);
+            obj.rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
+            obj.ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
+        } else if (bucket_ == bucket_type::guild) {
+            auto &obj = guild_ratelimits[obj_id];
+            obj.rate_limit_limit = std::stoi(headers["X-RateLimit-Limit"]);
+            obj.rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
+            obj.ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
+        } else if (bucket_ == bucket_type::webhook) {
+            auto &obj = webhook_ratelimits[obj_id];
+            obj.rate_limit_limit = std::stoi(headers["X-RateLimit-Limit"]);
+            obj.rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
+            obj.ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
+        }
+    }
 }

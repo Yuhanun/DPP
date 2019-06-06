@@ -1,4 +1,5 @@
 #pragma once
+#pragma omp parallel for
 #include <functional>
 #include <future>
 #include <iostream>

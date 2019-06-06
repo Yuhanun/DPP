@@ -57,6 +57,6 @@ discord::Channel discord::User::create_dm() {
         send_request<request_method::Post>(nlohmann::json(
                                                { { "recipient_id", id } }),
                                            get_default_headers(),
-                                           endpoint("/users/@me/channels"))
+                                           endpoint("/users/@me/channels"), 0, global)
     };
 }

@@ -255,6 +255,13 @@ namespace discord {
         gateway_unavailable = 502,
     };
 
+    enum bucket_type {
+        channel,
+        guild,
+        webhook,
+        global
+    };
+
     template <typename... Tys>
     inline std::string endpoint(std::string endpoint_format, Tys &&... args) {
         endpoint_format = endpoint_format[0] == '/' ? endpoint_format : '/' + endpoint_format;
@@ -348,7 +355,8 @@ namespace discord {
     }
 
     template <size_t method>
-    inline nlohmann::json send_request(const nlohmann::json &j, const cpr::Header &h, const std::string &uri) {
+    inline nlohmann::json send_request(const nlohmann::json &j, const cpr::Header &h, const std::string &uri, snowflake obj_id, int bucket_) {
+        discord::detail::bot_instance->wait_for_ratelimits(obj_id, bucket_);
         auto session = cpr::Session();
         auto url = cpr::Url{ uri };
         auto body = cpr::Body{ j.dump() };
@@ -373,6 +381,8 @@ namespace discord {
             response = cpr::Patch(url, h, body);
         }
 
+        discord::detail::bot_instance->handle_ratelimits(response, obj_id, bucket_);
+
         auto j_resp = response.text.length() ? nlohmann::json::parse(response.text) : nlohmann::json({});
 
 #ifdef __DPP_DEBUG
@@ -382,7 +392,7 @@ namespace discord {
         if (to_handle == request_next_action::nothing) {
             return j_resp;
         } else if (to_handle == request_next_action::ratelimit || to_handle == request_next_action::gateway_unavailable) {
-            return send_request<method>(j, h, uri);
+            return send_request<method>(j, h, uri, obj_id, bucket_);
         } else {
             return j_resp;
         }
