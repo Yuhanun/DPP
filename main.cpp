@@ -24,18 +24,12 @@ int main() {
                                                                        << "ID: " << bot.id << std::endl
                                                                        << "-----------------------------" << std::endl; });
 
-    bot.register_command("test", [](discord::Context const&) {
-        std::cout << discord::Object{ 500 } << std::endl;
-    });
-
-    bot.register_command("image", [](discord::Context const& ctx) {
-        ctx.send(discord::EmbedBuilder()
-                     .set_description("Test")
-                     .set_image(ctx.message.author->user->avatar.url));
-    });
-
-    bot.register_command("file", [](discord::Context const& ctx) {
-        ctx.channel->send("Here is a file!", { { "test.txt", "todo.txt", true } }, false);
+    bot.register_command("test", [](discord::Context const& ctx) mutable {
+        std::cout << "here" << std::endl;
+        while (true) {
+            std::cout << "here2" << std::endl;
+            ctx.send("Test");
+        }
     });
 
     return bot.run();

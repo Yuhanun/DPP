@@ -123,11 +123,12 @@ void discord::Bot::handle_gateway() {
 int discord::Bot::run() {
     gateway_auth();
     while (true) {
-        if (!futures.size()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            continue;
+        for (size_t i = 0; i < futures.size(); i++) {
+            if (futures[i].wait_for(std::chrono::milliseconds(1)) != std::future_status::ready) {
+                continue;
+            }
+            futures.erase(futures.begin() + i);
         }
-        futures.erase(futures.begin());
     }
     return 0;
 }
@@ -161,7 +162,7 @@ void discord::Bot::register_command(std::string const &command_name, std::functi
     command_map[boost::to_lower_copy(command_name)] = function;
 }
 
-void discord::Bot::fire_commands(discord::Message &m) const {
+void discord::Bot::fire_commands(discord::Message &m) {
     if (!boost::starts_with(m.content, prefix)) {
         return;
     }
@@ -179,7 +180,8 @@ void discord::Bot::fire_commands(discord::Message &m) const {
 
     argument_vec.erase(argument_vec.begin());
     auto f = command_map.at(command_name);
-    f({ this, m, argument_vec, f, command_name });
+
+    futures.push_back(std::async(std::launch::async, f, discord::Context{ this, m, argument_vec, f, command_name }));
 }
 
 void discord::Bot::initialize_variables(const std::string raw) {
@@ -217,7 +219,7 @@ void discord::Bot::handle_heartbeat() {
 
         con->send(data.dump());
         heartbeat_acked = false;
-        std::this_thread::sleep_for(std::chrono::milliseconds(hello_packet["d"]["heartbeat_interval"].get<int>()));
+        std::this_thread::sleep_for(std::chrono::milliseconds(hello_packet["d"]["heartbeat_interval"].get<int>() - 5));
         if (!heartbeat_acked) {
             disconnected = true;
             data = nlohmann::json({ { "token", token },
@@ -243,7 +245,6 @@ discord::Guild discord::Bot::create_guild(std::string const &name, std::string c
     };
 }
 
-
 std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
     std::vector<VoiceRegion> return_vec = {};
     auto response = send_request<request_method::Get>(nlohmann::json({}), get_default_headers(), endpoint("%/voice/regions"), 0, global);
@@ -265,7 +266,9 @@ void discord::Bot::update_presence(Activity const &act) {
 void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) {
     const nlohmann::json data = j["d"];
     last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
+#ifdef __DPP_DEBUG
     std::cout << "Incoming event: " << event_name << std::endl;
+#endif
     if (internal_event_map.find(event_name) != internal_event_map.end()) {
         if (!ready) {
             internal_event_map[event_name](data);
@@ -565,6 +568,7 @@ void discord::Bot::message_create_event(nlohmann::json data) {
     }
     messages.push_back(message);
     func_holder.call<events::message_create>(futures, ready, message);
+    fire_commands(*message);
 }
 
 void discord::Bot::message_update_event(nlohmann::json data) {
@@ -802,28 +806,30 @@ void discord::Bot::wait_for_ratelimits(snowflake obj_id, int bucket_) {
     if (bucket_ == bucket_type::channel) {
         RateLimit rlmt = channel_ratelimits[obj_id];
         if (rlmt.rate_limit_remaining == 0) {
-            while (!(boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
+            std::cout << (boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).seconds() << std::endl;
+            while ((boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
+                std::cout << (boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).seconds() << std::endl;
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
     } else if (bucket_ == bucket_type::guild) {
         RateLimit rlmt = guild_ratelimits[obj_id];
         if (rlmt.rate_limit_remaining == 0) {
-            while (!(boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            while ((boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
     } else if (bucket_ == bucket_type::webhook) {
         RateLimit rlmt = webhook_ratelimits[obj_id];
         if (rlmt.rate_limit_remaining == 0) {
-            while (!(boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
+            while ((boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
     }
 
     if (global_ratelimits.rate_limit_remaining == 0) {
-        while (!(boost::posix_time::second_clock::universal_time() - global_ratelimits.ratelimit_reset).is_negative()) {
+        while ((boost::posix_time::second_clock::universal_time() - global_ratelimits.ratelimit_reset).is_negative()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }

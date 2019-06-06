@@ -367,9 +367,9 @@ namespace discord {
     };
 
     struct RateLimit {
-        int rate_limit_limit;
-        int rate_limit_remaining;
-        datetime ratelimit_reset;
+        int rate_limit_limit = 500;
+        int rate_limit_remaining = 500;
+        datetime ratelimit_reset = datetime{};
     };
 
     class Bot {
@@ -404,12 +404,12 @@ namespace discord {
         std::vector<discord::Connection> get_connections();
         discord::Channel get_channel(snowflake);
         discord::Guild get_guild(snowflake);
-        
+
         void wait_for_ratelimits(snowflake, int);
         void handle_ratelimits(cpr::Response const&, snowflake, int);
 
     private:
-        void fire_commands(discord::Message&) const;
+        void fire_commands(discord::Message&);
         void await_events();
         void gateway_auth();
         void handle_heartbeat();

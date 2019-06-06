@@ -389,13 +389,11 @@ namespace discord {
         std::cout << j_resp.dump(4) << std::endl;
 #endif
         request_next_action to_handle = handle_http_response(response, j_resp);
-        if (to_handle == request_next_action::nothing) {
-            return j_resp;
-        } else if (to_handle == request_next_action::ratelimit || to_handle == request_next_action::gateway_unavailable) {
+        if (j_resp.contains("retry_after")) {
+            std::this_thread::sleep_for(std::chrono::seconds(j_resp["retry_after"].get<int>()));
             return send_request<method>(j, h, uri, obj_id, bucket_);
-        } else {
-            return j_resp;
         }
+        return j_resp;
     }
 
     inline std::string read_entire_file(std::string const &filename) {
