@@ -405,7 +405,7 @@ namespace discord {
         discord::Channel get_channel(snowflake);
         discord::Guild get_guild(snowflake);
 
-        void wait_for_ratelimits(snowflake, int);
+        int wait_for_ratelimits(snowflake, int);
         void handle_ratelimits(cpr::Response const&, snowflake, int);
 
     private:

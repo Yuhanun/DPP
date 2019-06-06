@@ -25,9 +25,7 @@ int main() {
                                                                        << "-----------------------------" << std::endl; });
 
     bot.register_command("test", [](discord::Context const& ctx) mutable {
-        std::cout << "here" << std::endl;
         while (true) {
-            std::cout << "here2" << std::endl;
             ctx.send("Test");
         }
     });

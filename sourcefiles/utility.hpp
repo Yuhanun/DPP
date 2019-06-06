@@ -356,7 +356,7 @@ namespace discord {
 
     template <size_t method>
     inline nlohmann::json send_request(const nlohmann::json &j, const cpr::Header &h, const std::string &uri, snowflake obj_id, int bucket_) {
-        discord::detail::bot_instance->wait_for_ratelimits(obj_id, bucket_);
+        auto ratelimit_time = discord::detail::bot_instance->wait_for_ratelimits(obj_id, bucket_);
         auto session = cpr::Session();
         auto url = cpr::Url{ uri };
         auto body = cpr::Body{ j.dump() };
@@ -364,8 +364,6 @@ namespace discord {
         static_assert(method < 5, "Invalid request method.");
 
 #ifdef __DPP_DEBUG
-        std::cout << j.dump(4) << "\n"
-                  << uri << std::endl;
 #endif
         cpr::Response response;
         if (method == request_method::Get) {
@@ -385,7 +383,10 @@ namespace discord {
         auto j_resp = response.text.length() ? nlohmann::json::parse(response.text) : nlohmann::json({});
 
 #ifdef __DPP_DEBUG
-        std::cout << j_resp.dump(4) << std::endl;
+        std::cout << j.dump(4) << "\n"
+                  << uri << "\n"
+                  << j_resp.dump(4) << "\n"
+                  << "Had to wait " << ratelimit_time << " seconds" << std::endl;
 #endif
         // request_next_action to_handle = handle_http_response(response, j_resp);
         if (j_resp.contains("retry_after")) {

@@ -124,7 +124,7 @@ int discord::Bot::run() {
     gateway_auth();
     while (true) {
         for (size_t i = 0; i < futures.size(); i++) {
-            if (futures[i].wait_for(std::chrono::milliseconds(1)) != std::future_status::ready) {
+            if (futures[i].valid() && futures[i].wait_for(std::chrono::milliseconds(1)) != std::future_status::ready) {
                 continue;
             }
             futures.erase(futures.begin() + i);
@@ -373,8 +373,7 @@ void discord::Bot::guild_create_event(nlohmann::json data) {
     for (auto const &member : data["members"]) {
         auto usr_id = to_sf(member["user"]["id"]);
         auto usr = std::make_shared<discord::User>(member["user"]);
-        if (std::find_if(users.begin(), users.end(),
-                         [usr_id](auto const &usr_ptr) { return usr_ptr->id == usr_id; }) == users.end()) {
+        if (std::find_if(users.begin(), users.end(), [usr_id](auto const &usr_ptr) { return usr_ptr->id == usr_id; }) == users.end()) {
             users.push_back(usr);
         }
     }
@@ -802,7 +801,7 @@ discord::Channel discord::Bot::get_channel(snowflake chan_id) {
     };
 }
 
-void discord::Bot::wait_for_ratelimits(snowflake obj_id, int bucket_) {
+int discord::Bot::wait_for_ratelimits(snowflake obj_id, int bucket_) {
     RateLimit *rlmt = nullptr;
 
     if (global_ratelimits.rate_limit_remaining == 0) {
@@ -813,13 +812,21 @@ void discord::Bot::wait_for_ratelimits(snowflake obj_id, int bucket_) {
         rlmt = &guild_ratelimits[obj_id];
     } else if (bucket_ == bucket_type::webhook) {
         rlmt = &webhook_ratelimits[obj_id];
+    } else if (bucket_ == bucket_type::global) {
+        rlmt = &global_ratelimits;
+    } else {
+        assert(!(std::string("Invalid bucket type in wait_for_ratelimits -> ") + std::to_string(bucket_)).empty());
     }
 
     if (rlmt->rate_limit_remaining == 0) {
-        while ((boost::posix_time::second_clock::universal_time() - rlmt->ratelimit_reset).is_negative()) {
+        auto cur_time = boost::posix_time::second_clock::universal_time() - rlmt->ratelimit_reset;
+        while (cur_time.is_negative()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
+            cur_time = boost::posix_time::second_clock::universal_time() - rlmt->ratelimit_reset;
         }
+        return cur_time.seconds();
     }
+    return 0;
 }
 
 void discord::Bot::handle_ratelimits(cpr::Response const &resp, snowflake obj_id, int bucket_) {
@@ -835,6 +842,8 @@ void discord::Bot::handle_ratelimits(cpr::Response const &resp, snowflake obj_id
             obj = &guild_ratelimits[obj_id];
         } else if (bucket_ == bucket_type::webhook) {
             obj = &webhook_ratelimits[obj_id];
+        } else if (bucket_ == bucket_type::global) {
+            obj = &global_ratelimits;
         } else {
             assert(!(std::string("Invalid bucket type in handle_ratelimits -> ") + std::to_string(bucket_)).empty());
         }

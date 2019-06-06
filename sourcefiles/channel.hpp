@@ -79,7 +79,7 @@ discord::Channel &discord::Channel::update(nlohmann::json const data) {
 }
 
 discord::Message discord::Channel::send(std::string const &content, std::vector<File> const &files, bool tts) const {
-    discord::detail::bot_instance->wait_for_ratelimits(id, channel);
+    auto ratelimit_time = discord::detail::bot_instance->wait_for_ratelimits(id, channel);
     cpr::Multipart multipart_data{};
 
     for (size_t i = 0; i < files.size(); i++) {
@@ -118,12 +118,19 @@ discord::Message discord::Channel::send(std::string const &content, std::vector<
     auto parsed = response.text.size() > 0 ? nlohmann::json::parse(response.text) : nlohmann::json({});
 
 #ifdef __DPP_DEBUG
-    std::cout << parsed.dump(4) << std::endl;
+    std::cout << parsed.dump(4) << "\n"
+              << "Had to wait " << ratelimit_time << " seconds" << std::endl;
 #endif
+    if (parsed.contains("retry_after")) {
+        std::this_thread::sleep_for(std::chrono::seconds(parsed["retry_after"].get<int>()));
+        return this->send(content, files, tts);
+    }
+
     return discord::Message{ parsed };
 }
 
 discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<File> const &files, bool tts, std::string const &content) const {
+    auto ratelimit_time = discord::detail::bot_instance->wait_for_ratelimits(id, channel);
     cpr::Multipart multipart_data{};
 
     for (size_t i = 0; i < files.size(); i++) {
@@ -164,8 +171,14 @@ discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<F
     auto parsed = response.text.size() > 0 ? nlohmann::json::parse(response.text) : nlohmann::json({});
 
 #ifdef __DPP_DEBUG
-    std::cout << parsed.dump(4) << std::endl;
+    std::cout << parsed.dump(4) << "\n"
+              << "Had to wait " << ratelimit_time << " seconds" << std::endl;
 #endif
+    if (parsed.contains("retry_after")) {
+        std::this_thread::sleep_for(std::chrono::seconds(parsed["retry_after"].get<int>()));
+        return this->send(embed, files, tts, content);
+    }
+
     return discord::Message{ parsed };
 }
 

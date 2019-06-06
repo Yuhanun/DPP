@@ -274,10 +274,10 @@ discord::Member discord::Guild::get_member(snowflake m_id) {
     auto req_data = send_request<request_method::Get>(
         nlohmann::json({}),
         get_default_headers(),
-        endpoint("/guilds/%/members/%", this->id, m_id), this->id, guild);
+        endpoint("/guilds/%/members/%", id, m_id), id, guild);
     return discord::Member{
         req_data,
-        discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; })
+        discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return id == g->id; })
     };
 }
 
