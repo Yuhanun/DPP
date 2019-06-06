@@ -803,31 +803,20 @@ discord::Channel discord::Bot::get_channel(snowflake chan_id) {
 }
 
 void discord::Bot::wait_for_ratelimits(snowflake obj_id, int bucket_) {
-    if (bucket_ == bucket_type::channel) {
-        RateLimit rlmt = channel_ratelimits[obj_id];
-        if (rlmt.rate_limit_remaining == 0) {
-            while ((boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-        }
-    } else if (bucket_ == bucket_type::guild) {
-        RateLimit rlmt = guild_ratelimits[obj_id];
-        if (rlmt.rate_limit_remaining == 0) {
-            while ((boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-        }
-    } else if (bucket_ == bucket_type::webhook) {
-        RateLimit rlmt = webhook_ratelimits[obj_id];
-        if (rlmt.rate_limit_remaining == 0) {
-            while ((boost::posix_time::second_clock::universal_time() - rlmt.ratelimit_reset).is_negative()) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-        }
-    }
+    RateLimit *rlmt = nullptr;
 
     if (global_ratelimits.rate_limit_remaining == 0) {
-        while ((boost::posix_time::second_clock::universal_time() - global_ratelimits.ratelimit_reset).is_negative()) {
+        rlmt = &global_ratelimits;
+    } else if (bucket_ == bucket_type::channel) {
+        rlmt = &channel_ratelimits[obj_id];
+    } else if (bucket_ == bucket_type::guild) {
+        rlmt = &guild_ratelimits[obj_id];
+    } else if (bucket_ == bucket_type::webhook) {
+        rlmt = &webhook_ratelimits[obj_id];
+    }
+
+    if (rlmt->rate_limit_remaining == 0) {
+        while ((boost::posix_time::second_clock::universal_time() - rlmt->ratelimit_reset).is_negative()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
@@ -835,30 +824,23 @@ void discord::Bot::wait_for_ratelimits(snowflake obj_id, int bucket_) {
 
 void discord::Bot::handle_ratelimits(cpr::Response const &resp, snowflake obj_id, int bucket_) {
     auto headers = resp.header;
+    RateLimit *obj = nullptr;
 
     if (headers.find("X-RateLimit-Global") != headers.end()) {
-        global_ratelimits.rate_limit_limit = std::stoi(headers["X-RateLimit-Limit"]);
-        global_ratelimits.rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
-        global_ratelimits.ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
-        return;
-    }
-
-    if (headers.find("X-RateLimit-Limit") != headers.end()) {
+        obj = &global_ratelimits;
+    } else if (headers.find("X-RateLimit-Limit") != headers.end()) {
         if (bucket_ == bucket_type::channel) {
-            auto &obj = channel_ratelimits[obj_id];
-            obj.rate_limit_limit = std::stoi(headers["X-RateLimit-Limit"]);
-            obj.rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
-            obj.ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
+            obj = &channel_ratelimits[obj_id];
         } else if (bucket_ == bucket_type::guild) {
-            auto &obj = guild_ratelimits[obj_id];
-            obj.rate_limit_limit = std::stoi(headers["X-RateLimit-Limit"]);
-            obj.rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
-            obj.ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
+            obj = &guild_ratelimits[obj_id];
         } else if (bucket_ == bucket_type::webhook) {
-            auto &obj = webhook_ratelimits[obj_id];
-            obj.rate_limit_limit = std::stoi(headers["X-RateLimit-Limit"]);
-            obj.rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
-            obj.ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
+            obj = &webhook_ratelimits[obj_id];
+        } else {
+            assert(!(std::string("Invalid bucket type in handle_ratelimits -> ") + std::to_string(bucket_)).empty());
         }
     }
+
+    obj->rate_limit_limit = std::stoi(headers["X-RateLimit-Limit"]);
+    obj->rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
+    obj->ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
 }
