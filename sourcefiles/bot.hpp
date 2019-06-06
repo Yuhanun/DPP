@@ -515,7 +515,7 @@ void discord::Bot::guild_member_update_event(nlohmann::json data) {
         member->roles.clear();
         for (auto const &each_id : data["roles"]) {
             member->roles.emplace_back(*discord::utils::get(
-                guild->roles, [each_id](auto const &role) { return role.id == each_id; }));
+                guild->roles, [each_id](auto const &role) { return role->id == each_id; }));
         }
     }
     func_holder.call<events::guild_member_update>(futures, ready, member);
@@ -529,7 +529,7 @@ void discord::Bot::guild_members_chunk_event(nlohmann::json) {
 void discord::Bot::guild_role_create_event(nlohmann::json data) {
     auto g_id = to_sf(data["guild_id"]);
     auto guild = discord::utils::get(guilds, [=](auto &g) { return g->id == g_id; });
-    discord::Role role{ data["role"] };
+    auto role = std::make_shared<discord::Role>(data["role"], guild);
     guild->roles.push_back(role);
     func_holder.call<events::guild_role_create>(futures, ready, role);
 }
@@ -538,9 +538,9 @@ void discord::Bot::guild_role_update_event(nlohmann::json data) {
     auto g_id = to_sf(data["guild_id"]);
     auto guild = discord::utils::get(guilds, [=](auto &g) { return g->id == g_id; });
     auto role_id = to_sf(data["role"]["id"]);
-    auto *role = discord::utils::get(guild->roles, [=](auto &rl) { return role_id == rl.id; });
+    auto role = discord::utils::get(guild->roles, [=](auto &rl) { return role_id == rl->id; });
     role->update(data);
-    func_holder.call<events::guild_role_update>(futures, ready, *role);
+    func_holder.call<events::guild_role_update>(futures, ready, role);
 }
 
 void discord::Bot::guild_role_delete_event(nlohmann::json data) {
@@ -548,7 +548,7 @@ void discord::Bot::guild_role_delete_event(nlohmann::json data) {
     auto g_id = to_sf(data["guild_id"]);
     auto guild = discord::utils::get(guilds, [=](auto &g) { return g_id == g->id; });
     for (size_t i = 0; i < guild->roles.size(); i++) {
-        if (guild->roles[i].id == r_id) {
+        if (guild->roles[i]->id == r_id) {
             func_holder.call<events::guild_role_delete>(futures, ready, guild->roles[i]);
             guild->roles.erase(guild->roles.begin() + i);
         }
@@ -673,7 +673,10 @@ void discord::Bot::presence_update_event(nlohmann::json data) {
     auto mem_id = to_sf(data["user"]["id"]);
     auto guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
     auto member = discord::utils::get(guild->members, [=](auto &mem) { return mem->id == mem_id; });
-    // member is nullptr sometimes
+    if (!member) {
+        member = std::make_shared<discord::Member>(guild->get_member(mem_id));
+        guild->members.push_back(member);
+    }
     member->presence.update(data);
     func_holder.call<events::presence_update>(futures, ready, member);
 }

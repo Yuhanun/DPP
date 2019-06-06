@@ -8,7 +8,18 @@ discord::Emoji::Emoji(nlohmann::json event)
 
     if (event.contains("roles")) {
         for (auto const& each : event["roles"]) {
-            roles.emplace_back(to_sf(each));
+            [&]() {
+                std::shared_ptr<discord::Role> rl;
+                auto role_id = to_sf(each);
+                for (auto const& gld : discord::detail::bot_instance->guilds) {
+                    for (auto const& role : gld->roles) {
+                        if (role->id == role_id) {
+                            roles.push_back(role);
+                            return;
+                        }
+                    }
+                }
+            }();
         }
     }
 

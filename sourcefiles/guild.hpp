@@ -39,12 +39,12 @@ discord::Guild::Guild(nlohmann::json const guild)
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
     auto g = discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; });
     for (auto const& each : guild["roles"]) {
-        roles.emplace_back(each, g);
+        roles.push_back(std::make_shared<discord::Role>(each, g));
     }
 
     if (guild.contains("members")) {
         for (auto& each : guild["members"]) {
-            auto member = std::make_shared<discord::Member>(each, discord::utils::get(discord::detail::bot_instance->guilds, [=](auto& gld) { return gld->id == this->id; }));
+            auto member = std::make_shared<discord::Member>(each, g);
             members.push_back(member);
             if (each["user"]["id"] == guild["owner_id"]) {
                 owner = member;
@@ -109,8 +109,13 @@ discord::Guild& discord::Guild::update(nlohmann::json const data) {
                        "region", region,
                        "vanity_url_code", vanity_url_code);
 
+    auto cur_guild = discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; });
+
     if (data.contains("roles")) {
-        roles = from_json_array_special<discord::Role>(data["roles"], discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; }));
+        roles.clear();
+        for (auto const& each : data["roles"]) {
+            roles.emplace_back(std::make_shared<discord::Role>(each, cur_guild));
+        }
     }
 
     if (data.contains("emojis")) {

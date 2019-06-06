@@ -84,9 +84,9 @@ namespace discord {
         void(std::shared_ptr<discord::Guild> const, std::shared_ptr<discord::User> const),              // GUILD_MEMBER_REMOVE
         void(std::shared_ptr<discord::Member> const),                                                   // GUILD_MEMBER_UPDATE
         void(),                                                                                         // GUILD_MEMBERS_CHUNK
-        void(discord::Role const),                                                                      // GUILD_ROLE_CREATE
-        void(discord::Role const),                                                                      // GUILD_ROLE_UPDATE
-        void(discord::Role const),                                                                      // GUILD_ROLE_DELETE
+        void(std::shared_ptr<discord::Role> const),                                                     // GUILD_ROLE_CREATE
+        void(std::shared_ptr<discord::Role> const),                                                     // GUILD_ROLE_UPDATE
+        void(std::shared_ptr<discord::Role> const),                                                     // GUILD_ROLE_DELETE
         void(std::shared_ptr<discord::Message> const),                                                  // MESSAGE_CREATE
         void(std::shared_ptr<discord::Message> const),                                                  // MESSAGE_UPDATE
         void(std::shared_ptr<discord::Message> const),                                                  // MESSAGE_DELETE
@@ -567,7 +567,7 @@ namespace discord {
         std::string name;
         discord::User user;
         discord::Asset image;
-        std::vector<discord::Role> roles;
+        std::vector<std::shared_ptr<discord::Role>> roles;
     };
 
     struct AuditLogKeyChange {
@@ -738,7 +738,7 @@ namespace discord {
         std::string vanity_url_code;
 
         std::vector<int> features;
-        std::vector<discord::Role> roles;
+        std::vector<std::shared_ptr<discord::Role>> roles;
         std::vector<discord::Emoji> emojis;
 
         std::vector<std::shared_ptr<discord::Member>> members;

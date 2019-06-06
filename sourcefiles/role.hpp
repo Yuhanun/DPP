@@ -8,8 +8,8 @@ discord::Role::Role(snowflake id)
     : discord::Object(id) {
     discord::utils::get(discord::detail::bot_instance->guilds, [id, this](auto const& g) {
         for (auto const& role : g->roles) {
-            if (role.id == id) {
-                *this = role;
+            if (role->id == id) {
+                *this = *role;
                 return true;
             }
         }

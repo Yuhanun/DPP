@@ -18,8 +18,8 @@ discord::Integration::Integration(nlohmann::json const data)
     auto role_id = to_sf(get_value(data, "role_id", "0"));
     for (auto const& guild : discord::detail::bot_instance->guilds) {
         for (auto const& role : guild->roles) {
-            if (role.id == role_id) {
-                this->role = std::make_shared<discord::Role>(role);
+            if (role->id == role_id) {
+                this->role = role;
                 break;
             }
         }
