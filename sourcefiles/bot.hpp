@@ -124,10 +124,12 @@ int discord::Bot::run() {
     gateway_auth();
     while (true) {
         if (!futures.size()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             continue;
         }
-        futures.erase(futures.begin());
+        if (futures[0].joinable()) {
+            futures[0].join();
+            futures.erase(futures.begin());
+        }
     }
     return 0;
 }
@@ -268,7 +270,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
     std::cout << "Incoming event: " << event_name << std::endl;
     if (internal_event_map.find(event_name) != internal_event_map.end()) {
-        internal_event_map[event_name](data);
+        futures.emplace_back(internal_event_map[event_name], data);
     } else {
 #ifdef __DPP_DEBUG
         std::cout << "Unknown event: " << event_name << std::endl;
@@ -514,7 +516,7 @@ void discord::Bot::guild_member_update_event(nlohmann::json data) {
     if (data.contains("roles")) {
         member->roles.clear();
         for (auto const &each_id : data["roles"]) {
-            member->roles.emplace_back(*discord::utils::get(
+            member->roles.push_back(discord::utils::get(
                 guild->roles, [each_id](auto const &role) { return role->id == each_id; }));
         }
     }

@@ -21,17 +21,18 @@ discord::Member::Member(nlohmann::json const j, std::shared_ptr<discord::Guild> 
     guild = g;
     auto usr_id = to_sf(j["user"]["id"]);
     user = discord::utils::get(discord::detail::bot_instance->users, [=](auto& usr) { return usr->id == usr_id; });
-    if (!user) {
+    if (user.get() == nullptr) {
         user = std::make_shared<discord::User>(j["user"]);
         discord::detail::bot_instance->users.push_back(user);
     }
     id = user->id;
+
     if (!j.contains("roles")) {
         return;
     }
-
     for (auto const& role : j["roles"]) {
-        roles.emplace_back(to_sf(role));
+        // TODO: fix, g can be nullptr if this is initialization stage...
+        roles.push_back(std::make_shared<discord::Role>(to_sf(role))); // retrieve from g->roles
     }
 }
 

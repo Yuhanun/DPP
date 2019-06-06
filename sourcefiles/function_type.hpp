@@ -15,12 +15,12 @@ struct Events {
     }
 
     template <size_t index, typename... Args>
-    void call(std::vector<std::future<void>>& future_lst, bool ready, Args&&... args) {
+    void call(std::vector<std::thread>& future_lst, bool ready, Args&&... args) {
         if (!ready) {
             return;
         }
         for (auto& func : std::get<index>(tuple)) {
-            future_lst.push_back(std::async(std::launch::async, func, std::forward<Args>(args)...));
+            future_lst.emplace_back(func, std::forward<Args>(args)...);
         }
     }
 };

@@ -38,6 +38,7 @@ discord::Guild::Guild(nlohmann::json const guild)
       vanity_url_code{ get_value(guild, "vanity_url_code", "") },
       emojis{ from_json_array<discord::Emoji>(guild, "emojis") } {
     auto g = discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return this->id == g->id; });
+    
     for (auto const& each : guild["roles"]) {
         roles.push_back(std::make_shared<discord::Role>(each, g));
     }
