@@ -32,7 +32,7 @@ discord::Member::Member(nlohmann::json const j, std::shared_ptr<discord::Guild> 
     }
     for (auto const& role : j["roles"]) {
         // TODO: fix, g can be nullptr if this is initialization stage...
-        roles.push_back(std::make_shared<discord::Role>(to_sf(role))); // retrieve from g->roles
+        roles.push_back(std::make_shared<discord::Role>(to_sf(role)));  // retrieve from g->roles
     }
 }
 

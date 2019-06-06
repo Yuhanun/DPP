@@ -268,7 +268,7 @@ void discord::Bot::handle_event(nlohmann::json const j, std::string event_name) 
     last_sequence_data = j["s"].is_number() && j.contains("s") ? j["s"].get<int>() : -1;
     std::cout << "Incoming event: " << event_name << std::endl;
     if (internal_event_map.find(event_name) != internal_event_map.end()) {
-        futures.push_back(std::async(std::launch::async, internal_event_map[event_name], data));
+        internal_event_map[event_name](data);
     } else {
 #ifdef __DPP_DEBUG
         std::cout << "Unknown event: " << event_name << std::endl;
