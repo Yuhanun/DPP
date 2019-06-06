@@ -367,7 +367,6 @@ namespace discord {
         std::cout << j.dump(4) << "\n"
                   << uri << std::endl;
 #endif
-
         cpr::Response response;
         if (method == request_method::Get) {
             response = cpr::Get(url, h);
@@ -388,7 +387,7 @@ namespace discord {
 #ifdef __DPP_DEBUG
         std::cout << j_resp.dump(4) << std::endl;
 #endif
-        request_next_action to_handle = handle_http_response(response, j_resp);
+        // request_next_action to_handle = handle_http_response(response, j_resp);
         if (j_resp.contains("retry_after")) {
             std::this_thread::sleep_for(std::chrono::seconds(j_resp["retry_after"].get<int>()));
             return send_request<method>(j, h, uri, obj_id, bucket_);
