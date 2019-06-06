@@ -21,6 +21,10 @@ discord::Member::Member(nlohmann::json const j, std::shared_ptr<discord::Guild> 
     guild = g;
     auto usr_id = to_sf(j["user"]["id"]);
     user = discord::utils::get(discord::detail::bot_instance->users, [=](auto& usr) { return usr->id == usr_id; });
+    if (!user) {
+        user = std::make_shared<discord::User>(j["user"]);
+        discord::detail::bot_instance->users.push_back(user);
+    }
     id = user->id;
     if (!j.contains("roles")) {
         return;
