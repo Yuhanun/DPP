@@ -44,30 +44,28 @@ discord::Role& discord::Role::update(nlohmann::json data) {
 }
 
 void discord::Role::edit_position(int _new_position) {
-    send_request<request_method::Post>(
-        nlohmann::json({ { "id", id },
-                         { "position", _new_position } }),
-        get_default_headers(),
-        endpoint("/guilds/%/roles", guild->id), guild->id, bucket_type::guild);
+    send_request(methods::POST,
+                 endpoint("/guilds/%/roles", guild->id),
+                 guild->id, bucket_type::guild,
+                 { { "id", id }, { "position", _new_position } });
 }
 
 void discord::Role::edit(std::string const& _name, PermissionOverwrites& _perms, discord::Color _color, bool _hoist, bool _mention) {
     discord::Role{
-        send_request<request_method::Patch>(
-            nlohmann::json({ { "name", _name },
-                             { "permissions", _perms.base_permissions },
-                             { "color", _color.raw_int },
-                             { "hoist", _hoist },
-                             { "mentionable", _mention } }),
-            get_default_headers(),
-            endpoint("/guilds/%/roles/%", guild->id, id), guild->id, bucket_type::guild),
+        send_request(methods::PATCH,
+                     endpoint("/guilds/%/roles/%", guild->id, id),
+                     guild->id, bucket_type::guild,
+                     { { "name", _name },
+                       { "permissions", _perms.base_permissions },
+                       { "color", _color.raw_int },
+                       { "hoist", _hoist },
+                       { "mentionable", _mention } }),
         this->guild
     };
 }
 
 void discord::Role::remove() {
-    send_request<request_method::Delete>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/guilds/%/roles/%", guild->id, id), guild->id, bucket_type::guild);
+    send_request(methods::DEL,
+                 endpoint("/guilds/%/roles/%", guild->id, id),
+                 guild->id, bucket_type::guild);
 }

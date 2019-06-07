@@ -80,6 +80,7 @@ discord::Channel &discord::Channel::update(nlohmann::json const data) {
 
 discord::Message discord::Channel::send(std::string const &content, std::vector<File> const &files, bool tts) const {
     auto ratelimit_time = discord::detail::bot_instance->wait_for_ratelimits(id, channel);
+    
     cpr::Multipart multipart_data{};
 
     for (size_t i = 0; i < files.size(); i++) {
@@ -113,7 +114,12 @@ discord::Message discord::Channel::send(std::string const &content, std::vector<
                      { "Connection", "keep-alive" } },
         multipart_data);
 
-    discord::detail::bot_instance->handle_ratelimits(response, id, channel);
+    web::http::http_headers ratelimit_headers{};
+    for (auto const &each : response.header) {
+        ratelimit_headers.add(each.first, each.second);
+    }
+
+    discord::detail::bot_instance->handle_ratelimits(ratelimit_headers, id, channel);
 
     auto parsed = response.text.size() > 0 ? nlohmann::json::parse(response.text) : nlohmann::json({});
 
@@ -166,7 +172,12 @@ discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<F
                      { "Connection", "keep-alive" } },
         multipart_data);
 
-    discord::detail::bot_instance->handle_ratelimits(response, id, channel);
+    web::http::http_headers ratelimit_headers{};
+    for (auto const &each : response.header) {
+        ratelimit_headers.add(each.first, each.second);
+    }
+
+    discord::detail::bot_instance->handle_ratelimits(ratelimit_headers, id, channel);
 
     auto parsed = response.text.size() > 0 ? nlohmann::json::parse(response.text) : nlohmann::json({});
 
@@ -189,18 +200,16 @@ void discord::Channel::bulk_delete(std::vector<discord::Message> &m) {
     }
     nlohmann::json data = nlohmann::json();
     data["messages"] = array;
-    send_request<request_method::Post>(data, get_default_headers(), endpoint("/channels/%/messages/bulk-delete", id), id, channel);
+    send_request(methods::POST, endpoint("/channels/%/messages/bulk-delete", id), id, channel, data);
 }
 
 std::vector<discord::Message> discord::Channel::get_messages(int limit) {
     std::vector<discord::Message> return_vec;
 
-    auto data = send_request<request_method::Get>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/channels/%/messages?limit=%", id, limit),
-        id,
-        channel);
+    auto data = send_request(methods::GET,
+                             endpoint("/channels/%/messages?limit=%", id, limit),
+                             id,
+                             channel);
     for (auto &each : data) {
         return_vec.emplace_back(each);
     }
@@ -208,29 +217,25 @@ std::vector<discord::Message> discord::Channel::get_messages(int limit) {
 }
 
 void discord::Channel::edit(nlohmann::json &j) {
-    send_request<request_method::Patch>(j, get_default_headers(), endpoint("/channels/%", id), id, channel);
+    send_request(methods::PATCH, endpoint("/channels/%", id), id, channel, j);
 }
 
 void discord::Channel::remove() {
-    send_request<request_method::Delete>(nlohmann::json({}), get_default_headers(), endpoint("/channels/%", id), id, channel);
+    send_request(methods::DEL, endpoint("/channels/%", id), id, channel);
 }
 
 discord::Message discord::Channel::get_message(snowflake id_) {
     return discord::Message{
-        send_request<request_method::Get>(
-            nlohmann::json({}),
-            get_default_headers(),
-            endpoint("/channels/%/messages/%", this->id, id_), this->id, channel)
+        send_request(methods::GET,
+                     endpoint("/channels/%/messages/%", this->id, id_), this->id, channel)
     };
 }
 
 std::vector<discord::Invite> discord::Channel::get_invites() {
     std::vector<discord::Invite> return_vec;
-    auto response = send_request<request_method::Get>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/channels/%/invites", id),
-        id, channel);
+    auto response = send_request(methods::GET,
+                                 endpoint("/channels/%/invites", id),
+                                 id, channel);
     for (auto const &each : response) {
         return_vec.emplace_back(each);
     }
@@ -238,23 +243,23 @@ std::vector<discord::Invite> discord::Channel::get_invites() {
 }
 
 discord::Invite discord::Channel::create_invite(int max_age, int max_uses, bool temporary, bool unique) const {
-    nlohmann::json data = nlohmann::json({ { "max_age", max_age },
-                                           { "max_uses", max_uses },
-                                           { "temporary", temporary },
-                                           { "unique", unique } });
-    return discord::Invite{ send_request<request_method::Post>(
-        data,
-        get_default_headers(),
-        endpoint("/channels/%/invites", id), id, channel) };
+    return discord::Invite{
+        send_request(
+            methods::POST,
+            endpoint("/channels/%/invites", id),
+            id, channel,
+            { { "max_age", max_age },
+              { "max_uses", max_uses },
+              { "temporary", temporary },
+              { "unique", unique } })
+    };
 }
 
 std::vector<discord::Message> discord::Channel::get_pins() {
     std::vector<discord::Message> message_vec;
-    auto reply = send_request<request_method::Get>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/channels/%/pins", id),
-        id, channel);
+    auto reply = send_request(methods::GET,
+                              endpoint("/channels/%/pins", id),
+                              id, channel);
     for (auto const &each : reply) {
         message_vec.emplace_back(each);
     }
@@ -263,57 +268,45 @@ std::vector<discord::Message> discord::Channel::get_pins() {
 
 discord::Webhook discord::Channel::create_webhook(std::string const &name) {
     return discord::Webhook{
-        send_request<request_method::Post>(
-            nlohmann::json({ { "name", name } }),
-            get_default_headers(),
-            endpoint("/channels/%/webhooks", id),
-            id, channel)
+        send_request(methods::POST,
+                     endpoint("/channels/%/webhooks", id),
+                     id, channel,
+                     { { "name", name } })
     };
 }
 
 std::vector<discord::Webhook> discord::Channel::get_webhooks() {
     return from_json_array<discord::Webhook>(
-        send_request<request_method::Get>(nlohmann::json(),
-                                          get_default_headers(),
-                                          endpoint("/channels/%/webhooks", id), id, channel));
+        send_request(methods::GET, endpoint("/channels/%/webhooks", id), id, channel));
 }
 
 void discord::Channel::remove_permissions(discord::Object const &obj) {
-    send_request<request_method::Delete>(
-        nlohmann::json({}),
-        get_default_headers(),
-        format("%/channels/%/permissions/%", id, obj.id),
-        id, channel);
+    send_request(methods::DEL,
+                 format("%/channels/%/permissions/%", id, obj.id),
+                 id, channel);
 }
 
 void discord::Channel::typing() {
-    send_request<request_method::Post>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/channels/%/typing", id),
-        id, channel);
+    send_request(methods::POST,
+                 endpoint("/channels/%/typing", id),
+                 id, channel);
 }
 
 void discord::Channel::add_group_dm_recipient(discord::User const &user, std::string const &access_token, std::string const &nick) {
-    send_request<request_method::Put>(
-        nlohmann::json({ { "access_token", access_token }, { "nick", nick } }),
-        get_default_headers(),
-        endpoint("/channels/%/recipient/%", this->id, user.id),
-        id, channel);
+    send_request(methods::PUT,
+                 endpoint("/channels/%/recipient/%", this->id, user.id),
+                 id, channel, { { "access_token", access_token }, { "nick", nick } });
 }
 
 void discord::Channel::remove_group_dm_recipient(discord::User const &user) {
-    send_request<request_method::Delete>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/channels/%/recipient/%", this->id, user.id),
-        id, channel);
+    send_request(methods::DEL,
+                 endpoint("/channels/%/recipient/%", this->id, user.id),
+                 id, channel);
 }
 
 void discord::Channel::edit_position(int new_pos) {
-    send_request<request_method::Patch>(
-        nlohmann::json({ { "id", this->id }, { "position", new_pos } }),
-        get_default_headers(),
-        endpoint("/guilds/%/channels", this->guild->id),
-        this->guild->id, bucket_type::guild);
+    send_request(methods::PATCH,
+                 endpoint("/guilds/%/channels", this->guild->id),
+                 this->guild->id, bucket_type::guild,
+                 { { "id", this->id }, { "position", new_pos } });
 }

@@ -30,6 +30,7 @@ discord::Member::Member(nlohmann::json const j, std::shared_ptr<discord::Guild> 
     if (!j.contains("roles")) {
         return;
     }
+    
     for (auto const& role : j["roles"]) {
         // TODO: fix, g can be nullptr if this is initialization stage...
         roles.push_back(std::make_shared<discord::Role>(to_sf(role)));  // retrieve from g->roles
@@ -60,35 +61,31 @@ void discord::Member::edit(std::string const& t_name, bool t_mute, bool t_deaf, 
             data["channel_id"] = channel_id;
     }
 
-    send_request<request_method::Patch>(
-        data, get_default_headers(), endpoint("/guilds/%/members/%", this->guild->id, this->id), guild->id, bucket_type::guild);
+    send_request(methods::PATCH,
+                 endpoint("/guilds/%/members/%", this->guild->id, this->id),
+                 guild->id, bucket_type::guild, data);
 }
 
 
 void discord::Member::add_role(discord::Role const& new_role) {
-    send_request<request_method::Put>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/guilds/%/members/%/roles/%", this->guild->id, this->id, new_role.id), guild->id, bucket_type::guild);
+    send_request(methods::PUT,
+                 endpoint("/guilds/%/members/%/roles/%", this->guild->id, this->id, new_role.id),
+                 guild->id, bucket_type::guild);
 }
 
 void discord::Member::remove_role(discord::Role const& new_role) {
-    send_request<request_method::Delete>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/guilds/%/members/%/roles/%", this->guild->id, this->id, new_role.id), guild->id, bucket_type::guild);
+    send_request(methods::DEL,
+                 endpoint("/guilds/%/members/%/roles/%", this->guild->id, this->id, new_role.id),
+                 guild->id, bucket_type::guild);
 }
 
 void discord::Member::kick() {
-    send_request<request_method::Delete>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/guilds/%/members/%", this->guild->id, this->id), guild->id, bucket_type::guild);
+    send_request(methods::DEL,
+                 endpoint("/guilds/%/members/%", this->guild->id, this->id), guild->id, bucket_type::guild);
 }
 
 void discord::Member::ban(std::string const& _reason, int _days) {
-    send_request<request_method::Put>(
-        nlohmann::json({ { "reason", _reason }, { "delete-message-days", _days } }),
-        get_default_headers(),
-        endpoint("/guilds/%/members/%", this->guild->id, this->id), guild->id, bucket_type::guild);
+    send_request(methods::PUT,
+                 endpoint("/guilds/%/members/%", this->guild->id, this->id), guild->id, bucket_type::guild,
+                 { { "reason", _reason }, { "delete-message-days", _days } });
 }

@@ -81,5 +81,6 @@
         "strings": true
     },
     "editor.quickSuggestionsDelay": 0,
-    "editor.acceptSuggestionOnEnter": "on"
+    "editor.acceptSuggestionOnEnter": "on",
+    "C_Cpp.errorSquiggles": "Disabled"
 }

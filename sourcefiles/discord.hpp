@@ -18,6 +18,7 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
 
+#include <cpprest/http_client.h>
 #include <boost/algorithm/string.hpp>
 
 #include "events.hpp"
@@ -61,7 +62,10 @@ namespace discord {
 
     typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
     typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
-
+    
+    using namespace web;
+    using namespace web::http;
+    using namespace web::http::client;
     using websocketpp::lib::bind;
 
     typedef Events<
@@ -406,7 +410,7 @@ namespace discord {
         discord::Guild get_guild(snowflake);
 
         int wait_for_ratelimits(snowflake, int);
-        void handle_ratelimits(cpr::Response const&, snowflake, int);
+        void handle_ratelimits(web::http::http_headers&, snowflake, int);
 
     private:
         void fire_commands(discord::Message&);
@@ -457,9 +461,7 @@ namespace discord {
 
         std::string get_gateway_url() const;
         std::string get_identify_packet();
-
-        cpr::Header get_basic_header() const;
-
+        
     public:
         bool authenticated;
         std::string error_message;

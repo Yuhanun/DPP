@@ -28,21 +28,17 @@ discord::Webhook::Webhook(nlohmann::json const data)
 
 discord::Webhook::Webhook(snowflake id) {
     *this = discord::Webhook{
-        send_request<request_method::Get>(
-            nlohmann::json({}),
-            get_default_headers(),
-            endpoint("/webhooks/%", id),
-            id, webhook)
+        send_request(methods::GET,
+                     endpoint("/webhooks/%", id),
+                     id, webhook)
     };
 }
 
 discord::Webhook::Webhook(snowflake id, std::string const& token) {
     *this = discord::Webhook{
-        send_request<request_method::Get>(
-            nlohmann::json({}),
-            get_default_headers(),
-            endpoint("/webhooks/%/%", id, token),
-            id, webhook)
+        send_request(methods::GET,
+                     endpoint("/webhooks/%/%", id, token),
+                     id, webhook)
     };
 }
 
@@ -56,30 +52,26 @@ void discord::Webhook::edit(std::string const& name, snowflake chann_id) {
     }
 
     *this = discord::Webhook{
-        send_request<request_method::Patch>(
-            data,
-            get_default_headers(),
-            endpoint("/webhooks/%", id),
-            id, webhook)
+        send_request(methods::PATCH,
+                     endpoint("/webhooks/%", id),
+                     id, webhook,
+                     data)
     };
 }
 
 void discord::Webhook::edit(std::string const& name) {
     *this = discord::Webhook{
-        send_request<request_method::Patch>(
-            nlohmann::json({ { "name", name } }),
-            get_default_headers(),
-            endpoint("/webhooks/%", id),
-            id, webhook)
+        send_request(methods::PATCH,
+                     endpoint("/webhooks/%", id),
+                     id, webhook,
+                     { { "name", name } })
     };
 }
 
 void discord::Webhook::remove() {
-    send_request<request_method::Delete>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/webhooks/%/%", id, token),
-        id, webhook);
+    send_request(methods::DEL,
+                 endpoint("/webhooks/%/%", id, token),
+                 id, webhook);
 }
 
 discord::Message discord::Webhook::send(std::string const& content, bool tts, std::string const& avatar_url, std::string const& username) {
@@ -92,10 +84,10 @@ discord::Message discord::Webhook::send(std::string const& content, bool tts, st
         j["username"] = username;
     }
 
-    return discord::Message{ send_request<request_method::Post>(
-        j, get_default_headers(),
-        endpoint("/webhooks/%/%?wait=true", id, token),
-        id, webhook) };
+    return discord::Message{ send_request(methods::POST,
+                                          endpoint("/webhooks/%/%?wait=true", id, token),
+                                          id, webhook,
+                                          j) };
 }
 
 discord::Message discord::Webhook::send(std::vector<EmbedBuilder> const& embed_arr, bool tts, std::string const& content, std::string const& avatar_url, std::string const& username) {
@@ -117,25 +109,23 @@ discord::Message discord::Webhook::send(std::vector<EmbedBuilder> const& embed_a
 
 
     return discord::Message{
-        send_request<request_method::Post>(
-            j, get_default_headers(),
-            endpoint("/webhooks/%/%?wait=true", id, token), id, webhook),
+        send_request(methods::POST,
+                     endpoint("/webhooks/%/%?wait=true", id, token),
+                     id, webhook, j),
     };
 }
 
 
 void discord::Webhook::execute_slack(bool wait, nlohmann::json const data) {
-    send_request<request_method::Post>(
-        data,
-        get_default_headers(),
-        endpoint("/webhooks/%/%/slack?wait=%", id, token, wait),
-        id, webhook);
+    send_request(methods::POST,
+                 endpoint("/webhooks/%/%/slack?wait=%", id, token, wait),
+                 id, webhook,
+                 data);
 }
 
 void discord::Webhook::execute_github(bool wait, nlohmann::json const data) {
-    send_request<request_method::Post>(
-        data,
-        get_default_headers(),
-        endpoint("/webhooks/%/%/github?wait=%", id, token, wait),
-        id, webhook);
+    send_request(methods::POST,
+                 endpoint("/webhooks/%/%/github?wait=%", id, token, wait),
+                 id, webhook,
+                 data);
 }

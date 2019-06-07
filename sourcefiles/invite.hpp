@@ -30,17 +30,14 @@ discord::Invite::Invite(std::string const& code)
 
 discord::Invite discord::Invite::get_invite() {
     return discord::Invite{
-        send_request<request_method::Get>(
-            nlohmann::json({ { "with_counts", true } }),
-            get_default_headers(),
-            endpoint("/invites/%", code),
-            0, global)
+        send_request(methods::GET,
+                     endpoint("/invites/%", code),
+                     0, global,
+                     { { "with_counts", true } })
     };
 }
 void discord::Invite::remove() {
-    send_request<request_method::Delete>(
-        nlohmann::json({}),
-        get_default_headers(),
-        endpoint("/invites/%", code),
-        0, global);
+    send_request(methods::DEL,
+                 endpoint("/invites/%", code),
+                 0, global);
 }

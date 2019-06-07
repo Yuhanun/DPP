@@ -12,7 +12,8 @@
 namespace discord {
     namespace utils {
         template <typename S, typename F>
-        std::shared_ptr<S> get(std::vector<std::shared_ptr<S>> &iterable, F const &callable) {
+        std::shared_ptr<S> get(std::vector<std::shared_ptr<S>> &iterable,
+                               F const &callable) {
             for (auto const &each : iterable) {
                 if (callable(each)) {
                     return each;
@@ -75,7 +76,8 @@ namespace discord {
     }  // namespace utils
 
     template <typename T>
-    inline std::vector<T> &from_json_array(nlohmann::json const &j, std::vector<T> &vec) {
+    inline std::vector<T> &from_json_array(nlohmann::json const &j,
+                                           std::vector<T> &vec) {
         for (auto const &each : j) {
             vec.emplace_back(each);
         }
@@ -83,7 +85,8 @@ namespace discord {
     }
 
     template <typename T, typename Uy, typename... Tys>
-    inline std::vector<T> from_json_array(nlohmann::json const &j, Uy &&key, Tys &&... args) {
+    inline std::vector<T> from_json_array(nlohmann::json const &j, Uy &&key,
+                                          Tys &&... args) {
         std::vector<T> return_vec{};
         if (j.is_null() or not j.contains(key))
             return return_vec;
@@ -103,7 +106,8 @@ namespace discord {
     }
 
     template <typename T, typename... Tys>
-    inline std::vector<T> from_json_array_special(nlohmann::json const &j, Tys &&... args) {
+    inline std::vector<T> from_json_array_special(nlohmann::json const &j,
+                                                  Tys &&... args) {
         std::vector<T> return_vec{};
         for (const auto &it : j) {
             return_vec.emplace_back(it, std::forward<Tys>(args)...);
@@ -120,7 +124,9 @@ namespace discord {
     }
 
     template <typename S>
-    inline void format_slice(std::string const &input_str, std::stringstream &output_str, int &start_index, S var) {
+    inline void format_slice(std::string const &input_str,
+                             std::stringstream &output_str, int &start_index,
+                             S var) {
         long unsigned int index = input_str.find('%', start_index);
         if (index == std::string::npos) {
             return;
@@ -131,7 +137,8 @@ namespace discord {
 
     template <typename... T>
     inline std::string format(std::string const &str, T... args) {
-        assert(sizeof...(args) == std::count(str.begin(), str.end(), '%') && "Amount of % does not match amount of arguments");
+        assert(sizeof...(args) == std::count(str.begin(), str.end(), '%') &&
+               "Amount of % does not match amount of arguments");
         std::stringstream output_str;
         int start_index = 0;
         ((format_slice(str, output_str, start_index, std::forward<T>(args))), ...);
@@ -145,11 +152,15 @@ namespace discord {
 
     template <typename T>
     inline T get_value(nlohmann::json const &j, const char *s, T default_value) {
-        return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<T>()) : default_value;
+        return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<T>())
+                             : default_value;
     }
 
-    inline std::string get_value(nlohmann::json const &j, const char *s, const char *default_value) {
-        return j.contains(s) ? (j[s].empty() ? default_value : j[s].get<std::string>()) : default_value;
+    inline std::string get_value(nlohmann::json const &j, const char *s,
+                                 const char *default_value) {
+        return j.contains(s)
+                   ? (j[s].empty() ? default_value : j[s].get<std::string>())
+                   : default_value;
     }
 
     inline nlohmann::json get_value(nlohmann::json const &j, const char *s) {
@@ -172,8 +183,10 @@ namespace discord {
     }
 
     template <typename T, typename T2, typename... Tys>
-    inline void update_object_bulk(nlohmann::json const &j, T const *one, T2 &two, Tys &... args) {
-        static_assert(sizeof...(args) % 2 == 0, "Invalid amount of arguments passed to update_object_bulk");
+    inline void update_object_bulk(nlohmann::json const &j, T const *one, T2 &two,
+                                   Tys &... args) {
+        static_assert(sizeof...(args) % 2 == 0,
+                      "Invalid amount of arguments passed to update_object_bulk");
 
         update_object(j, one, two);
         if constexpr (sizeof...(args) > 2) {
@@ -196,20 +209,16 @@ namespace discord {
         return boost::posix_time::to_iso_extended_string(result) + "Z";
     }
 
-    inline cpr::Header get_default_headers() {
-        return cpr::Header{
+    inline std::unordered_map<std::string, std::string> get_default_headers() {
+        return {
             { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
-            { "Content-Type", "application/json" },
-            { "User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)" },
-            { "Connection", "keep-alive" }
+            { "User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)" }
         };
     }
 
-    enum permission_type {
-        deny,
-        allow,
-        neutral
-    };
+    enum permission_type { deny,
+                           allow,
+                           neutral };
 
     enum channel_type {
         guild_text_channel,
@@ -219,14 +228,6 @@ namespace discord {
         guild_category_channel,
         guild_news_channel,
         guild_store_channel
-    };
-
-    enum request_method {
-        Get,
-        Put,
-        Post,
-        Patch,
-        Delete
     };
 
     enum asset_type {
@@ -255,34 +256,39 @@ namespace discord {
         gateway_unavailable = 502,
     };
 
-    enum bucket_type {
-        channel,
-        guild,
-        webhook,
-        global
-    };
+    enum bucket_type { channel,
+                       guild,
+                       webhook,
+                       global };
 
     template <typename... Tys>
     inline std::string endpoint(std::string endpoint_format, Tys &&... args) {
-        endpoint_format = endpoint_format[0] == '/' ? endpoint_format : '/' + endpoint_format;
-        return format(std::string("https://discordapp.com/api/v6") + endpoint_format, std::forward<Tys>(args)...);
+        endpoint_format =
+            endpoint_format[0] == '/' ? endpoint_format : '/' + endpoint_format;
+        return format(std::string("https://discordapp.com/api/v6") + endpoint_format,
+                      std::forward<Tys>(args)...);
     }
 
     inline std::string get_file_extension(std::string const &f_name) {
         auto extension = f_name.substr(f_name.find_last_of('.') + 1);
-        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+        std::transform(extension.begin(), extension.end(), extension.begin(),
+                       ::tolower);
         return extension;
     }
 
     inline bool is_image_or_gif(std::string const &f_name) {
         auto extension = get_file_extension(f_name);
-        return (extension == "png" || extension == "jpeg" || extension == "jpg" || extension == "webp" || extension == "gif");
+        return (extension == "png" || extension == "jpeg" || extension == "jpg" ||
+                extension == "webp" || extension == "gif");
     }
 
-    inline std::string image_url_from_type(int asset_t, snowflake some_id, std::string hash = "", bool is_animated = false) {
+    inline std::string image_url_from_type(int asset_t, snowflake some_id,
+                                           std::string hash = "",
+                                           bool is_animated = false) {
         switch (asset_t) {
             case custom_emoji:
-                return format(is_animated ? "%/emojis/%.gif" : "%/emojis/%.png", get_cdn_url(), some_id);
+                return format(is_animated ? "%/emojis/%.gif" : "%/emojis/%.png",
+                              get_cdn_url(), some_id);
             case guild_icon:
                 return format("%/icons/%/%.png", get_cdn_url(), some_id, hash);
             case guild_splash:
@@ -292,7 +298,8 @@ namespace discord {
             case default_user_avatar:
                 return format("%/embed/avatars/%.png", get_cdn_url(), some_id % 5);
             case user_avatar:
-                return format(is_animated ? "%/avatars/%/%.gif" : "%/avatars/%/%.png", get_cdn_url(), some_id, hash);
+                return format(is_animated ? "%/avatars/%/%.gif" : "%/avatars/%/%.png",
+                              get_cdn_url(), some_id, hash);
             case application_icon:
                 return format("%/app-cons/%/%.png", get_cdn_url(), some_id, hash);
             case application_asset:
@@ -325,7 +332,8 @@ namespace discord {
         nothing
     };
 
-    request_next_action handle_http_response(cpr::Response const &resp, nlohmann::json const &parsed_json_resp) {
+    request_next_action handle_http_response(cpr::Response const &resp,
+                                             nlohmann::json const &parsed_json_resp) {
         switch (resp.status_code) {
             case 200:
                 return request_next_action::nothing;
@@ -344,7 +352,8 @@ namespace discord {
             case 405:
                 return request_next_action::invalid_method;
             case 429:
-                std::this_thread::sleep_for(std::chrono::milliseconds(parsed_json_resp["retry_after"].get<int>() + 1));
+                std::this_thread::sleep_for(std::chrono::milliseconds(
+                    parsed_json_resp["retry_after"].get<int>() + 1));
                 return request_next_action::ratelimit;
             case 502:
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -354,47 +363,52 @@ namespace discord {
         }
     }
 
-    template <size_t method>
-    inline nlohmann::json send_request(const nlohmann::json &j, const cpr::Header &h, const std::string &uri, snowflake obj_id, int bucket_) {
-        auto ratelimit_time = discord::detail::bot_instance->wait_for_ratelimits(obj_id, bucket_);
-        auto session = cpr::Session();
-        auto url = cpr::Url{ uri };
-        auto body = cpr::Body{ j.dump() };
+    inline nlohmann::json send_request(web::http::method mthd, const std::string &uri,
+                                       snowflake obj_id = -1, int bucket_ = global,
+                                       nlohmann::json const &j = {}) {
+        discord::detail::bot_instance->wait_for_ratelimits(obj_id, bucket_);
+        http_client client{ { uri } };
+        http_request msg{ mthd };
 
-        static_assert(method < 5, "Invalid request method.");
-
-#ifdef __DPP_DEBUG
-#endif
-        cpr::Response response;
-        if (method == request_method::Get) {
-            response = cpr::Get(url, h);
-        } else if (method == request_method::Post) {
-            response = cpr::Post(url, h, body);
-        } else if (method == request_method::Put) {
-            response = cpr::Put(url, h, body);
-        } else if (method == request_method::Delete) {
-            response = cpr::Delete(url, h, body);
-        } else if (method == request_method::Patch) {
-            response = cpr::Patch(url, h, body);
+        if (mthd != methods::GET) {
+            msg.set_body(j.dump());
         }
 
-        discord::detail::bot_instance->handle_ratelimits(response, obj_id, bucket_);
+        for (auto const &each : get_default_headers()) {
+            msg.headers().add(each.first, each.second);
+        }
 
-        auto j_resp = response.text.length() ? nlohmann::json::parse(response.text) : nlohmann::json({});
+        nlohmann::json resp = client.request(msg).then([=](http_response response) {
+                                                     return response;
+                                                 })
+                                  .then([=](http_response response) {
+                                      return std::string{ response.extract_utf8string(true).get() };
+                                  })
+                                  .then([=](std::string response) {
+                                      std::cout << response << std::endl;
+                                      if (response.size() > 0) {
+                                          return nlohmann::json::parse(response);
+                                      } else {
+                                          return nlohmann::json({});
+                                      }
+                                  })
+                                  .get();
+
 
 #ifdef __DPP_DEBUG
-        std::cout << j.dump(4) << "\n"
-                  << uri << "\n"
-                  << j_resp.dump(4) << "\n"
-                  << "Had to wait " << ratelimit_time << " seconds" << std::endl;
+        // std::cout << j.dump(4) << "\n"
+        //           << uri << "\n"
+        //           << j_resp.dump(4) << "\n"
+        //           << "Had to wait " << ratelimit_time << " seconds" << std::endl;
 #endif
-        // request_next_action to_handle = handle_http_response(response, j_resp);
-        if (j_resp.contains("retry_after")) {
-            std::this_thread::sleep_for(std::chrono::seconds(j_resp["retry_after"].get<int>()));
-            return send_request<method>(j, h, uri, obj_id, bucket_);
+
+        if (resp.contains("retry_after")) {
+            std::this_thread::sleep_for(std::chrono::seconds(resp["retry_after"]));
+            return send_request(mthd, uri, obj_id, bucket_, j);
         }
-        return j_resp;
+        return resp;
     }
+
 
     inline std::string read_entire_file(std::string const &filename) {
         std::ifstream ifs(filename);
@@ -404,7 +418,8 @@ namespace discord {
 
     inline std::string encode64(const std::string &val) {
         using namespace boost::archive::iterators;
-        using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+        using It =
+            base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
         auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
         return tmp.append((3 - val.size() % 3) % 3, '=');
     }
