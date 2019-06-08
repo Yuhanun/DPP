@@ -28,16 +28,19 @@ discord::Invite::Invite(std::string const& code)
 }
 
 
-discord::Invite discord::Invite::get_invite() {
-    return discord::Invite{
-        send_request(methods::GET,
-                     endpoint("/invites/%", code),
-                     0, global,
-                     { { "with_counts", true } })
-    };
+pplx::task<discord::Invite> discord::Invite::get_invite() {
+    return send_request(methods::GET,
+                        endpoint("/invites/%", code),
+                        0, global,
+                        { { "with_counts", true } })
+        .then([](request_response const& resp) {
+            return discord::Invite{ resp.get().unwrap() };
+        });
 }
-void discord::Invite::remove() {
-    send_request(methods::DEL,
-                 endpoint("/invites/%", code),
-                 0, global);
+
+pplx::task<void> discord::Invite::remove() {
+    return send_request(methods::DEL,
+                        endpoint("/invites/%", code),
+                        0, global)
+        .then([](request_response const&) {});
 }

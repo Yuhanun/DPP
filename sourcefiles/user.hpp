@@ -52,11 +52,14 @@ discord::User& discord::User::update(nlohmann::json const data) {
     return *this;
 }
 
-discord::Channel discord::User::create_dm() {
-    return discord::Channel{
-        send_request(methods::POST,
-                     endpoint("/users/@me/channels"),
-                     0, global,
-                     nlohmann::json({ { "recipient_id", id } }))
-    };
+pplx::task<discord::Channel> discord::User::create_dm() {
+    return send_request(methods::POST,
+                        endpoint("/users/@me/channels"),
+                        0, global,
+                        nlohmann::json({ { "recipient_id", id } }))
+        .then([](request_response const& resp) {
+            return discord::Channel{
+                resp.get().unwrap()
+            };
+        });
 }

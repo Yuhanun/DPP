@@ -43,29 +43,33 @@ discord::Role& discord::Role::update(nlohmann::json data) {
     return *this;
 }
 
-void discord::Role::edit_position(int _new_position) {
-    send_request(methods::POST,
-                 endpoint("/guilds/%/roles", guild->id),
-                 guild->id, bucket_type::guild,
-                 { { "id", id }, { "position", _new_position } });
+pplx::task<void> discord::Role::edit_position(int _new_position) {
+    return send_request(methods::POST,
+                        endpoint("/guilds/%/roles", guild->id),
+                        guild->id, bucket_type::guild,
+                        { { "id", id }, { "position", _new_position } })
+        .then([](auto const&) {});
 }
 
-void discord::Role::edit(std::string const& _name, PermissionOverwrites& _perms, discord::Color _color, bool _hoist, bool _mention) {
-    discord::Role{
-        send_request(methods::PATCH,
-                     endpoint("/guilds/%/roles/%", guild->id, id),
-                     guild->id, bucket_type::guild,
-                     { { "name", _name },
-                       { "permissions", _perms.base_permissions },
-                       { "color", _color.raw_int },
-                       { "hoist", _hoist },
-                       { "mentionable", _mention } }),
-        this->guild
-    };
+pplx::task<discord::Role> discord::Role::edit(std::string const& _name, PermissionOverwrites& _perms, discord::Color _color, bool _hoist, bool _mention) {
+    return send_request(methods::PATCH,
+                        endpoint("/guilds/%/roles/%", guild->id, id),
+                        guild->id, bucket_type::guild,
+                        { { "name", _name },
+                          { "permissions", _perms.base_permissions },
+                          { "color", _color.raw_int },
+                          { "hoist", _hoist },
+                          { "mentionable", _mention } })
+        .then([=](request_response const& resp) {
+            return discord::Role{
+                resp.get().unwrap(), this->guild
+            };
+        });
 }
 
-void discord::Role::remove() {
-    send_request(methods::DEL,
-                 endpoint("/guilds/%/roles/%", guild->id, id),
-                 guild->id, bucket_type::guild);
+pplx::task<void> discord::Role::remove() {
+    return send_request(methods::DEL,
+                        endpoint("/guilds/%/roles/%", guild->id, id),
+                        guild->id, bucket_type::guild)
+        .then([](auto const&) {});
 }

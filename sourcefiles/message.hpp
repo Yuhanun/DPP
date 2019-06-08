@@ -137,57 +137,69 @@ discord::Message& discord::Message::update(nlohmann::json const j) {
     return *this;
 }
 
-void discord::Message::remove() {
-    send_request(methods::DEL,
-                 endpoint("/%/messages/%", channel->id, id),
-                 channel->id, bucket_type::channel);
+pplx::task<void> discord::Message::remove() {
+    return send_request(methods::DEL,
+                        endpoint("/%/messages/%", channel->id, id),
+                        channel->id, bucket_type::channel)
+        .then([](request_response const&) {});
 }
 
-discord::Message discord::Message::edit(std::string content) {
-    return discord::Message{ send_request(methods::PATCH,
-                                          endpoint("/channels/%/messages/%", channel->id, id),
-                                          channel->id, bucket_type::channel,
-                                          { { "content", content }, { "tts", tts } }) };
+pplx::task<discord::Message> discord::Message::edit(std::string content) {
+    return send_request(methods::PATCH,
+                        endpoint("/channels/%/messages/%", channel->id, id),
+                        channel->id, bucket_type::channel,
+                        { { "content", content }, { "tts", tts } })
+        .then([](request_response const& resp) {
+            return discord::Message{ resp.get().unwrap() };
+        });
 }
 
-discord::Message discord::Message::edit(EmbedBuilder embed, std::string content) {
-    return discord::Message{ send_request(methods::PATCH,
-                                          endpoint("/channels/%/messages/%", channel->id, id),
-                                          channel->id, bucket_type::channel,
-                                          { { "content", content }, { "tts", tts }, { "embed", embed.to_json() } }) };
+pplx::task<discord::Message> discord::Message::edit(EmbedBuilder embed, std::string content) {
+    return send_request(methods::PATCH,
+                        endpoint("/channels/%/messages/%", channel->id, id),
+                        channel->id, bucket_type::channel,
+                        { { "content", content }, { "tts", tts }, { "embed", embed.to_json() } })
+        .then([](request_response const& resp) {
+            return discord::Message{ resp.get().unwrap() };
+        });
 }
 
-void discord::Message::unpin() {
-    send_request(methods::DEL,
-                 endpoint("/channels/%/pins/%", channel->id, id),
-                 channel->id, bucket_type::channel);
+pplx::task<void> discord::Message::unpin() {
+    return send_request(methods::DEL,
+                        endpoint("/channels/%/pins/%", channel->id, id),
+                        channel->id, bucket_type::channel)
+        .then([](request_response const&) {});
 }
 
-void discord::Message::pin() {
-    send_request(methods::PUT,
-                 endpoint("/channels/%/pins/%", channel->id, id),
-                 channel->id, bucket_type::channel);
+pplx::task<void> discord::Message::pin() {
+    return send_request(methods::PUT,
+                        endpoint("/channels/%/pins/%", channel->id, id),
+                        channel->id, bucket_type::channel)
+        .then([](request_response const&) {});
 }
 
-void discord::Message::add_reaction(discord::Emoji const& emote) {
-    send_request(methods::PUT,
-                 endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id),
-                 channel->id, bucket_type::channel);
+pplx::task<void> discord::Message::add_reaction(discord::Emoji const& emote) {
+    return send_request(methods::PUT,
+                        endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id),
+                        channel->id, bucket_type::channel)
+        .then([](request_response const&) {});
 }
 
-void discord::Message::remove_own_reaction(discord::Emoji const& emote) {
-    send_request(methods::DEL,
-                 endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id),
-                 channel->id, bucket_type::channel);
+pplx::task<void> discord::Message::remove_own_reaction(discord::Emoji const& emote) {
+    return send_request(methods::DEL,
+                        endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id),
+                        channel->id, bucket_type::channel)
+        .then([](request_response const&) {});
 }
 
-void discord::Message::remove_reaction(discord::User const& user, discord::Emoji const& emote) {
-    send_request(methods::DEL,
-                 endpoint("/channels/%/messages/%/reactions/%:%/%", channel->id, id, emote.name, emote.id, user.id),
-                 channel->id, bucket_type::channel);
+pplx::task<void> discord::Message::remove_reaction(discord::User const& user, discord::Emoji const& emote) {
+    return send_request(methods::DEL,
+                        endpoint("/channels/%/messages/%/reactions/%:%/%", channel->id, id, emote.name, emote.id, user.id),
+                        channel->id, bucket_type::channel)
+        .then([](request_response const&) {});
 }
 
-std::vector<std::shared_ptr<discord::User>> discord::Message::get_reactions(discord::Emoji const& emote, snowflake before, snowflake after, int limit) {
+pplx::task<std::vector<discord::User>> discord::Message::get_reactions(discord::Emoji const& emote, snowflake before, snowflake after, int limit) {
     auto data = nlohmann::json({ { "limit", limit > 0 ? limit : 25 } });
 
     if (after) {
@@ -197,15 +209,18 @@ std::vector<std::shared_ptr<discord::User>> discord::Message::get_reactions(disc
         data["before"] = before;
     }
 
-    return from_json_array<std::shared_ptr<discord::User>>(
-        send_request(methods::GET,
-                     endpoint("/channels/%/messages/%/reactions/%:%", channel->id, id, emote.name, emote.id),
-                     channel->id, bucket_type::channel,
-                     data));
+    return send_request(methods::GET,
+                        endpoint("/channels/%/messages/%/reactions/%:%", channel->id, id, emote.name, emote.id),
+                        channel->id, bucket_type::channel,
+                        data)
+        .then([](request_response const& resp) {
+            return from_json_array<discord::User>(resp.get().unwrap());
+        });
 }
 
-void discord::Message::remove_all_reactions() {
-    send_request(methods::DEL,
-                 endpoint("/channels/%/messages/%/reactions", channel->id, id),
-                 channel->id, bucket_type::channel);
+pplx::task<void> discord::Message::remove_all_reactions() {
+    return send_request(methods::DEL,
+                        endpoint("/channels/%/messages/%/reactions", channel->id, id),
+                        channel->id, bucket_type::channel)
+        .then([](request_response const&) {});
 }

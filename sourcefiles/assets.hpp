@@ -17,8 +17,17 @@ namespace discord {
 
     std::string Asset::read() {
         if (!gotten_data) {
-            byte_arr = cpr::Get(cpr::Url{ url }).text;
-            gotten_data = true;
+            http_client client{ { this->url } };
+            http_request msg{ methods::GET };
+
+            for (auto const& each : get_default_headers()) {
+                msg.headers().add(each.first, each.second);
+            }
+
+            client.request(msg).then([this](http_response resp_val) {
+                gotten_data = true;
+                this->byte_arr = resp_val.extract_utf8string(true).get();
+            });
         }
         return byte_arr;
     }

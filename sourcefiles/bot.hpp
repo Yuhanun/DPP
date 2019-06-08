@@ -1,7 +1,6 @@
 #pragma once
 #include "assets.hpp"
 #include "context.hpp"
-#include "cpr/cpr.h"
 #include "discord.hpp"
 #include "events.hpp"
 #include "exceptions.hpp"
@@ -52,16 +51,21 @@ discord::Bot::Bot(const std::string &token, const std::string prefix, std::size_
     internal_event_map["WEBHOOKS_UPDATE"] = std::bind(&discord::Bot::webhooks_update_event, this, std::placeholders::_1);
 }
 
-discord::Message discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
-    return discord::Message{ send_request(methods::POST,
-                                          get_channel_link(channel_id), channel_id, channel,
-                                          { { "content", message_content }, { "tts", tts } }) };
+pplx::task<discord::Message> discord::Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
+    return send_request(methods::POST,
+                        get_channel_link(channel_id), channel_id, channel,
+                        { { "content", message_content }, { "tts", tts } })
+        .then([](request_response const &resp) {
+            return discord::Message{ resp.get().unwrap() };
+        });
 }
 
-discord::Message discord::Bot::send_message(snowflake channel_id, nlohmann::json message_content, bool tts) {
+pplx::task<discord::Message> discord::Bot::send_message(snowflake channel_id, nlohmann::json message_content, bool tts) {
     message_content["tts"] = tts;
-    auto response = send_request(methods::POST, get_channel_link(channel_id), channel_id, channel, message_content);
-    return discord::Message{ response };
+    return send_request(methods::POST, get_channel_link(channel_id), channel_id, channel, message_content)
+        .then([](request_response const &resp) {
+            return discord::Message{ resp.get().unwrap() };
+        });
 }
 
 void discord::Bot::on_incoming_packet(const websocketpp::connection_hdl &, const client::message_ptr &msg) {
@@ -151,7 +155,7 @@ void discord::Bot::gateway_auth() {
 }
 
 std::string discord::Bot::get_gateway_url() const {
-    auto r = send_request(methods::GET, endpoint("/gateway/bot"), 0, global);
+    auto r = send_request(methods::GET, endpoint("/gateway/bot"), 0, global).get().unwrap();
     if (!r.contains("url")) {
         throw discord::ImproperToken();
     }
@@ -230,24 +234,25 @@ void discord::Bot::handle_heartbeat() {
     }
 }
 
-discord::Guild discord::Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
-    return discord::Guild{
-        send_request(methods::POST, endpoint("/guilds"), 0, global,
-                     { { "name", name },
-                       { "region", region },
-                       { "icon", "" },
-                       { "verification_level", verification_level },
-                       { "default_message_notifications", default_message_notifications },
-                       { "explicit_content_filter", explicit_content_filter },
-                       { "roles", {} },
-                       { "channels", {} } })
-    };
+pplx::task<discord::Guild> discord::Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
+    return send_request(methods::POST, endpoint("/guilds"), 0, global,
+                        { { "name", name },
+                          { "region", region },
+                          { "icon", "" },
+                          { "verification_level", verification_level },
+                          { "default_message_notifications", default_message_notifications },
+                          { "explicit_content_filter", explicit_content_filter },
+                          { "roles", {} },
+                          { "channels", {} } })
+        .then([](request_response const &resp) {
+            return discord::Guild{ resp.get().unwrap() };
+        });
 }
 
 std::vector<discord::VoiceRegion> discord::Bot::get_voice_regions() const {
     std::vector<VoiceRegion> return_vec = {};
     auto response = send_request(methods::GET, endpoint("%/voice/regions"), 0, global);
-    for (auto const &each : response) {
+    for (auto const &each : response.get().unwrap()) {
         return_vec.push_back({ get_value(each, "id", ""),
                                get_value(each, "name", ""),
                                get_value(each, "vip", false),
@@ -679,7 +684,7 @@ void discord::Bot::presence_update_event(nlohmann::json data) {
     auto guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
     auto member = discord::utils::get(guild->members, [=](auto &mem) { return mem->id == mem_id; });
     if (!member) {
-        member = std::make_shared<discord::Member>(guild->get_member(mem_id));
+        member = std::make_shared<discord::Member>(guild->get_member(mem_id).get());
         guild->members.push_back(member);
     }
     member->presence.update(data);
@@ -715,25 +720,37 @@ void discord::Bot::webhooks_update_event(nlohmann::json data) {
     func_holder.call<events::webhooks_update>(futures, ready, channel);
 }
 
-discord::User discord::Bot::get_current_user() {
-    return discord::User{ send_request(methods::GET, endpoint("/users/@me"), 0, global) };
+pplx::task<discord::User> discord::Bot::get_current_user() {
+    return send_request(methods::GET, endpoint("/users/@me"), 0, global)
+        .then([](request_response const &resp) {
+            return discord::User{ resp.get().unwrap() };
+        });
 }
 
-discord::User discord::Bot::get_user(snowflake id) {
-    return discord::User{ send_request(methods::GET, endpoint("/users/%", id), 0, global) };
+pplx::task<discord::User> discord::Bot::get_user(snowflake id) {
+    return send_request(methods::GET, endpoint("/users/%", id), 0, global)
+        .then([](request_response const &resp) {
+            return discord::User{ resp.get().unwrap() };
+        });
 }
 
-discord::User discord::Bot::edit(std::string const &username) {
-    discord::User user{ send_request(methods::PATCH,
-                                     endpoint("/users/@me"), 0, global,
-                                     { { "username", username } }) };
-    this->username = user.name;
-    this->avatar = user.avatar;
-    return user;
+pplx::task<discord::User> discord::Bot::edit(std::string const &username) {
+    return send_request(methods::PATCH,
+                        endpoint("/users/@me"), 0, global,
+                        { { "username", username } })
+        .then([](request_response const &resp) {
+            return discord::User{
+                resp.get().unwrap()
+            };
+        })
+        .then([this](discord::User const &usr) {
+            this->username = usr.name;
+            this->avatar = usr.avatar;
+            return usr;
+        });
 }
 
-std::vector<discord::Guild> discord::Bot::get_user_guilds(int limit, snowflake before, snowflake after) {
-    std::vector<discord::Guild> g_vec{};
+pplx::task<std::vector<discord::Guild>> discord::Bot::get_user_guilds(int limit, snowflake before, snowflake after) {
     nlohmann::json data({ { "limit", limit ? limit : 100 } });
 
     if (before) {
@@ -744,55 +761,63 @@ std::vector<discord::Guild> discord::Bot::get_user_guilds(int limit, snowflake b
         data["after"] = after;
     }
 
-    auto d = send_request(methods::GET, endpoint("/users/@me/guilds"), 0, global, data);
-    for (auto const &each : d) {
-        snowflake guild_id = to_sf(each["id"]);
-        g_vec.push_back(*discord::utils::get(this->guilds, [guild_id](auto const &guild) {
-            return guild->id == guild_id;
-        }));
-    }
-    return g_vec;
+    return send_request(methods::GET, endpoint("/users/@me/guilds"), 0, global, data)
+        .then([this](request_response const &resp) {
+            std::vector<discord::Guild> g_vec{};
+            for (auto const &each : resp.get().unwrap()) {
+                snowflake guild_id = to_sf(each["id"]);
+                g_vec.push_back(*discord::utils::get(this->guilds, [guild_id](auto const &guild) {
+                    return guild->id == guild_id;
+                }));
+            }
+            return g_vec;
+        });
 }
 
-discord::Channel discord::Bot::create_group_dm(std::vector<std::string> const &access_tokens, nlohmann::json const &nicks) {
+pplx::task<discord::Channel> discord::Bot::create_group_dm(std::vector<std::string> const &access_tokens, nlohmann::json const &nicks) {
     nlohmann::json data({ { "access_tokens", nlohmann::json::array() }, { "nicks", nicks } });
     for (auto const &each : access_tokens) {
         data["access_tokens"].push_back(each);
     }
-    return discord::Channel{
-        send_request(methods::POST, endpoint("/users/@me/channels"), 0, global, data)
-    };
+    return send_request(methods::POST, endpoint("/users/@me/channels"), 0, global, data)
+        .then([](request_response const &resp) {
+            return discord::Channel{ resp.get().unwrap() };
+        });
 }
 
-std::vector<discord::Connection> discord::Bot::get_connections() {
-    std::vector<discord::Connection> conn_vec;
-    auto response = send_request(methods::GET,
-                                 endpoint("/users/@me/connections"),
-                                 0, global);
-    for (auto const &each : response) {
-        conn_vec.push_back({ to_sf(each["id"]),
-                             each["name"],
-                             each["type"],
-                             each["revoked"],
-                             from_json_array<discord::Integration>(each["integrations"]),
-                             each["verified"],
-                             each["friend_sync"],
-                             each["show_activity"],
-                             each["visibility"] });
-    }
-    return conn_vec;
+pplx::task<std::vector<discord::Connection>> discord::Bot::get_connections() {
+    return send_request(methods::GET,
+                        endpoint("/users/@me/connections"),
+                        0, global)
+        .then([](request_response const &resp) {
+            std::vector<discord::Connection> conn_vec;
+            for (auto const &each : resp.get().unwrap()) {
+                conn_vec.push_back({ to_sf(each["id"]),
+                                     each["name"],
+                                     each["type"],
+                                     each["revoked"],
+                                     from_json_array<discord::Integration>(each["integrations"]),
+                                     each["verified"],
+                                     each["friend_sync"],
+                                     each["show_activity"],
+                                     each["visibility"] });
+            }
+            return conn_vec;
+        });
 }
 
-discord::Guild discord::Bot::get_guild(snowflake g_id) {
-    return discord::Guild{
-        send_request(methods::GET, endpoint("/guilds/%", g_id), id, 0)
-    };
+pplx::task<discord::Guild> discord::Bot::get_guild(snowflake g_id) {
+    return send_request(methods::GET, endpoint("/guilds/%", g_id), id, 0)
+        .then([](request_response const &resp) {
+            return discord::Guild{ resp.get().unwrap() };
+        });
 }
 
-discord::Channel discord::Bot::get_channel(snowflake chan_id) {
-    return discord::Channel{
-        send_request(methods::GET, endpoint("/channels/%", chan_id), chan_id, channel)
-    };
+pplx::task<discord::Channel> discord::Bot::get_channel(snowflake chan_id) {
+    return send_request(methods::GET, endpoint("/channels/%", chan_id), chan_id, channel)
+        .then([](request_response const &resp) {
+            return discord::Channel{ resp.get().unwrap() };
+        });
 }
 
 int discord::Bot::wait_for_ratelimits(snowflake obj_id, int bucket_) {

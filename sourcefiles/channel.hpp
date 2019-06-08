@@ -1,5 +1,4 @@
 #pragma once
-#include <cpr/cpr.h>
 #include "discord.hpp"
 #include "invite.hpp"
 #include "permissions.hpp"
@@ -78,235 +77,189 @@ discord::Channel &discord::Channel::update(nlohmann::json const data) {
     return *this;
 }
 
-discord::Message discord::Channel::send(std::string const &content, std::vector<File> const &files, bool tts) const {
-    auto ratelimit_time = discord::detail::bot_instance->wait_for_ratelimits(id, channel);
-    
-    cpr::Multipart multipart_data{};
+pplx::task<discord::Message> discord::Channel::send(std::string const &content, std::vector<File> const &files, bool tts) const {
 
-    for (size_t i = 0; i < files.size(); i++) {
-        if (!is_image_or_gif(files[i].filepath)) {
-            std::string entire_file = read_entire_file(files[i].filepath);
-            std::string custom_filename{ files[i].spoiler ? "SPOILER_" : "" };
-            multipart_data.parts.emplace_back(
-                "file" + std::to_string(i),
-                cpr::Buffer{ entire_file.begin(),
-                             entire_file.end(),
-                             custom_filename + files[i].filename },
-                "application/octet-stream");
-        } else {
-            multipart_data.parts.emplace_back("file" + std::to_string(i),
-                                              cpr::File(files[i].filepath),
-                                              "application/octet-stream");
-        }
-    }
-
-    auto payload_json = nlohmann::json{
-        { "content", content },
-        { "tts", tts }
-    }.dump();
-    multipart_data.parts.emplace_back("payload_json", payload_json);
-
-    auto response = cpr::Post(
-        cpr::Url{ endpoint("/channels/%/messages", id) },
-        cpr::Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
-                     { "Content-Type", "multipart/form-data" },
-                     { "User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)" },
-                     { "Connection", "keep-alive" } },
-        multipart_data);
-
-    web::http::http_headers ratelimit_headers{};
-    for (auto const &each : response.header) {
-        ratelimit_headers.add(each.first, each.second);
-    }
-
-    discord::detail::bot_instance->handle_ratelimits(ratelimit_headers, id, channel);
-
-    auto parsed = response.text.size() > 0 ? nlohmann::json::parse(response.text) : nlohmann::json({});
-
-#ifdef __DPP_DEBUG
-    std::cout << parsed.dump(4) << "\n"
-              << "Had to wait " << ratelimit_time << " seconds" << std::endl;
-#endif
-    if (parsed.contains("retry_after")) {
-        std::this_thread::sleep_for(std::chrono::seconds(parsed["retry_after"].get<int>()));
-        return this->send(content, files, tts);
-    }
-
-    return discord::Message{ parsed };
 }
 
-discord::Message discord::Channel::send(EmbedBuilder const &embed, std::vector<File> const &files, bool tts, std::string const &content) const {
-    auto ratelimit_time = discord::detail::bot_instance->wait_for_ratelimits(id, channel);
-    cpr::Multipart multipart_data{};
+pplx::task<discord::Message> discord::Channel::send(EmbedBuilder const &embed, std::vector<File> const &files, bool tts, std::string const &content) const {
+    //     auto ratelimit_time = discord::detail::bot_instance->wait_for_ratelimits(id, channel);
+    //     Multipart multipart_data{};
 
-    for (size_t i = 0; i < files.size(); i++) {
-        if (!is_image_or_gif(files[i].filepath)) {
-            std::string entire_file = read_entire_file(files[i].filepath);
-            std::string custom_filename{ files[i].spoiler ? "SPOILER_" : "" };
-            multipart_data.parts.emplace_back(
-                "file" + std::to_string(i),
-                cpr::Buffer{ entire_file.begin(),
-                             entire_file.end(),
-                             custom_filename + files[i].filename },
-                "application/octet-stream");
-        } else {
-            multipart_data.parts.emplace_back("file" + std::to_string(i),
-                                              cpr::File(files[i].filepath),
-                                              "application/octet-stream");
-        }
-    }
+    //     for (size_t i = 0; i < files.size(); i++) {
+    //         if (!is_image_or_gif(files[i].filepath)) {
+    //             std::string entire_file = read_entire_file(files[i].filepath);
+    //             std::string custom_filename{ files[i].spoiler ? "SPOILER_" : "" };
+    //             multipart_data.parts.emplace_back(
+    //                 "file" + std::to_string(i),
+    //                 Buffer{ entire_file.begin(),
+    //                              entire_file.end(),
+    //                              custom_filename + files[i].filename },
+    //                 "application/octet-stream");
+    //         } else {
+    //             multipart_data.parts.emplace_back("file" + std::to_string(i),
+    //                                               File(files[i].filepath),
+    //                                               "application/octet-stream");
+    //         }
+    //     }
 
 
-    multipart_data.parts.emplace_back("payload_json",
-                                      nlohmann::json{
-                                          { "content", content },
-                                          { "tts", tts },
-                                          { "embed", embed.to_json() } }
-                                          .dump());
+    //     multipart_data.parts.emplace_back("payload_json",
+    //                                       nlohmann::json{
+    //                                           { "content", content },
+    //                                           { "tts", tts },
+    //                                           { "embed", embed.to_json() } }
+    //                                           .dump());
 
-    auto response = cpr::Post(
-        cpr::Url{ endpoint("/channels/%/messages", id) },
-        cpr::Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
-                     { "Content-Type", "multipart/form-data" },
-                     { "User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)" },
-                     { "Connection", "keep-alive" } },
-        multipart_data);
+    //     auto response = Post(
+    //         Url{ endpoint("/channels/%/messages", id) },
+    //         Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
+    //                      { "Content-Type", "multipart/form-data" },
+    //                      { "User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)" },
+    //                      { "Connection", "keep-alive" } },
+    //         multipart_data);
 
-    web::http::http_headers ratelimit_headers{};
-    for (auto const &each : response.header) {
-        ratelimit_headers.add(each.first, each.second);
-    }
+    //     web::http::http_headers ratelimit_headers{};
+    //     for (auto const &each : response.header) {
+    //         ratelimit_headers.add(each.first, each.second);
+    //     }
 
-    discord::detail::bot_instance->handle_ratelimits(ratelimit_headers, id, channel);
+    //     discord::detail::bot_instance->handle_ratelimits(ratelimit_headers, id, channel);
 
-    auto parsed = response.text.size() > 0 ? nlohmann::json::parse(response.text) : nlohmann::json({});
+    //     auto parsed = response.text.size() > 0 ? nlohmann::json::parse(response.text) : nlohmann::json({});
 
-#ifdef __DPP_DEBUG
-    std::cout << parsed.dump(4) << "\n"
-              << "Had to wait " << ratelimit_time << " seconds" << std::endl;
-#endif
-    if (parsed.contains("retry_after")) {
-        std::this_thread::sleep_for(std::chrono::seconds(parsed["retry_after"].get<int>()));
-        return this->send(embed, files, tts, content);
-    }
+    // #ifdef __DPP_DEBUG
+    //     std::cout << parsed.dump(4) << "\n"
+    //               << "Had to wait " << ratelimit_time << " seconds" << std::endl;
+    // #endif
+    //     if (parsed.contains("retry_after")) {
+    //         std::this_thread::sleep_for(std::chrono::seconds(parsed["retry_after"].get<int>()));
+    //         return this->send(embed, files, tts, content);
+    //     }
 
-    return discord::Message{ parsed };
+    //     return discord::Message{ parsed };
+    // return discord::Message{ 0 };
 }
 
-void discord::Channel::bulk_delete(std::vector<discord::Message> &m) {
+pplx::task<void> discord::Channel::bulk_delete(std::vector<discord::Message> &m) {
     nlohmann::json array = nlohmann::json::array();
     for (auto const &each : m) {
         array.push_back(each.id);
     }
     nlohmann::json data = nlohmann::json();
     data["messages"] = array;
-    send_request(methods::POST, endpoint("/channels/%/messages/bulk-delete", id), id, channel, data);
+    return send_request(methods::POST, endpoint("/channels/%/messages/bulk-delete", id), id, channel, data)
+        .then([](request_response const) {});
 }
 
-std::vector<discord::Message> discord::Channel::get_messages(int limit) {
-    std::vector<discord::Message> return_vec;
-
-    auto data = send_request(methods::GET,
-                             endpoint("/channels/%/messages?limit=%", id, limit),
-                             id,
-                             channel);
-    for (auto &each : data) {
-        return_vec.emplace_back(each);
-    }
-    return return_vec;
+pplx::task<std::vector<discord::Message>> discord::Channel::get_messages(int limit) {
+    return send_request(methods::GET,
+                        endpoint("/channels/%/messages?limit=%", id, limit),
+                        id,
+                        channel)
+        .then([](request_response const &resp) {
+            return from_json_array<discord::Message>(resp.get().unwrap());
+        });
 }
 
-void discord::Channel::edit(nlohmann::json &j) {
-    send_request(methods::PATCH, endpoint("/channels/%", id), id, channel, j);
+pplx::task<void> discord::Channel::edit(nlohmann::json &j) {
+    return send_request(methods::PATCH, endpoint("/channels/%", id), id, channel, j)
+        .then([](request_response const &) {});
 }
 
-void discord::Channel::remove() {
-    send_request(methods::DEL, endpoint("/channels/%", id), id, channel);
+pplx::task<void> discord::Channel::remove() {
+    return send_request(methods::DEL, endpoint("/channels/%", id), id, channel)
+        .then([](request_response const &) {});
 }
 
-discord::Message discord::Channel::get_message(snowflake id_) {
-    return discord::Message{
-        send_request(methods::GET,
-                     endpoint("/channels/%/messages/%", this->id, id_), this->id, channel)
-    };
+pplx::task<discord::Message> discord::Channel::get_message(snowflake id_) {
+    return send_request(methods::GET,
+                        endpoint("/channels/%/messages/%", this->id, id_), this->id, channel)
+        .then([](request_response const &resp) {
+            return discord::Message{ resp.get().unwrap() };
+        });
 }
 
-std::vector<discord::Invite> discord::Channel::get_invites() {
-    std::vector<discord::Invite> return_vec;
-    auto response = send_request(methods::GET,
-                                 endpoint("/channels/%/invites", id),
-                                 id, channel);
-    for (auto const &each : response) {
-        return_vec.emplace_back(each);
-    }
-    return return_vec;
+pplx::task<std::vector<discord::Invite>> discord::Channel::get_invites() {
+    return send_request(methods::GET,
+                        endpoint("/channels/%/invites", id),
+                        id, channel)
+        .then([](request_response const &resp) {
+            return from_json_array<discord::Invite>(resp.get().unwrap());
+        });
 }
 
-discord::Invite discord::Channel::create_invite(int max_age, int max_uses, bool temporary, bool unique) const {
-    return discord::Invite{
-        send_request(
-            methods::POST,
-            endpoint("/channels/%/invites", id),
-            id, channel,
-            { { "max_age", max_age },
-              { "max_uses", max_uses },
-              { "temporary", temporary },
-              { "unique", unique } })
-    };
+pplx::task<discord::Invite> discord::Channel::create_invite(int max_age, int max_uses, bool temporary, bool unique) const {
+    return send_request(
+               methods::POST,
+               endpoint("/channels/%/invites", id),
+               id, channel,
+               { { "max_age", max_age },
+                 { "max_uses", max_uses },
+                 { "temporary", temporary },
+                 { "unique", unique } })
+        .then([](request_response const &resp) {
+            return discord::Invite{ resp.get().unwrap() };
+        });
 }
 
-std::vector<discord::Message> discord::Channel::get_pins() {
-    std::vector<discord::Message> message_vec;
-    auto reply = send_request(methods::GET,
-                              endpoint("/channels/%/pins", id),
-                              id, channel);
-    for (auto const &each : reply) {
-        message_vec.emplace_back(each);
-    }
-    return message_vec;
+pplx::task<std::vector<discord::Message>> discord::Channel::get_pins() {
+    return send_request(methods::GET,
+                        endpoint("/channels/%/pins", id),
+                        id, channel)
+        .then([](request_response const &resp) {
+            return from_json_array<discord::Message>(resp.get().unwrap());
+        });
 }
 
-discord::Webhook discord::Channel::create_webhook(std::string const &name) {
-    return discord::Webhook{
-        send_request(methods::POST,
-                     endpoint("/channels/%/webhooks", id),
-                     id, channel,
-                     { { "name", name } })
-    };
+pplx::task<discord::Webhook> discord::Channel::create_webhook(std::string const &name) {
+    return send_request(methods::POST,
+                        endpoint("/channels/%/webhooks", id),
+                        id, channel,
+                        { { "name", name } })
+        .then([](request_response const &resp) {
+            return discord::Webhook{ resp.get().unwrap() };
+        });
 }
 
-std::vector<discord::Webhook> discord::Channel::get_webhooks() {
-    return from_json_array<discord::Webhook>(
-        send_request(methods::GET, endpoint("/channels/%/webhooks", id), id, channel));
+pplx::task<std::vector<discord::Webhook>> discord::Channel::get_webhooks() {
+    return send_request(methods::GET, endpoint("/channels/%/webhooks", id), id, channel)
+        .then([](request_response const &resp) {
+            return from_json_array<discord::Webhook>(resp.get().unwrap());
+        });
 }
 
-void discord::Channel::remove_permissions(discord::Object const &obj) {
-    send_request(methods::DEL,
-                 format("%/channels/%/permissions/%", id, obj.id),
-                 id, channel);
+pplx::task<void> discord::Channel::remove_permissions(discord::Object const &obj) {
+    return send_request(methods::DEL,
+                        format("%/channels/%/permissions/%", id, obj.id),
+                        id, channel)
+        .then([](request_response const &) {});
 }
 
-void discord::Channel::typing() {
-    send_request(methods::POST,
-                 endpoint("/channels/%/typing", id),
-                 id, channel);
+pplx::task<void> discord::Channel::typing() {
+    return send_request(methods::POST,
+                        endpoint("/channels/%/typing", id),
+                        id, channel)
+        .then([](request_response const &) {});
 }
 
-void discord::Channel::add_group_dm_recipient(discord::User const &user, std::string const &access_token, std::string const &nick) {
-    send_request(methods::PUT,
-                 endpoint("/channels/%/recipient/%", this->id, user.id),
-                 id, channel, { { "access_token", access_token }, { "nick", nick } });
+pplx::task<void> discord::Channel::add_group_dm_recipient(discord::User const &user, std::string const &access_token, std::string const &nick) {
+    return send_request(methods::PUT,
+                        endpoint("/channels/%/recipient/%", this->id, user.id),
+                        id, channel, { { "access_token", access_token }, { "nick", nick } })
+        .then([](request_response const &) {});
 }
 
-void discord::Channel::remove_group_dm_recipient(discord::User const &user) {
-    send_request(methods::DEL,
-                 endpoint("/channels/%/recipient/%", this->id, user.id),
-                 id, channel);
+pplx::task<void> discord::Channel::remove_group_dm_recipient(discord::User const &user) {
+    return send_request(methods::DEL,
+                        endpoint("/channels/%/recipient/%", this->id, user.id),
+                        id, channel)
+        .then([](request_response const &) {});
 }
 
-void discord::Channel::edit_position(int new_pos) {
-    send_request(methods::PATCH,
-                 endpoint("/guilds/%/channels", this->guild->id),
-                 this->guild->id, bucket_type::guild,
-                 { { "id", this->id }, { "position", new_pos } });
+pplx::task<void> discord::Channel::edit_position(int new_pos) {
+    return send_request(methods::PATCH,
+                        endpoint("/guilds/%/channels", this->guild->id),
+                        this->guild->id, bucket_type::guild,
+                        { { "id", this->id }, { "position", new_pos } })
+        .then([](request_response const &) {});
 }

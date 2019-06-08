@@ -26,23 +26,15 @@ discord::Webhook::Webhook(nlohmann::json const data)
     }
 }
 
-discord::Webhook::Webhook(snowflake id) {
-    *this = discord::Webhook{
-        send_request(methods::GET,
-                     endpoint("/webhooks/%", id),
-                     id, webhook)
-    };
+discord::Webhook::Webhook(snowflake id)
+    : id{ id } {
 }
 
-discord::Webhook::Webhook(snowflake id, std::string const& token) {
-    *this = discord::Webhook{
-        send_request(methods::GET,
-                     endpoint("/webhooks/%/%", id, token),
-                     id, webhook)
-    };
+discord::Webhook::Webhook(snowflake id, std::string const& token)
+    : id{ id }, token{ token } {
 }
 
-void discord::Webhook::edit(std::string const& name, snowflake chann_id) {
+pplx::task<discord::Webhook> discord::Webhook::edit(std::string const& name, snowflake chann_id) {
     nlohmann::json data{};
     if (!name.empty()) {
         data["name"] = name;
@@ -51,30 +43,33 @@ void discord::Webhook::edit(std::string const& name, snowflake chann_id) {
         data["channel_id"] = chann_id;
     }
 
-    *this = discord::Webhook{
-        send_request(methods::PATCH,
-                     endpoint("/webhooks/%", id),
-                     id, webhook,
-                     data)
-    };
+    return send_request(methods::PATCH,
+                        endpoint("/webhooks/%", id),
+                        id, webhook,
+                        data)
+        .then([](request_response const& resp) {
+            return discord::Webhook{ resp.get().unwrap() };
+        });
 }
 
-void discord::Webhook::edit(std::string const& name) {
-    *this = discord::Webhook{
-        send_request(methods::PATCH,
-                     endpoint("/webhooks/%", id),
-                     id, webhook,
-                     { { "name", name } })
-    };
+pplx::task<discord::Webhook> discord::Webhook::edit(std::string const& name) {
+    return send_request(methods::PATCH,
+                        endpoint("/webhooks/%", id),
+                        id, webhook,
+                        { { "name", name } })
+        .then([](request_response const& resp) {
+            return discord::Webhook{ resp.get().unwrap() };
+        });
 }
 
-void discord::Webhook::remove() {
-    send_request(methods::DEL,
-                 endpoint("/webhooks/%/%", id, token),
-                 id, webhook);
+pplx::task<void> discord::Webhook::remove() {
+    return send_request(methods::DEL,
+                        endpoint("/webhooks/%/%", id, token),
+                        id, webhook)
+        .then([](request_response const&) {});
 }
 
-discord::Message discord::Webhook::send(std::string const& content, bool tts, std::string const& avatar_url, std::string const& username) {
+pplx::task<discord::Message> discord::Webhook::send(std::string const& content, bool tts, std::string const& avatar_url, std::string const& username) {
     nlohmann::json j = nlohmann::json({ { "content", content }, { "embed", nlohmann::json::array() }, { "tts", tts } });
 
     if (!avatar_url.empty()) {
@@ -84,13 +79,16 @@ discord::Message discord::Webhook::send(std::string const& content, bool tts, st
         j["username"] = username;
     }
 
-    return discord::Message{ send_request(methods::POST,
-                                          endpoint("/webhooks/%/%?wait=true", id, token),
-                                          id, webhook,
-                                          j) };
+    return send_request(methods::POST,
+                        endpoint("/webhooks/%/%?wait=true", id, token),
+                        id, webhook,
+                        j)
+        .then([](request_response const& resp) {
+            return discord::Message{ resp.get().unwrap() };
+        });
 }
 
-discord::Message discord::Webhook::send(std::vector<EmbedBuilder> const& embed_arr, bool tts, std::string const& content, std::string const& avatar_url, std::string const& username) {
+pplx::task<discord::Message> discord::Webhook::send(std::vector<EmbedBuilder> const& embed_arr, bool tts, std::string const& content, std::string const& avatar_url, std::string const& username) {
     nlohmann::json j = nlohmann::json({ { "embed", nlohmann::json::array() }, { "tts", tts } });
 
     for (auto const& embed : embed_arr) {
@@ -108,24 +106,27 @@ discord::Message discord::Webhook::send(std::vector<EmbedBuilder> const& embed_a
     }
 
 
-    return discord::Message{
-        send_request(methods::POST,
-                     endpoint("/webhooks/%/%?wait=true", id, token),
-                     id, webhook, j),
-    };
+    return send_request(methods::POST,
+                        endpoint("/webhooks/%/%?wait=true", id, token),
+                        id, webhook, j)
+        .then([](request_response const& resp) {
+            return discord::Message{ resp.get().unwrap() };
+        });
 }
 
 
-void discord::Webhook::execute_slack(bool wait, nlohmann::json const data) {
-    send_request(methods::POST,
-                 endpoint("/webhooks/%/%/slack?wait=%", id, token, wait),
-                 id, webhook,
-                 data);
+pplx::task<void> discord::Webhook::execute_slack(bool wait, nlohmann::json const data) {
+    return send_request(methods::POST,
+                        endpoint("/webhooks/%/%/slack?wait=%", id, token, wait),
+                        id, webhook,
+                        data)
+        .then([](request_response const&) {});
 }
 
-void discord::Webhook::execute_github(bool wait, nlohmann::json const data) {
-    send_request(methods::POST,
-                 endpoint("/webhooks/%/%/github?wait=%", id, token, wait),
-                 id, webhook,
-                 data);
+pplx::task<void> discord::Webhook::execute_github(bool wait, nlohmann::json const data) {
+    return send_request(methods::POST,
+                        endpoint("/webhooks/%/%/github?wait=%", id, token, wait),
+                        id, webhook,
+                        data)
+        .then([](request_response const&) {});
 }

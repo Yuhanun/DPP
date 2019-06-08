@@ -8,8 +8,10 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <unordered_map>
 #include <variant>
+#include <vector>
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -25,7 +27,6 @@
 #include "function_type.hpp"
 #include "gatewayhandler.hpp"
 
-#include "cpr/cpr.h"
 
 namespace discord {
 
@@ -62,7 +63,7 @@ namespace discord {
 
     typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
     typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
-    
+
     using namespace web;
     using namespace web::http;
     using namespace web::http::client;
@@ -318,7 +319,7 @@ namespace discord {
         User(nlohmann::json const);
         User& update(nlohmann::json const);
 
-        discord::Channel create_dm();
+        pplx::task<discord::Channel> create_dm();
 
     public:
         bool bot;
@@ -337,12 +338,12 @@ namespace discord {
         Member(nlohmann::json const, std::shared_ptr<discord::Guild>);
         Member& update(nlohmann::json const);  // TODO
 
-        void edit(std::string const&, bool, bool, std::vector<discord::Role> const& = {}, snowflake = -1);
-        void add_role(discord::Role const&);
-        void remove_role(discord::Role const&);
+        pplx::task<void> edit(std::string const&, bool, bool, std::vector<discord::Role> const& = {}, snowflake = -1);
+        pplx::task<void> add_role(discord::Role const&);
+        pplx::task<void> remove_role(discord::Role const&);
 
-        void kick();
-        void ban(std::string const&, int);
+        pplx::task<void> kick();
+        pplx::task<void> ban(std::string const&, int);
 
     public:
         bool deaf;
@@ -367,7 +368,7 @@ namespace discord {
         const std::shared_ptr<discord::Channel> channel;
 
         template <typename... Tys>
-        discord::Message send(Tys&&... args) const;
+        pplx::task<discord::Message> send(Tys&&... args) const;
     };
 
     struct RateLimit {
@@ -387,9 +388,9 @@ namespace discord {
         void register_command(std::string const& command_name, std::function<void(discord::Context const&)> function);
         void update_presence(Activity const&);
 
-        discord::Message send_message(snowflake, std::string, bool = false);
-        discord::Message send_message(snowflake, nlohmann::json, bool = false);
-        discord::Guild create_guild(std::string const&, std::string const& = "us-east", int const& = 0, int const& = 0, int const& = 0);
+        pplx::task<discord::Message> send_message(snowflake, std::string, bool = false);
+        pplx::task<discord::Message> send_message(snowflake, nlohmann::json, bool = false);
+        pplx::task<discord::Guild> create_guild(std::string const&, std::string const& = "us-east", int const& = 0, int const& = 0, int const& = 0);
 
         void on_incoming_packet(const websocketpp::connection_hdl&, const client::message_ptr&);
         void handle_gateway();
@@ -398,16 +399,16 @@ namespace discord {
 
         std::vector<VoiceRegion> get_voice_regions() const;
 
-        discord::User get_current_user();
-        discord::User get_user(snowflake);
+        pplx::task<discord::User> get_current_user();
+        pplx::task<discord::User> get_user(snowflake);
         // TODO: avatar
-        discord::User edit(std::string const&);
-        std::vector<discord::Guild> get_user_guilds(int = 0, snowflake = 0, snowflake = 0);
+        pplx::task<discord::User> edit(std::string const&);
+        pplx::task<std::vector<discord::Guild>> get_user_guilds(int = 0, snowflake = 0, snowflake = 0);
 
-        discord::Channel create_group_dm(std::vector<std::string> const&, nlohmann::json const&);
-        std::vector<discord::Connection> get_connections();
-        discord::Channel get_channel(snowflake);
-        discord::Guild get_guild(snowflake);
+        pplx::task<discord::Channel> create_group_dm(std::vector<std::string> const&, nlohmann::json const&);
+        pplx::task<std::vector<discord::Connection>> get_connections();
+        pplx::task<discord::Channel> get_channel(snowflake);
+        pplx::task<discord::Guild> get_guild(snowflake);
 
         int wait_for_ratelimits(snowflake, int);
         void handle_ratelimits(web::http::http_headers&, snowflake, int);
@@ -461,7 +462,7 @@ namespace discord {
 
         std::string get_gateway_url() const;
         std::string get_identify_packet();
-        
+
     public:
         bool authenticated;
         std::string error_message;
@@ -523,30 +524,30 @@ namespace discord {
 
         Channel& update(nlohmann::json const);
 
-        discord::Message send(std::string const&, std::vector<File> const& = {}, bool = false) const;
-        discord::Message send(EmbedBuilder const&, std::vector<File> const& = {}, bool = false, std::string const& = "") const;
-        discord::Message get_message(snowflake);
-        discord::Invite create_invite(int = 86400, int = 0, bool = false, bool = false) const;
-        std::vector<discord::Invite> get_invites();
-        std::vector<discord::Message> get_pins();
-        void remove_permissions(discord::Object const&);
-        void typing();
+        pplx::task<discord::Message> send(std::string const&, std::vector<File> const& = {}, bool = false) const;
+        pplx::task<discord::Message> send(EmbedBuilder const&, std::vector<File> const& = {}, bool = false, std::string const& = "") const;
+        pplx::task<discord::Message> get_message(snowflake);
+        pplx::task<discord::Invite> create_invite(int = 86400, int = 0, bool = false, bool = false) const;
+        pplx::task<std::vector<discord::Invite>> get_invites();
+        pplx::task<std::vector<discord::Message>> get_pins();
+        pplx::task<void> remove_permissions(discord::Object const&);
+        pplx::task<void> typing();
 
-        std::vector<discord::Message> get_messages(int);
+        pplx::task<std::vector<discord::Message>> get_messages(int);
 
-        void bulk_delete(std::vector<discord::Message>&);
+        pplx::task<void> bulk_delete(std::vector<discord::Message>&);
 
-        void edit(nlohmann::json&);
-        void remove();
+        pplx::task<void> edit(nlohmann::json&);
+        pplx::task<void> remove();
 
         // TODO: avatar
-        discord::Webhook create_webhook(std::string const&);
-        std::vector<discord::Webhook> get_webhooks();
+        pplx::task<discord::Webhook> create_webhook(std::string const&);
+        pplx::task<std::vector<discord::Webhook>> get_webhooks();
 
-        void add_group_dm_recipient(discord::User const&, std::string const&, std::string const&);
-        void remove_group_dm_recipient(discord::User const&);
+        pplx::task<void> add_group_dm_recipient(discord::User const&, std::string const&, std::string const&);
+        pplx::task<void> remove_group_dm_recipient(discord::User const&);
 
-        void edit_position(int);
+        pplx::task<void> edit_position(int);
 
     public:
         int type;
@@ -679,8 +680,8 @@ namespace discord {
         discord::Member inviter;
         std::shared_ptr<discord::Channel> channel;
 
-        discord::Invite get_invite();
-        void remove();
+        pplx::task<discord::Invite> get_invite();
+        pplx::task<void> remove();
     };
 
 
@@ -692,45 +693,45 @@ namespace discord {
         Guild(nlohmann::json const);
         Guild& update(nlohmann::json const);
 
-        void edit(std::string const&, std::string const& = "", int = -1, int = -1, int = -1, snowflake = -1, int = -1, std::string const& = "", snowflake = -1, std::string const& = "", snowflake = -1);
-        void remove();
-        std::vector<discord::Channel> get_channels();
-        discord::Channel create_channel(std::string const&, bool, int = -1, std::string const& = "", int = -1, int = -1, int = -1, int = -1, std::vector<discord::PermissionOverwrites> const& = {}, snowflake = -1);
+        pplx::task<void> edit(std::string const&, std::string const& = "", int = -1, int = -1, int = -1, snowflake = -1, int = -1, std::string const& = "", snowflake = -1, std::string const& = "", snowflake = -1);
+        pplx::task<void> remove();
+        pplx::task<std::vector<discord::Channel>> get_channels();
+        pplx::task<discord::Channel> create_channel(std::string const&, bool, int = -1, std::string const& = "", int = -1, int = -1, int = -1, int = -1, std::vector<discord::PermissionOverwrites> const& = {}, snowflake = -1);
 
-        discord::Member get_member(snowflake);
-        std::vector<discord::Member> get_members(int, snowflake = 0);
-        void add_member(nlohmann::json const&, snowflake);
+        pplx::task<discord::Member> get_member(snowflake);
+        pplx::task<std::vector<discord::Member>> get_members(int, snowflake = 0);
+        pplx::task<void> add_member(nlohmann::json const&, snowflake);
 
-        void edit_bot_username(std::string const&);
-        AuditLogs get_audit_logs();
-        std::vector<std::pair<std::string, discord::User>> get_bans();
-        std::pair<std::string, discord::User> get_ban(discord::Object const&);
+        pplx::task<void> edit_bot_username(std::string const&);
+        pplx::task<AuditLogs> get_audit_logs();
+        pplx::task<std::vector<std::pair<std::string, discord::User>>> get_bans();
+        pplx::task<std::pair<std::string, discord::User>> get_ban(discord::Object const&);
 
-        void unban(discord::Object const&);
+        pplx::task<void> unban(discord::Object const&);
 
-        discord::Emoji create_emoji(std::string const&, discord::Emoji&, std::vector<discord::Role> = {});
+        pplx::task<discord::Emoji> create_emoji(std::string const&, discord::Emoji&, std::vector<discord::Role> = {});
 
-        std::vector<discord::Role> get_roles();
+        pplx::task<std::vector<discord::Role>> get_roles();
 
-        discord::Role create_role(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);
+        pplx::task<discord::Role> create_role(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);
 
-        int get_prune_count(int);
-        int begin_prune(int, bool);
+        pplx::task<int> get_prune_count(int);
+        pplx::task<int> begin_prune(int, bool);
 
-        std::vector<discord::VoiceRegion> get_voice_regions();
-        std::vector<discord::Invite> get_invites();
+        pplx::task<std::vector<discord::VoiceRegion>> get_voice_regions();
+        pplx::task<std::vector<discord::Invite>> get_invites();
 
-        snowflake get_embed();
-        snowflake edit_embed(snowflake = -1);
+        pplx::task<snowflake> get_embed();
+        pplx::task<snowflake> edit_embed(snowflake = -1);
 
-        std::string get_vanity_invite_url();
+        pplx::task<std::string> get_vanity_invite_url();
 
         discord::Asset get_widget_image(std::string const&);
-        std::vector<discord::Integration> get_integrations();
-        void create_integration(discord::Integration const&);
-        void edit_integration(discord::Integration const&, int, int, bool);
-        void remove_integration(discord::Integration const&);
-        void sync_integration(discord::Integration const&);
+        pplx::task<std::vector<discord::Integration>> get_integrations();
+        pplx::task<void> create_integration(discord::Integration const&);
+        pplx::task<void> edit_integration(discord::Integration const&, int, int, bool);
+        pplx::task<void> remove_integration(discord::Integration const&);
+        pplx::task<void> sync_integration(discord::Integration const&);
 
     public:
         int mfa_level;
@@ -763,13 +764,13 @@ namespace discord {
         discord::Channel afk_channel;
         discord::Channel system_channel;
 
-        std::vector<discord::Webhook> get_webhooks();
-        void leave();
+        pplx::task<std::vector<discord::Webhook>> get_webhooks();
+        pplx::task<void> leave();
 
-        std::vector<discord::Emoji> list_emojis();
-        discord::Emoji get_emoji(discord::Emoji const&);
-        discord::Emoji edit_emoji(discord::Emoji const&, std::string, std::vector<discord::Role> = {});
-        void remove_emoji(discord::Emoji const&);
+        pplx::task<std::vector<discord::Emoji>> list_emojis();
+        pplx::task<discord::Emoji> get_emoji(discord::Emoji const&);
+        pplx::task<discord::Emoji> edit_emoji(discord::Emoji const&, std::string, std::vector<discord::Role> = {});
+        pplx::task<void> remove_emoji(discord::Emoji const&);
     };
 
     class Webhook : public Object {
@@ -788,16 +789,16 @@ namespace discord {
         std::string token;
 
         // TODO: avatar edit for both
-        void edit(std::string const& = "", snowflake = 0);
-        void edit(std::string const& = "");
+        pplx::task<discord::Webhook> edit(std::string const& = "", snowflake = 0);
+        pplx::task<discord::Webhook> edit(std::string const& = "");
 
-        void remove();
+        pplx::task<void> remove();
 
-        discord::Message send(std::string const&, bool = false, std::string const& = "", std::string const& = "");
-        discord::Message send(std::vector<EmbedBuilder> const&, bool = false, std::string const& = "", std::string const& = "", std::string const& = "");
+        pplx::task<discord::Message> send(std::string const&, bool = false, std::string const& = "", std::string const& = "");
+        pplx::task<discord::Message> send(std::vector<EmbedBuilder> const&, bool = false, std::string const& = "", std::string const& = "", std::string const& = "");
 
-        void execute_slack(bool, nlohmann::json const);
-        void execute_github(bool, nlohmann::json const);
+        pplx::task<void> execute_slack(bool, nlohmann::json const);
+        pplx::task<void> execute_github(bool, nlohmann::json const);
     };
 
     class Message : public Object {
@@ -807,17 +808,17 @@ namespace discord {
         Message(nlohmann::json const);
         Message& update(nlohmann::json const);  // TODO
 
-        discord::Message edit(std::string);
-        discord::Message edit(EmbedBuilder, std::string = "");
-        void pin();
-        void unpin();
-        void remove();
+        pplx::task<discord::Message> edit(std::string);
+        pplx::task<discord::Message> edit(EmbedBuilder, std::string = "");
+        pplx::task<void> pin();
+        pplx::task<void> unpin();
+        pplx::task<void> remove();
 
-        void add_reaction(discord::Emoji const&);
-        void remove_own_reaction(discord::Emoji const&);
-        void remove_reaction(discord::User const&, discord::Emoji const&);
-        void remove_all_reactions();
-        std::vector<std::shared_ptr<discord::User>> get_reactions(discord::Emoji const&, snowflake = 0, snowflake = 0, int = 0);
+        pplx::task<void> add_reaction(discord::Emoji const&);
+        pplx::task<void> remove_own_reaction(discord::Emoji const&);
+        pplx::task<void> remove_reaction(discord::User const&, discord::Emoji const&);
+        pplx::task<void> remove_all_reactions();
+        pplx::task<std::vector<discord::User>> get_reactions(discord::Emoji const&, snowflake = 0, snowflake = 0, int = 0);
 
     public:
         int type;
@@ -924,9 +925,9 @@ namespace discord {
         Role(nlohmann::json, std::shared_ptr<discord::Guild>);
         Role& update(nlohmann::json const);
 
-        void edit_position(int);
-        void edit(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);
-        void remove();
+        pplx::task<void> edit_position(int);
+        pplx::task<discord::Role> edit(std::string const&, PermissionOverwrites&, discord::Color, bool, bool);
+        pplx::task<void> remove();
 
     public:
         bool hoist;
@@ -940,16 +941,26 @@ namespace discord {
         PermissionOverwrites permissions;
     };
 
+
     struct Err {
         std::string error;
-        int resp_code;
-        Err(std::string err, int err_code)
-            : error{ std::move(err) }, resp_code{ err_code } {
+        std::string url;
+        nlohmann::json data;
+        std::unordered_map<std::string, std::string> headers;
+
+        http_response response;
+
+        Err() = default;
+
+        Err(std::string const& err, nlohmann::json const& data, std::unordered_map<std::string, std::string> const& headers, http_response& resp)
+            : error{ err }, data{ data }, headers{ headers }, response{ resp } {
         }
     };
 
     template <typename T>
     struct Ok {
+        Ok() = default;
+
         Ok(T val)
             : value{ std::move(val) } {
         }
@@ -959,10 +970,12 @@ namespace discord {
     template <typename T>
     struct Result {
     private:
-        std::variant<Err, T> var_obj;
         bool _is_ok;
+        std::variant<Err, T> var_obj;
 
     public:
+        Result() = default;
+
         Result(Ok<T> const& value)
             : _is_ok{ true }, var_obj{ value.value } {
         }
@@ -979,19 +992,15 @@ namespace discord {
         Result(Result&& other) {
             _is_ok = other.is_ok();
             if (is_ok()) {
-                var_obj = std::move(other.val);
+                var_obj = std::move(other.value);
             } else {
                 var_obj = std::move(other.err);
             }
         }
 
-        Result(Result const& other) {
+        Result(Result const& other)
+            : var_obj{ other.var_obj } {
             _is_ok = other.is_ok();
-            if (is_ok()) {
-                var_obj = other.val;
-            } else {
-                var_obj = other.err;
-            }
         }
 
         auto is_ok() const noexcept -> bool {
@@ -1006,7 +1015,7 @@ namespace discord {
             if (is_ok()) {
                 return std::get<T>(var_obj);
             }
-            throw std::runtime_error{ std::to_string(std::get<Err>(var_obj).resp_code) + std::string(": ") + std::get<Err>(var_obj).error };
+            throw std::runtime_error{ std::to_string(std::get<Err>(var_obj).response.status_code()) + std::string(": ") + std::get<Err>(var_obj).error };
         }
 
         auto unwrap_or(T const& value) const noexcept -> T const& {
@@ -1039,6 +1048,18 @@ namespace discord {
             return std::get<Err>(var_obj);
         }
     };
+
+    template <typename T>
+    Result<T> OK(T const& val) {
+        return { Ok{ val } };
+    }
+
+    template <typename T>
+    Result<T> ERR(std::string const& err, nlohmann::json const& data, std::unordered_map<std::string, std::string> const& headers, http_response& resp) {
+        return { Err{ err, data, headers, resp } };
+    }
+
+    typedef pplx::task<Result<nlohmann::json>> request_response;
 
     class ImproperToken : public std::exception {
         const char* what() const throw();

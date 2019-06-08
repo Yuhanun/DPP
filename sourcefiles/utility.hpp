@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 
-#include "cpr/cpr.h"
 #include "discord.hpp"
 #include "nlohmann/json.hpp"
 
@@ -241,7 +240,7 @@ namespace discord {
         application_asset
     };
 
-    enum response_code {
+    enum class response_code {
         ok = 200,
         created = 201,
         no_content = 204,
@@ -318,54 +317,33 @@ namespace discord {
         return boost::posix_time::time_from_string(time_str);
     }
 
-    enum class request_next_action {
+    enum request_next_action {
+        success,
         resend_request,
-        empty_response,
-        not_modified,
         bad_request,
-        no_auth_header,
+        unauthorized,
         forbidden,
-        invalid_method,
-        ratelimit,
-        gateway_unavailable,
-        server_error,
-        nothing
+        not_found,
+        method_not_allowed,
+        too_many_requests,
+        server_error
     };
 
-    request_next_action handle_http_response(cpr::Response const &resp,
-                                             nlohmann::json const &parsed_json_resp) {
-        switch (resp.status_code) {
-            case 200:
-                return request_next_action::nothing;
-            case 201:
-                return request_next_action::nothing;
-            case 204:
-                return request_next_action::empty_response;
-            case 304:
-                return request_next_action::not_modified;
-            case 400:
-                return request_next_action::bad_request;
-            case 401:
-                return request_next_action::no_auth_header;
-            case 403:
-                return request_next_action::forbidden;
-            case 405:
-                return request_next_action::invalid_method;
-            case 429:
-                std::this_thread::sleep_for(std::chrono::milliseconds(
-                    parsed_json_resp["retry_after"].get<int>() + 1));
-                return request_next_action::ratelimit;
-            case 502:
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                return request_next_action::gateway_unavailable;
-            default:
-                return request_next_action::server_error;
+    int handle_resp(int status_code) {
+        if (status_code >= 200 && status_code < 300) {
+            return success;
+        } else if (status_code == 429) {
+            return resend_request;
+        } else if (status_code == 401 || status_code == 403) {  // unauthorized
+            return status_code;
+        } else {
+            return status_code;
         }
     }
 
-    inline nlohmann::json send_request(web::http::method mthd, const std::string &uri,
-                                       snowflake obj_id = -1, int bucket_ = global,
-                                       nlohmann::json const &j = {}) {
+    inline request_response send_request(web::http::method mthd, const std::string &uri,
+                                         snowflake obj_id = -1, int bucket_ = global,
+                                         nlohmann::json const &j = {}) {
         discord::detail::bot_instance->wait_for_ratelimits(obj_id, bucket_);
         http_client client{ { uri } };
         http_request msg{ mthd };
@@ -378,37 +356,23 @@ namespace discord {
             msg.headers().add(each.first, each.second);
         }
 
-        nlohmann::json resp = client.request(msg).then([=](http_response response) {
-                                                     return response;
-                                                 })
-                                  .then([=](http_response response) {
-                                      return std::string{ response.extract_utf8string(true).get() };
-                                  })
-                                  .then([=](std::string response) {
-                                      std::cout << response << std::endl;
-                                      if (response.size() > 0) {
-                                          return nlohmann::json::parse(response);
-                                      } else {
-                                          return nlohmann::json({});
-                                      }
-                                  })
-                                  .get();
+        return client.request(msg).then([=](http_response resp_val) {
+            discord::detail::bot_instance->handle_ratelimits(resp_val.headers(), obj_id, global);
+            auto next_action = static_cast<int>(handle_resp(resp_val.status_code()));
 
+            auto response = resp_val.extract_utf8string(true).get();
 
-#ifdef __DPP_DEBUG
-        // std::cout << j.dump(4) << "\n"
-        //           << uri << "\n"
-        //           << j_resp.dump(4) << "\n"
-        //           << "Had to wait " << ratelimit_time << " seconds" << std::endl;
-#endif
-
-        if (resp.contains("retry_after")) {
-            std::this_thread::sleep_for(std::chrono::seconds(resp["retry_after"]));
-            return send_request(mthd, uri, obj_id, bucket_, j);
-        }
-        return resp;
+            auto parsed_json = response.empty() ? nlohmann::json{} : nlohmann::json::parse(response);
+            
+            if (next_action == success) {
+                return OK(parsed_json);
+            } else if (next_action == resend_request) {
+                return send_request(mthd, uri, obj_id, bucket_, j).get();
+            } else {
+                return ERR<nlohmann::json>(get_value(parsed_json, "message", ""), j, get_default_headers(), resp_val);
+            }
+        });
     }
-
 
     inline std::string read_entire_file(std::string const &filename) {
         std::ifstream ifs(filename);
@@ -438,6 +402,10 @@ namespace discord {
 #else
         return "Other";
 #endif
+    }
+
+    inline std::string generate_multipart_data() {
+        return "";
     }
 
 }  // namespace discord
