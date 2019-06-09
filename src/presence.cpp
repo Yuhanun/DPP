@@ -1,5 +1,5 @@
 #include "presence.hpp"
-#include "utility.hpp"
+#include "utils.hpp"
 #include "activity.hpp"
 #include "role.hpp"
 #include "guild.hpp"

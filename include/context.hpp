@@ -1,8 +1,10 @@
 #pragma once
 #include <discord.hpp>
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
+#include "message.hpp"
+#include "channel.hpp"
 
 namespace discord {
     struct Context {
@@ -16,6 +18,8 @@ namespace discord {
         const std::shared_ptr<discord::Channel> channel;
 
         template <typename... Tys>
-        pplx::task<discord::Message> send(Tys&&... args) const;
+        pplx::task<discord::Message> send(Tys&&... args) const {
+            return this->message.channel->send(std::forward<Tys>(args)...);
+        };
     };
 };  // namespace discord

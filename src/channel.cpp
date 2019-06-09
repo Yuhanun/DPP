@@ -8,7 +8,7 @@
 #include "object.hpp"
 #include "role.hpp"
 #include "user.hpp"
-#include "utility.hpp"
+#include "utils.hpp"
 #include "webhook.hpp"
 
 discord::Channel::Channel(snowflake id)

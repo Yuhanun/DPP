@@ -14,7 +14,7 @@
 #include "nlohmann/json.hpp"
 #include "role.hpp"
 #include "user.hpp"
-#include "utility.hpp"
+#include "utils.hpp"
 
 namespace discord {
     Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)

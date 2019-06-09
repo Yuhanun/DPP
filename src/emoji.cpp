@@ -3,7 +3,7 @@
 #include "object.hpp"
 #include "role.hpp"
 #include "user.hpp"
-#include "utility.hpp"
+#include "utils.hpp"
 
 discord::Emoji::Emoji(nlohmann::json event)
     : discord::Object(to_sf(get_value(event, "id", "0"))) {

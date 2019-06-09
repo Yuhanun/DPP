@@ -1,7 +1,7 @@
 #include <boost/date_time.hpp>
 #include <locale>
 #include <nlohmann/json.hpp>
-#include "utility.hpp"
+#include "utils.hpp"
 #include "message.hpp"
 #include "channel.hpp"
 #include "guild.hpp"

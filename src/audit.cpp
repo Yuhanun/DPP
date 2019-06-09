@@ -1,5 +1,5 @@
+#include "utils.hpp"
 #include "audit.hpp"
-#include "utility.hpp"
 #include "permissions.hpp"
 #include "channel.hpp"
 #include "webhook.hpp"

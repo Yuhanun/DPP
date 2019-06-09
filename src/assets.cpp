@@ -1,6 +1,6 @@
 #include <utility>
 
-#include "utility.hpp"
+#include "utils.hpp"
 #include "assets.hpp"
 
 namespace discord {

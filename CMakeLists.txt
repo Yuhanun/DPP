@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(discord_pp)
+project(DPP)
 
 find_package(OpenSSL REQUIRED)
 find_package(cpprestsdk REQUIRED NAMES cpprestsdk cpprest)
@@ -36,7 +36,8 @@ add_library(discord_pp STATIC
             src/result.cpp
             src/role.cpp
             src/user.cpp
-            src/webhook.cpp)
+            src/webhook.cpp
+            src/utils.cpp)
 
 add_executable(bot
                main.cpp)
@@ -56,6 +57,12 @@ target_link_libraries(discord_pp PUBLIC OpenSSL::Crypto)
 target_link_libraries(discord_pp PUBLIC Threads::Threads)
 target_link_libraries(discord_pp PUBLIC Boost::date_time)
 target_link_libraries(discord_pp PUBLIC cpprest)
+
+if(MSVC)
+  target_compile_options(bot PRIVATE /W4 /WX)
+else()
+  target_compile_options(bot PRIVATE -Wall -Wextra -pedantic -Werror)
+endif()
 
 target_link_libraries(bot PUBLIC Boost::system)
 target_link_libraries(bot PUBLIC ${OpenSSL_LIBRARIES})

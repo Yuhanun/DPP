@@ -1,6 +1,6 @@
 #include "permissions.hpp"
 #include "experimental/vector"
-#include "utility.hpp"
+#include "utils.hpp"
 
 discord::PermissionOverwrite::PermissionOverwrite(int value, int allow_type)
     : value{ value }, allow_type{ allow_type } {

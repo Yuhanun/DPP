@@ -1,5 +1,5 @@
 #include <nlohmann/json.hpp>
-#include "utility.hpp"
+#include "utils.hpp"
 #include "guild.hpp"
 #include "role.hpp"
 #include "member.hpp"
