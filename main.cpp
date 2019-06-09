@@ -4,13 +4,10 @@
 
 #define __DPP_DEBUG
 
-#include "activity.hpp"
-#include "embedbuilder.hpp"
-#include "message.hpp"
-#include "sourcefiles/bot.hpp"
-#include "utility.hpp"
-#include "webhook.hpp"
-
+#include "discord.hpp"
+#include "bot.hpp"
+#include "context.hpp"
+#include "events.hpp"
 
 int main() {
     std::ifstream file("token.txt");

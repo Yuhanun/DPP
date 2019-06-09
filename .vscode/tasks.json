@@ -2,76 +2,14 @@
    "version": "2.0.0",
    "tasks": [
       {
-         "label": "compile_and_run_debug",
+         "label": "Compile CMake",
          "type": "shell",
-         "command": "",
-         "args": [
-            "clear",
-            "&&",
-            "clang++",
-            "-g",
-            "main.cpp",
-            "-o",
-            "output/main.out",
-            "-lcpprest",
-            "-lboost_system",
-            "-lpthread",
-            "-lssl",
-            "-lcrypto",
-            "-lboost_date_time",
-            "-O0",
-            "-std=c++17",
-            "-I./sourcefiles",
-            "-Wall",
-            "-Wextra",
-            "&&",
-            "clear",
-            "&&",
-            "./output/main.out"
-         ],
-         "group": {
-            "kind": "build",
-            "isDefault": true
+         "command": "python",
+         "options": {
+            "cwd": "${workspaceFolder}"
          },
-         "problemMatcher": {
-            "owner": "cpp",
-            "fileLocation": [
-               "relative",
-               "${workspaceRoot}"
-            ],
-            "pattern": {
-               "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-               "file": 1,
-               "line": 2,
-               "column": 3,
-               "severity": 4,
-               "message": 5
-            }
-         }
-      },
-      {
-         "label": "compile_only_debug_mode",
-         "type": "shell",
-         "command": "",
          "args": [
-            "clear",
-            "&&",
-            "clang++",
-            "-g",
-            "main.cpp",
-            "-o",
-            "output/main.out",
-            "-lcpprest",
-            "-lboost_system",
-            "-lpthread",
-            "-lssl",
-            "-lcrypto",
-            "-lboost_date_time",
-            "-std=c++17",
-            "-O0",
-            "-I./sourcefiles",
-            "-Wall",
-            "-Wextra"
+            "build.py"
          ],
          "group": {
             "kind": "build",
