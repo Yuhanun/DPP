@@ -8,6 +8,21 @@ namespace discord {
     typedef int64_t snowflake;
 
     class Bot {
+        /**
+         * @brief discord::Bot class, your bot instance.
+         * 
+         * Construct this class to be able to get your bot running.
+         * 
+         * ~~~~~~~~~{.cpp}
+         *      discord::Bot bot{"token", "."};
+         *      bot.register_event<events::on_ready>([](){
+         *          std::cout << "Ready" << std::endl;
+         *      });
+         *      bot.run();
+         * ~~~~~~~~~~
+         * 
+         * @throws Anything any of its members can throw.
+         */
     public:
         Bot(std::string const&, const std::string, std::size_t = 5000);
         template <size_t EVENT, typename FType>
@@ -27,7 +42,7 @@ namespace discord {
 
         int run();
 
-        std::vector<VoiceRegion> get_voice_regions() const;
+        pplx::task<std::vector<VoiceRegion>> get_voice_regions() const;
 
         pplx::task<discord::User> get_current_user();
         pplx::task<discord::User> get_user(snowflake);
