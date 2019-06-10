@@ -62,7 +62,8 @@
         "variant": "cpp",
         "__config": "cpp",
         "__nullptr": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "*.dat": "cpp"
     },
     "editor.formatOnSave": true,
     "editor.formatOnType": true,

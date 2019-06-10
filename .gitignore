@@ -51,3 +51,4 @@ ipch/*
 token.txt
 *.png
 /build
+/html

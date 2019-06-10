@@ -46,7 +46,6 @@ namespace discord {
     private:
         void fire_commands(discord::Message&);
         void await_events();
-        void gateway_auth();
         void handle_heartbeat();
         void handle_event(nlohmann::json const, std::string);
         void initialize_variables(const std::string);

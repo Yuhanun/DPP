@@ -17,8 +17,18 @@
 #include "utils.hpp"
 
 namespace discord {
+
     Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
         : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
+        /**
+            @brief Constructs a discord::Bot object
+
+            @param[in] token The discord bot token which should be used for running your bot.
+            @param[in] prefix The bot's prefix that should be used for command handling.
+            @param[in] message_cache_count Amount of messages that should be cached by the bot. Useful for message_delete and message_update events.
+
+            No more than one discord::Bot should be constructed and ran at a time to prevent using tokens that don't correspond with their bot instances.
+        */
         discord::detail::bot_instance = this;
         internal_event_map["HELLO"] = std::bind(&discord::Bot::hello_event, this, std::placeholders::_1);
         internal_event_map["READY"] = std::bind(&discord::Bot::ready_event, this, std::placeholders::_1);
@@ -58,6 +68,20 @@ namespace discord {
     }
 
     pplx::task<discord::Message> Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
+        /**
+         *  @brief Sends a message to a channel.
+         * 
+         *  @param[in] channel_id The snowflake of the channel to which this message should be sent.
+         *  @param[in] message_content The content of the message that's going to be sent.
+         *  @param[in] tts If set to true, the message will be attempted to be sent as text to speech.
+         * 
+         *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         *      bot.send_message(bot.channels[0]->id, "hello", false).wait();
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         * 
+         *  @throws Asserts if the message failed to send, will be changed in the future.
+         *  @return pplx::task<discord::Message> object which contains a discord::Message corresponding to the message that just sent.
+        */
         return send_request(methods::POST,
                             get_channel_link(channel_id), channel_id, channel,
                             { { "content", message_content }, { "tts", tts } })
@@ -67,6 +91,21 @@ namespace discord {
     }
 
     pplx::task<discord::Message> Bot::send_message(snowflake channel_id, nlohmann::json message_content, bool tts) {
+        /**
+         *  @brief Sends a message to a channel.
+         * 
+         *  @param[in] channel_id The snowflake of the channel to which this message should be sent.
+         *  @param[in] message_content The payload that will be sent to the discord API.
+         *  @param[in] tts If set to true, the message will be attempted to be sent as text to speech.
+         * 
+         *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         *      bot.send_message(bot.channels[0]->id, { { "content", "Hello" } }, false).wait();
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         * 
+         *  @throws Asserts if the message failed to send, will be changed in the future.
+         *  @return pplx::task<discord::Message> object which contains a discord::Message corresponding to the message that just sent.
+         */
+
         message_content["tts"] = tts;
         return send_request(methods::POST, get_channel_link(channel_id), channel_id, channel, message_content)
             .then([](request_response const &resp) {
@@ -75,6 +114,13 @@ namespace discord {
     }
 
     void Bot::on_incoming_packet(const websocketpp::connection_hdl &, const client::message_ptr &msg) {
+        /**
+         * @brief Incoming packet handler
+         * 
+         * @param[in] msg Incoming message from the discord gateway.
+         * 
+         * @return void
+         */
         nlohmann::json j = nlohmann::json::parse(msg->get_payload());
         switch (j["op"].get<int>()) {
             case (9):
@@ -98,6 +144,13 @@ namespace discord {
     }
 
     void Bot::handle_gateway() {
+        /**
+         * @brief Gateway handler
+         * 
+         * Listens to packets incoming from the discord gateway.
+         * 
+         * @return void
+         */
         std::string hostname = "discord.gg";
         std::string uri = get_gateway_url();
         try {
@@ -131,7 +184,17 @@ namespace discord {
     }
 
     int Bot::run() {
-        gateway_auth();
+        /**
+         * @brief Runs your discord bot
+         * 
+         * Runs your discord bot, handles your event loop and launches your gateway handling thread.
+         * 
+         * Keep in mind that this call is blocking indefinitely, meaning that you can only call this once.
+         * This function should be ran in your main() function, and should probably be `return`'ed from main.
+         * 
+         * @return int, always 0 for now.
+         */
+        gateway_thread = std::thread{ &Bot::handle_gateway, this };
         while (true) {
             for (size_t i = 0; i < futures.size(); i++) {
                 if (!futures[i].valid() || !(futures[i].wait_for(std::chrono::seconds(0)) == std::future_status::ready)) {
@@ -144,6 +207,11 @@ namespace discord {
     }
 
     std::string Bot::get_identify_packet() {
+        /**
+         * @brief Returns identifying packet that will be sent to the discord gateway when the "hello" packet is receieved
+         * 
+         * @return std::string Returns the UTF-8 string that will be sent.
+         */
         nlohmann::json obj = { { "op", 2 },
                                { "d",
                                  { { "token", token },
@@ -156,11 +224,18 @@ namespace discord {
         return obj.dump();
     }
 
-    void Bot::gateway_auth() {
-        gateway_thread = std::thread{ &Bot::handle_gateway, this };
-    }
-
     std::string Bot::get_gateway_url() const {
+        /**
+         * @brief Blocking call to the discord api for receiving the websocket url to connect to.
+         * 
+         * Blocking call to the discord API.
+         * Checks whether you can start a session, and if so, will return the websocket url.
+         * 
+         * @throws discord::ImproperToken Throws if response does not contains key "url".
+         * @throws std::runtime_error Throws if you cannot start anymore sessions due to limit being reached.
+         * 
+         * @return std::string Returns the URL to the websocket that Bot::run() will connect to.
+         */
         auto r = send_request(methods::GET, endpoint("/gateway/bot"), 0, global).get().unwrap();
         if (!r.contains("url")) {
             throw discord::ImproperToken();
@@ -175,10 +250,42 @@ namespace discord {
     }
 
     void Bot::register_command(std::string const &command_name, std::function<void(discord::Context)> function) {
+        /**
+         * @brief Registers a command.
+         * 
+         * Registers a command that will call \ref function when \ref prefix + \ref command_name has been received in any channel that the bot has access to.
+         * 
+         * Example:
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         *     discord::Bot bot{".", TOKEN};
+         *     bot.register_command("hello", [](discord::Context ctx){
+         *          ctx.channel->send("Hello!").wait();
+         *     });
+         * 
+         *     bot.run();
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         * 
+         * This will trigger when someone types ".hello" in any chat.
+         * 
+         * This command is case sensitive, so "hello" will not be triggered when you type ".HELLO"
+         * 
+         * @param[in] command_name String to which \ref function should be called.
+         * @param[in] function Function that should be triggered when command with \ref command_name is fired.
+         * 
+         * @return void
+         */
         command_map[boost::to_lower_copy(command_name)] = function;
     }
 
     void Bot::fire_commands(discord::Message &m) {
+        /**
+         * @brief Internal function used for firing commands registered using register_command
+         * 
+         * Handles incoming messages and fires their corresponding commands, if any.
+         * If no commands are found the function gracefully returns.
+         * 
+         * @return void
+         */
         if (!boost::starts_with(m.content, prefix)) {
             return;
         }
@@ -201,6 +308,15 @@ namespace discord {
     }
 
     void Bot::initialize_variables(const std::string raw) {
+        /**
+         * @brief Initializes variables like \ref id and \ref username of the current user (Your bot).
+         * 
+         * @throws nlohmann::detail::type_error if types do not match
+         * @throws nlohmann::detail::parse_error if input is invalid
+         * @throws Assert if key is not found
+         * 
+         * @return void
+         */
         nlohmann::json j = nlohmann::json::parse(raw);
         auto user = j["user"];
         discriminator = user["discriminator"];
@@ -221,6 +337,16 @@ namespace discord {
     }
 
     void Bot::handle_heartbeat() {
+        /**
+         * @brief Handles heartbeat that's required to be sent every \ref hello_packet["d"]["heartbeat_interval"] to discord's gateway
+         * 
+         * @throws nlohmann::detail::type_error if "heartbeat_interval" is not int.
+         * @throws Assert if hello_packet does not contain "d" or hello_packet["d"] does not contain "heartbeat_interval"
+         * 
+         * Indefinitely blocking.
+         * 
+         * @return void
+         */
         while (true) {
             nlohmann::json data = { { "op", 1 }, { "d", nullptr } };
             if (last_sequence_data != -1) {
@@ -241,6 +367,30 @@ namespace discord {
     }
 
     pplx::task<discord::Guild> Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
+        /**
+         * @brief Creates a new Guild.
+         * @param[in] name Name of the guild that's going to get created
+         * @param[in] region Region that the guild is going to be based in on discord's servers, these regions are obtainable through the \ref get_voice_regions function.
+         * @param[in] verification_level Verification level of the guild 0 for None, 1 for Low, 2 for Medium, 3 for High, 4 for Very high.
+         * @param[in] default_message_notifications Default message notification level, 0 for all messages, 1 for mentions only
+         * @param[in] explicit_content_filter Explicit content filter in the guild, 0 for disabled, 1 for members without roles, 2 for all members
+         * 
+         * This method should only be used if your bot is in less than 10 guilds, otherwise this will result in Undefined Behavior
+         * 
+         * ~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         *     discord::Guild new_guild = bot.create_guild("My test guild", "us-west", 0, 0, 1).get();
+         *     for (auto& channel : new_guild.channels){
+         *         if (channel->type == guild_text_channel) {
+         *             channel->send("Hello! This is a newly created guild!").wait();
+         *         }
+         *     }
+         * ~~~~~~~~~~~~~~~~~~~~~~
+         * 
+         * @throws discord::Guild::Guild Anything that the discord::Guild constructor can throw
+         * 
+         * @return pplx::task<discord::Guild> A task that will eventually yield a discord::Guild object of your newly created guild.
+         */
+
         return send_request(methods::POST, endpoint("/guilds"), 0, global,
                             { { "name", name },
                               { "region", region },
@@ -255,21 +405,61 @@ namespace discord {
             });
     }
 
-    std::vector<discord::VoiceRegion> Bot::get_voice_regions() const {
-        std::vector<VoiceRegion> return_vec = {};
-        auto response = send_request(methods::GET, endpoint("%/voice/regions"), 0, global);
-        for (auto const &each : response.get().unwrap()) {
-            return_vec.push_back({ get_value(each, "id", ""),
-                                   get_value(each, "name", ""),
-                                   get_value(each, "vip", false),
-                                   get_value(each, "optimal", false),
-                                   get_value(each, "deprecated", false),
-                                   get_value(each, "custom", false) });
-        }
-        return return_vec;
+    pplx::task<std::vector<discord::VoiceRegion>> Bot::get_voice_regions() const {
+        /**
+         * @brief Lists all available discord voice regions.
+         * 
+         * @throws nlohmann::json::parse_error if discord's response is not a valid response.
+         * 
+         * Returns an std::vector of VoiceRegino objects, which can be used for creating guilds, etc.
+         * Keep in mind that it is not guaranteed that all the VoiceRegion objects are properly constructed.
+         * The members that are not contained in discord's response will be default initialized if discord's response is valid JSON but does not contain all keys.
+         * 
+         * ~~~~~~~~~~~~~~~{.cpp}
+         *      for (discord::VoiceRegion const& region : bot.get_voice_regions()) {
+         *          if (!region.deprecated) {
+         *              bot.create_guild("Test guild", region.name).wait();
+         *              break;
+         *          }
+         *      }
+         * ~~~~~~~~~~~~~~~
+         * 
+         * @return std::vector<discord::VoiceRegion> A vector with discord::VoiceRegion objects.
+         */
+        return send_request(methods::GET, endpoint("%/voice/regions"), 0, global).then([&](request_response const &resp) {
+            std::vector<discord::VoiceRegion> return_vec = {};
+
+            for (auto const &each : response.get().unwrap()) {
+                return_vec.push_back({ get_value(each, "id", ""),
+                                       get_value(each, "name", ""),
+                                       get_value(each, "vip", false),
+                                       get_value(each, "optimal", false),
+                                       get_value(each, "deprecated", false),
+                                       get_value(each, "custom", false) });
+            }
+            return return_vec;
+        });
     }
 
     void Bot::update_presence(Activity const &act) {
+        /**
+         * @brief Updates the bot's Presence, the current "playing" or "streaming", etc.
+         * 
+         * @param[in] act A discord::Activity object, constructed through discord::Activity::Activity(std::string const& name, presence::activity const& type, std::string const& status, bool const& afk, std::string const& url);
+         * 
+         * ~~~~~~~~~~~~{.cpp}
+         *      bot.change_presence(
+         *          discord::Activity{
+         *              discord::format("to % guilds", bot.guilds.size()),
+         *              presence::activity::listening,
+         *              presence::status::dnd,
+         *              false
+         *          }
+         *      )
+         * ~~~~~~~~~~~~
+         * 
+         * @return void
+         */
         con->send(nlohmann::json({ { "op", 3 }, { "d", act.to_json() } }).dump());
     }
 
