@@ -21,14 +21,17 @@ namespace discord {
     Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
         : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
         /**
-            @brief Constructs a discord::Bot object
-
-            @param[in] token The discord bot token which should be used for running your bot.
-            @param[in] prefix The bot's prefix that should be used for command handling.
-            @param[in] message_cache_count Amount of messages that should be cached by the bot. Useful for message_delete and message_update events.
-
-            No more than one discord::Bot should be constructed and ran at a time to prevent using tokens that don't correspond with their bot instances.
-        */
+         *  @brief Constructs a discord::Bot object
+         * 
+         *  @param[in] token The discord bot token which should be used for running your bot.
+         *  @param[in] prefix The bot's prefix that should be used for command handling.
+         *  @param[in] message_cache_count Amount of messages that should be cached by the bot. Useful for message_delete and message_update events.
+         *  ~~~~~~~~~~~~~~~~~~{.cpp}
+         *       discord::Bot bot{TOKEN, ".", 5000};
+         *  ~~~~~~~~~~~~~~~~~~~
+         *  No more than one discord::Bot should be constructed and ran at a time to prevent using tokens that don't correspond with their bot instances.
+         *  @return discord::Bot, this is a constructor
+         */
         discord::detail::bot_instance = this;
         internal_event_map["HELLO"] = std::bind(&discord::Bot::hello_event, this, std::placeholders::_1);
         internal_event_map["READY"] = std::bind(&discord::Bot::ready_event, this, std::placeholders::_1);
@@ -81,7 +84,7 @@ namespace discord {
          * 
          *  @throws Asserts if the message failed to send, will be changed in the future.
          *  @return pplx::task<discord::Message> object which contains a discord::Message corresponding to the message that just sent.
-        */
+         */
         return send_request(methods::POST,
                             get_channel_link(channel_id), channel_id, channel,
                             { { "content", message_content }, { "tts", tts } })
@@ -105,6 +108,7 @@ namespace discord {
          *  @throws Asserts if the message failed to send, will be changed in the future.
          *  @return pplx::task<discord::Message> object which contains a discord::Message corresponding to the message that just sent.
          */
+        
 
         message_content["tts"] = tts;
         return send_request(methods::POST, get_channel_link(channel_id), channel_id, channel, message_content)
