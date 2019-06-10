@@ -424,7 +424,7 @@ namespace discord {
          *      }
          * ~~~~~~~~~~~~~~~
          * 
-         * @return std::vector<discord::VoiceRegion> A vector with discord::VoiceRegion objects.
+         * @return pplx::task<std::vector<discord::VoiceRegion>> Which eventually yields a vector with discord::VoiceRegion objects.
          */
         return send_request(methods::GET, endpoint("%/voice/regions"), 0, global).then([&](request_response const &resp) {
             std::vector<discord::VoiceRegion> return_vec = {};
@@ -917,13 +917,34 @@ namespace discord {
     }
 
     pplx::task<discord::User> Bot::get_current_user() {
+        /**
+         * @brief Fetch the current user (bot) from the discord api
+         * 
+         * ~~~~~~~~~~~~{.cpp}
+         *      std::cout << bot.get_current_user().get() << std::endl;
+         * ~~~~~~~~~~~~
+         * 
+         * @return pplx::task<discord::User> that will eventually yield a discord::User object, which is the current user, the bot.
+         */
         return send_request(methods::GET, endpoint("/users/@me"), 0, global)
             .then([](request_response const &resp) {
                 return discord::User{ resp.get().unwrap() };
             });
     }
 
-    pplx::task<discord::User> Bot::get_user(snowflake id) {
+    pplx::task<discord::User> Bot::get_user(snowflake u_id) {
+        /**
+         * @brief Fetch a user (discord::User) from the discord api
+         * 
+         * @param[in] u_id the snowflake id of the user to fetch
+         * 
+         * ~~~~~~~~~~~~{.cpp}
+         *      std::cout << bot.get_user(302517149359144962).get() << std::endl;
+         * ~~~~~~~~~~~~~
+         *
+         * @throws json Anything that discord::User's constructor can throw.
+         * @return pplx::task<discord::User> that will eventually yield a discord::User object, which is the user with id \ref u_id
+         */
         return send_request(methods::GET, endpoint("/users/%", id), 0, global)
             .then([](request_response const &resp) {
                 return discord::User{ resp.get().unwrap() };
@@ -931,6 +952,20 @@ namespace discord {
     }
 
     pplx::task<discord::User> Bot::edit(std::string const &username) {
+        /**
+         * @brief Edits the current user by making a call to the discord api
+         * 
+         * @param[in] username The new username of your bot.
+         * 
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         *      bot.edit("New_username").wait();
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~
+         * 
+         * Avatar is not supported as of right now, support might come soon.
+         * 
+         * @throws json Anything that discord::User's constructor can throw
+         * @return pplx::task<discord::User> that will eventually yield the new discord::User object, which represents the current bot instance.
+         */
         return send_request(methods::PATCH,
                             endpoint("/users/@me"), 0, global,
                             { { "username", username } })
@@ -947,6 +982,26 @@ namespace discord {
     }
 
     pplx::task<std::vector<discord::Guild>> Bot::get_user_guilds(int limit, snowflake before, snowflake after) {
+        /**
+         * @brief Gets \limit amount of guilds that the current bot user is in
+         * 
+         * @param[in] limit The amount of guilds to fetch at most.
+         * @param[in] before If this is set, only guilds with a snowflake, id, lower than \ref before will be received.
+         * @param[in] after If this is set, only guilds with a snowflake, id, higher than \ref after will be received.
+         * 
+         * Set before and after to the default value if you want any guild.
+         * If limit is set to 0, 100 guilds will be yielded.
+         * 
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         *      for (auto const& guild : bot.get_guilds(150, 0, 0)) { 
+         *          std::cout << guild << std::endl; 
+         *      }
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~
+         * 
+         * @throws json Anything that discord::Guild's constructor can throw
+         * @return pplx::task<std::vector<discord::Guild>> that will eventually yield the std::vector<discord::Guild> object, which contains the guilds that were just yielded.
+         */
+
         nlohmann::json data({ { "limit", limit ? limit : 100 } });
 
         if (before) {
@@ -971,6 +1026,24 @@ namespace discord {
     }
 
     pplx::task<discord::Channel> Bot::create_group_dm(std::vector<std::string> const &access_tokens, nlohmann::json const &nicks) {
+        /**
+         * @brief Creates a group DM.
+         * 
+         * @param[in] acces_tokens A vector of std::strings of the users you want to add their discord access_tokens.
+         * @param[in] nicks A json dictionary representation of user snowflakes to their respective nicknames.
+         * 
+         * For example, a \ref nicks could be the following:
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.json}
+         *      {
+         *          { 518149726294769676, "Luke" },
+         *          { 553478921870508061, "Jake" }
+         *      }
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         * 
+         * @throws json Anything that discord::Channel's constructor can throw
+         * @return pplx::task<discord::Channel> that will eventually yield the new discord::Channel object, which is the new dm_channel that was just created.
+         */
+
         nlohmann::json data({ { "access_tokens", nlohmann::json::array() }, { "nicks", nicks } });
         for (auto const &each : access_tokens) {
             data["access_tokens"].push_back(each);
@@ -982,6 +1055,18 @@ namespace discord {
     }
 
     pplx::task<std::vector<discord::Connection>> Bot::get_connections() {
+        /**
+         * @brief Gets the bot its connections
+         * 
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.json}
+         *      for (auto const& each : bot.get_connections().get()) {
+         *         std::cout << each.name << " -> " << each.id << std::endl;
+         *      }
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         * 
+         * @throws json Anything that nlohmann::json can throw
+         * @return pplx::task<std::vector<discord::Connection>> that will eventually yield the the std::vector<discord::Connection>, which contains the connections that your bot has.
+         */
         return send_request(methods::GET,
                             endpoint("/users/@me/connections"),
                             0, global)
@@ -1003,6 +1088,18 @@ namespace discord {
     }
 
     pplx::task<discord::Guild> Bot::get_guild(snowflake g_id) {
+        /**
+         * @brief Fetch a guild (discord::Guild) from the discord api
+         * 
+         * @param[in] g_id The snowflake, id, of the guild to fetch.
+         * 
+         * ~~~~~~~~~~~~{.cpp}
+         *      std::cout << bot.get_guild(562636135428521984).get() << std::endl;
+         * ~~~~~~~~~~~~~
+         *
+         * @throws json Anything that discord::Guild's constructor can throw.
+         * @return pplx::task<discord::Guild> that will eventually yield a discord::Guild object, which is the Guild with id \ref g_id
+         */
         return send_request(methods::GET, endpoint("/guilds/%", g_id), id, 0)
             .then([](request_response const &resp) {
                 return discord::Guild{ resp.get().unwrap() };
@@ -1010,6 +1107,18 @@ namespace discord {
     }
 
     pplx::task<discord::Channel> Bot::get_channel(snowflake chan_id) {
+        /**
+         * @brief Fetch a channel (discord::Channel) from the discord api
+         * 
+         * @param[in] chan_id The snowflake, id, of the channel to fetch
+         * 
+         * ~~~~~~~~~~~~{.cpp}
+         *      std::cout << bot.get_channel(570591769302007838).get() << std::endl;
+         * ~~~~~~~~~~~~~
+         *
+         * @throws json Anything that discord::Channel's constructor can throw.
+         * @return pplx::task<discord::Channel> that will eventually yield a discord::Channel object, which is the channel with id \ref chan_id
+         */
         return send_request(methods::GET, endpoint("/channels/%", chan_id), chan_id, channel)
             .then([](request_response const &resp) {
                 return discord::Channel{ resp.get().unwrap() };
@@ -1017,6 +1126,14 @@ namespace discord {
     }
 
     int Bot::wait_for_ratelimits(snowflake obj_id, int bucket_) {
+        /**
+         * @brief Internal functions used for not flooding the api by waiting for ratelimits.
+         * 
+         * @param[in] obj_id Object snowflake of the object that this ratelimit is for.
+         * @param[in] bucket_ Bucket type of the snowflake, either channel, guild, webhook or global.
+         * 
+         * @return int the amount of seconds that have to be waited.
+         */
         RateLimit *rlmt = nullptr;
 
         if (global_ratelimits.rate_limit_remaining == 0) {
@@ -1045,6 +1162,15 @@ namespace discord {
     }
 
     void Bot::handle_ratelimits(web::http::http_headers &headers, snowflake obj_id, int bucket_) {
+        /**
+         * @brief Internal functions used for not flooding the api by updating ratelimit info.
+         * 
+         * @param[in] headers The headers that should be read for applying ratelimits.
+         * @param[in] obj_id Object snowflake of the object that this ratelimit is for.
+         * @param[in] bucket_ Bucket type of the snowflake, either channel, guild, webhook or global.
+         * 
+         * @return void
+         */
         RateLimit *obj = nullptr;
 
         if (headers.has("X-RateLimit-Global")) {
