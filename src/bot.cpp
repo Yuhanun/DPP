@@ -134,7 +134,7 @@ namespace discord {
         gateway_auth();
         while (true) {
             for (size_t i = 0; i < futures.size(); i++) {
-                if (futures[i].valid() && futures[i].wait_for(std::chrono::milliseconds(1)) != std::future_status::ready) {
+                if (!futures[i].is_done()) {
                     continue;
                 }
                 futures.erase(futures.begin() + i);
@@ -197,7 +197,7 @@ namespace discord {
         argument_vec.erase(argument_vec.begin());
         auto f = command_map.at(command_name);
 
-        futures.push_back(std::async(std::launch::async, f, discord::Context{ this, m, argument_vec, f, command_name }));
+        futures.push_back(pplx::create_task([&]() { f(discord::Context{ this, m, argument_vec, f, command_name }); }));
     }
 
     void Bot::initialize_variables(const std::string raw) {
@@ -283,7 +283,7 @@ namespace discord {
             if (!ready) {
                 internal_event_map[event_name](data);
             } else {
-                futures.push_back(std::async(std::launch::async, internal_event_map[event_name], data));
+                futures.push_back(pplx::create_task([&]() { internal_event_map[event_name](data); }));
             }
         } else {
 #ifdef __DPP_DEBUG

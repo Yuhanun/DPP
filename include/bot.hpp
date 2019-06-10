@@ -134,7 +134,7 @@ namespace discord {
         std::thread gateway_thread;
         std::thread heartbeat_thread;
 
-        std::vector<std::future<void>> futures;
+        std::vector<pplx::task<void>> futures;
         std::vector<std::shared_ptr<discord::Message>> messages;
         std::unordered_map<std::string, std::function<void(discord::Context const&)>> command_map;
         std::unordered_map<std::string, std::function<void(nlohmann::json)>> internal_event_map;

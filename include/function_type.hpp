@@ -5,6 +5,8 @@
 #include <tuple>
 #include <vector>
 
+#include <pplx/pplxtasks.h>
+
 template <typename... Funcs>
 struct Events {
     std::tuple<std::vector<std::function<Funcs>>...> tuple;
@@ -15,12 +17,12 @@ struct Events {
     }
 
     template <size_t index, typename... Args>
-    void call(std::vector<std::future<void>>& future_lst, bool ready, Args&&... args) {
+    void call(std::vector<pplx::task<void>>& future_lst, bool ready, Args&&... args) {
         if (!ready) {
             return;
         }
         for (auto& func : std::get<index>(tuple)) {
-            future_lst.push_back(std::async(std::launch::async, func, std::forward<Args>(args)...));
+            future_lst.push_back(pplx::create_task([&]() { func(std::forward<Args>(args)...); }));
         }
     }
 };
