@@ -433,7 +433,7 @@ namespace discord {
         return send_request(methods::GET, endpoint("%/voice/regions"), 0, global).then([&](request_response const &resp) {
             std::vector<discord::VoiceRegion> return_vec = {};
 
-            for (auto const &each : response.get().unwrap()) {
+            for (auto const &each : resp.get().unwrap()) {
                 return_vec.push_back({ get_value(each, "id", ""),
                                        get_value(each, "name", ""),
                                        get_value(each, "vip", false),
@@ -949,7 +949,7 @@ namespace discord {
          * @throws json Anything that discord::User's constructor can throw.
          * @return pplx::task<discord::User> that will eventually yield a discord::User object, which is the user with id \ref u_id
          */
-        return send_request(methods::GET, endpoint("/users/%", id), 0, global)
+        return send_request(methods::GET, endpoint("/users/%", u_id), 0, global)
             .then([](request_response const &resp) {
                 return discord::User{ resp.get().unwrap() };
             });
