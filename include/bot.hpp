@@ -15,7 +15,7 @@ namespace discord {
             std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
         }
 
-        void register_command(std::string const& command_name, std::function<void(discord::Context const&)> function);
+        void register_command(std::string const& command_name, std::function<void(discord::Context)> function);
         void update_presence(Activity const&);
 
         pplx::task<discord::Message> send_message(snowflake, std::string, bool = false);
@@ -136,7 +136,7 @@ namespace discord {
 
         std::vector<std::future<void>> futures;
         std::vector<std::shared_ptr<discord::Message>> messages;
-        std::unordered_map<std::string, std::function<void(discord::Context const&)>> command_map;
+        std::unordered_map<std::string, std::function<void(discord::Context)>> command_map;
         std::unordered_map<std::string, std::function<void(nlohmann::json)>> internal_event_map;
 
         std::unordered_map<snowflake, RateLimit> guild_ratelimits;

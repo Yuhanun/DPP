@@ -144,7 +144,7 @@ discord::Message& discord::Message::update(nlohmann::json const j) {
 
 pplx::task<void> discord::Message::remove() {
     return send_request(methods::DEL,
-                        endpoint("/%/messages/%", channel->id, id),
+                        endpoint("/channels/%/messages/%", channel->id, id),
                         channel->id, bucket_type::channel)
         .then([](request_response const&) {});
 }

@@ -174,7 +174,7 @@ namespace discord {
         return r["url"];
     }
 
-    void Bot::register_command(std::string const &command_name, std::function<void(discord::Context const &)> function) {
+    void Bot::register_command(std::string const &command_name, std::function<void(discord::Context)> function) {
         command_map[boost::to_lower_copy(command_name)] = function;
     }
 

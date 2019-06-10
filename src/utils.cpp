@@ -133,6 +133,10 @@ namespace discord {
 
             auto parsed_json = response.empty() ? nlohmann::json{} : nlohmann::json::parse(response);
 
+#ifdef __DPP_DEBUG
+            std::cout << parsed_json.dump(4) << std::endl;
+#endif
+
             if (next_action == success) {
                 return OK(parsed_json);
             } else if (next_action == resend_request) {

@@ -3,15 +3,15 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "message.hpp"
 #include "channel.hpp"
+#include "message.hpp"
 
 namespace discord {
     struct Context {
-        Context(const discord::Bot*, discord::Message const&, std::vector<std::string> const&, std::function<void(Context const&)> const&, std::string const&);
+        Context(const discord::Bot*, discord::Message const&, std::vector<std::string> const&, std::function<void(Context)> const&, std::string const&);
         const discord::Bot* bot;
         const discord::Message& message;
-        const std::vector<std::string>& arguments;
+        const std::vector<std::string> arguments;
         const std::function<void(Context const&)> command;
         const std::string command_name;
         const std::shared_ptr<discord::Member> author;

@@ -3,12 +3,16 @@
 #include <thread>
 
 #define __DPP_DEBUG
-
+#include "attachment.hpp"
 #include "bot.hpp"
 #include "context.hpp"
 #include "discord.hpp"
 #include "embedbuilder.hpp"
 #include "events.hpp"
+#include "member.hpp"
+#include "user.hpp"
+#include "role.hpp"
+#include "utils.hpp"
 
 int main() {
     std::ifstream file("token.txt");
@@ -22,9 +26,13 @@ int main() {
                                                                        << "ID: " << bot.id << std::endl
                                                                        << "-----------------------------" << std::endl; });
 
-    bot.register_command("test", [](discord::Context const& ctx) mutable {
-        ctx.channel->send(discord::EmbedBuilder().set_title("test"), { { "test.txt", "todo.txt", true } }, false, "hello");
-        ctx.channel->send("Hello", { { "test.txt", "todo.txt", false } }, true);
+    bot.register_command("test", [](discord::Context ctx) {
+        std::string output = discord::format("%, these were your arguments: ", ctx.author->user->mention);
+        for (auto const& each : ctx.arguments) {
+            output += (each + " ");
+        }
+        ctx.channel->send(output)
+            .get();
     });
 
     return bot.run();
