@@ -206,6 +206,7 @@ namespace discord {
                 }
                 futures.erase(futures.begin() + i);
             }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
         return 0;
     }
@@ -495,6 +496,8 @@ namespace discord {
         heartbeat_thread = std::thread{ &Bot::handle_heartbeat, this };
         initialize_variables(data.dump());
         ready_packet = data;
+        ready = static_cast<bool>(ready_packet["guilds"].size());
+        func_holder.call<events::ready>(futures, ready);
     }
 
     void Bot::resumed_event(nlohmann::json) {

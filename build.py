@@ -1,8 +1,6 @@
 import os
 import time
 
-from colorama import Fore, Style
-
 if not os.path.isdir("build"):
     os.mkdir("build")
 
@@ -16,4 +14,4 @@ if not os.system("cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 if not os.system("make") == 0:
     exit()
 
-print(f"{Fore.GREEN}Total compilation time: {round(time.time() - before, 2)} seconds{Style.RESET_ALL}")
+print(f"Total compilation time: {round(time.time() - before, 2)} seconds")
