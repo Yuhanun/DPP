@@ -88,71 +88,64 @@ pplx::task<discord::Message> discord::Channel::send(std::string const &content, 
     (void)content;
     (void)files;
     (void)tts;
-    return send_request("GET", "").then([](auto const&) { return discord::Message{}; });
+    return send_request("GET", "").then([](auto const &) { return discord::Message{}; });
 }
 
 pplx::task<discord::Message> discord::Channel::send(EmbedBuilder const &embed, std::vector<File> const &files, bool tts, std::string const &content) const {
-    (void)embed;
-    (void)files;
-    (void)tts;
-    (void)content;
-    return send_request("GET", "").then([](auto const&) { return discord::Message{}; });
-    //     auto ratelimit_time = discord::detail::bot_instance->wait_for_ratelimits(id, channel);
-    //     Multipart multipart_data{};
+    discord::detail::bot_instance->wait_for_ratelimits(id, channel);
+    std::vector<std::pair<std::unique_ptr<std::ifstream> const &, std::string const &>> pass_data = {};
+    for (auto const &each : files) {
+        std::string custom_filename = each.spoiler ? "SPOILER_" : "";
+        if (is_image_or_gif(each.filepath)) {
+            pass_data.emplace_back(std::make_unique<std::ifstream>(each.filepath, std::ios::binary), custom_filename + each.filename);
+        } else {
+            pass_data.emplace_back(std::make_unique<std::ifstream>(each.filepath), custom_filename + each.filename);
+        }
+    }
 
-    //     for (size_t i = 0; i < files.size(); i++) {
-    //         if (!is_image_or_gif(files[i].filepath)) {
-    //             std::string entire_file = read_entire_file(files[i].filepath);
-    //             std::string custom_filename{ files[i].spoiler ? "SPOILER_" : "" };
-    //             multipart_data.parts.emplace_back(
-    //                 "file" + std::to_string(i),
-    //                 Buffer{ entire_file.begin(),
-    //                              entire_file.end(),
-    //                              custom_filename + files[i].filename },
-    //                 "application/octet-stream");
-    //         } else {
-    //             multipart_data.parts.emplace_back("file" + std::to_string(i),
-    //                                               File(files[i].filepath),
-    //                                               "application/octet-stream");
-    //         }
-    //     }
+    auto p = generate_form_data(pass_data, nlohmann::json{
+                                               { "content", content },
+                                               { "tts", tts },
+                                               { "embed", embed.to_json() } });
+    auto &boundary = p.first;
+    auto &form_data = p.second;
 
+    // http_client client{ { endpoint("/channels/%/messages", this->id) } };
+    http_client client{ { "https://enoq8tobmbkdqqu.m.pipedream.net" } };
+    http_request msg{ methods::POST };
 
-    //     multipart_data.parts.emplace_back("payload_json",
-    //                                       nlohmann::json{
-    //                                           { "content", content },
-    //                                           { "tts", tts },
-    //                                           { "embed", embed.to_json() } }
-    //                                           .dump());
+    msg.set_body(form_data, "application/octet-stream");
+    msg.headers().add("Authorization", format("Bot %", discord::detail::bot_instance->token));
+    msg.headers().add("Content-Type", format("multipart/form-data;boundary=\"%\"", boundary));
+    msg.headers().add("User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)");
+    msg.headers().add("Content-Length", form_data.size());
 
-    //     auto response = Post(
-    //         Url{ endpoint("/channels/%/messages", id) },
-    //         Header{ { "Authorization", format("Bot %", discord::detail::bot_instance->token) },
-    //                      { "Content-Type", "multipart/form-data" },
-    //                      { "User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)" },
-    //                      { "Connection", "keep-alive" } },
-    //         multipart_data);
+    auto send_lambda = [&]() {
+        return client.request(msg).then([=](http_response resp_val) {
+            discord::detail::bot_instance->handle_ratelimits(resp_val.headers(), this->id, channel);
+            auto next_action = static_cast<int>(handle_resp(resp_val.status_code()));
 
-    //     web::http::http_headers ratelimit_headers{};
-    //     for (auto const &each : response.header) {
-    //         ratelimit_headers.add(each.first, each.second);
-    //     }
+            auto response = resp_val.extract_utf8string(true).get();
+            std::cout << response << std::endl;
+            auto parsed_json = response.empty() ? nlohmann::json{} : nlohmann::json::parse(response);
 
-    //     discord::detail::bot_instance->handle_ratelimits(ratelimit_headers, id, channel);
-
-    //     auto parsed = response.text.size() > 0 ? nlohmann::json::parse(response.text) : nlohmann::json({});
-
-    // #ifdef __DPP_DEBUG
-    //     std::cout << parsed.dump(4) << "\n"
-    //               << "Had to wait " << ratelimit_time << " seconds" << std::endl;
-    // #endif
-    //     if (parsed.contains("retry_after")) {
-    //         std::this_thread::sleep_for(std::chrono::seconds(parsed["retry_after"].get<int>()));
-    //         return this->send(embed, files, tts, content);
-    //     }
-
-    //     return discord::Message{ parsed };
-    // return discord::Message{ 0 };
+            if (next_action == success) {
+                return OK(parsed_json);
+            } else if (next_action == resend_request) {
+                return ERR<nlohmann::json>("", {}, {}, resp_val);
+            } else {
+                return ERR<nlohmann::json>(get_value(parsed_json, "message", ""), {}, get_default_headers(), resp_val);
+            }
+        });
+    };
+    return send_lambda().then([&](request_response task) {
+        while (!task.get().is_ok()) {
+            if (task.get().unwrap_err().response.status_code() == 429) {
+                task = send_lambda();
+            }
+        }
+        return discord::Message{ task.get().unwrap() };
+    });
 }
 
 pplx::task<void> discord::Channel::bulk_delete(std::vector<discord::Message> &m) {

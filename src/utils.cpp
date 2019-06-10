@@ -126,7 +126,7 @@ namespace discord {
         }
 
         return client.request(msg).then([=](http_response resp_val) {
-            discord::detail::bot_instance->handle_ratelimits(resp_val.headers(), obj_id, global);
+            discord::detail::bot_instance->handle_ratelimits(resp_val.headers(), obj_id, bucket_);
             auto next_action = static_cast<int>(handle_resp(resp_val.status_code()));
 
             auto response = resp_val.extract_utf8string(true).get();
@@ -143,8 +143,7 @@ namespace discord {
         });
     }
 
-    std::string read_entire_file(std::string const &filename) {
-        std::ifstream ifs(filename);
+    std::string read_entire_file(std::ifstream &ifs) {
         return std::string((std::istreambuf_iterator<char>(ifs)),
                            (std::istreambuf_iterator<char>()));
     }
@@ -173,8 +172,25 @@ namespace discord {
 #endif
     }
 
-    std::string generate_multipart_data() {
-        return "";
+    std::pair<std::string, std::string> generate_form_data(std::vector<std::pair<std::unique_ptr<std::ifstream> const &, std::string const &>> const &strm, nlohmann::json const &json_payload) {
+        std::stringstream data;
+
+        std::string boundary{};
+        for (int i = 0; i < 50; i++) {
+            boundary += (rand() % 26) + 'A';
+        }
+
+        for (auto const &each : strm) {
+            std::string filename = "file";
+            data << "--" << boundary;
+            data << " Content-Disposition: form-data; name=\"file\"; filename=\""
+                 << each.second << " Content-Type : application/octet-stream"
+                 << "\" " << read_entire_file(*each.first);
+        }
+        data << "--" << boundary << " Content-Disposition: form-data; name=\"payload_json\" " << json_payload.dump();
+        data << "--" << boundary << "--";
+
+        return { boundary, data.str() };
     }
 
 }  // namespace discord

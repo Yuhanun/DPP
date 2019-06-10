@@ -4,9 +4,10 @@
 
 #define __DPP_DEBUG
 
-#include "discord.hpp"
 #include "bot.hpp"
 #include "context.hpp"
+#include "discord.hpp"
+#include "embedbuilder.hpp"
 #include "events.hpp"
 
 int main() {
@@ -21,10 +22,13 @@ int main() {
                                                                        << "ID: " << bot.id << std::endl
                                                                        << "-----------------------------" << std::endl; });
 
+    // struct File {
+    //     std::string filename;
+    //     std::string filepath;
+    //     bool spoiler;
+    // };
     bot.register_command("test", [](discord::Context const& ctx) mutable {
-        while (true) {
-            ctx.send("Test");
-        }
+        ctx.channel->send(discord::EmbedBuilder().set_title("test"), { { "test.txt", "todo.txt", true } }, false, "hello");
     });
 
     return bot.run();

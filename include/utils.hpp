@@ -271,12 +271,11 @@ namespace discord {
                                   snowflake obj_id = -1, int bucket_ = global,
                                   nlohmann::json const &j = {});
 
-    std::string read_entire_file(std::string const &filename);
+    std::string read_entire_file(std::ifstream& file);
 
     std::string encode64(const std::string &val);
 
     std::string get_os_name();
 
-    std::string generate_multipart_data();
-
+    std::pair<std::string, std::string> generate_form_data(std::vector<std::pair<std::unique_ptr<std::ifstream> const &, std::string const &>> const &strm, nlohmann::json const&);
 }  // namespace discord

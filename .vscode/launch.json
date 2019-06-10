@@ -5,7 +5,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/main.out",
+            "program": "${workspaceFolder}/build/bot",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
