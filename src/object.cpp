@@ -21,4 +21,4 @@ namespace discord {
     std::ostream& operator<<(std::ostream& stream, Object const& o) {
         return stream << "<discord::Object id=" << o.id << " at " << &o << ">";
     }
-};  // namespace discord
+} // namespace discord

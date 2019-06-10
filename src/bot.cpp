@@ -1199,4 +1199,4 @@ namespace discord {
         obj->rate_limit_remaining = std::stoi(headers["X-RateLimit-Remaining"]);
         obj->ratelimit_reset = boost::posix_time::from_time_t(std::stoi(headers["X-RateLimit-Reset"]));
     }
-};  // namespace discord
+} // namespace discord

@@ -121,4 +121,4 @@ namespace discord {
         return { Err{ err, data, headers, resp } };
     }
 
-};  // namespace discord
+} // namespace discord

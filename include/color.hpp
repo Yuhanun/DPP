@@ -13,4 +13,4 @@ namespace discord {
         int g;
         int b;
     };
-};  // namespace discord
+} // namespace discord

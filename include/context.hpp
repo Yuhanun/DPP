@@ -22,4 +22,4 @@ namespace discord {
             return message.channel->send(std::forward<Tys>(args)...);
         };
     };
-};  // namespace discord
+} // namespace discord

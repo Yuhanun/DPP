@@ -158,4 +158,4 @@ namespace discord {
         std::unordered_map<snowflake, RateLimit> webhook_ratelimits;
         RateLimit global_ratelimits;
     };
-};  // namespace discord
+} // namespace discord

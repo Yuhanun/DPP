@@ -81,4 +81,4 @@ namespace discord {
         std::vector<discord::User> users;
         std::vector<discord::AuditLogEntry> audit_log_entries;
     };
-};  // namespace discord
+} // namespace discord

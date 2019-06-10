@@ -22,4 +22,4 @@ namespace discord {
         discord::Asset image;
         std::vector<std::shared_ptr<discord::Role>> roles;
     };
-};  // namespace discord
+} // namespace discord

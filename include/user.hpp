@@ -21,4 +21,4 @@ namespace discord {
         discord::Asset avatar;
         std::string discriminator;
     };
-};  // namespace discord
+} // namespace discord

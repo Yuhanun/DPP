@@ -22,4 +22,4 @@ namespace discord {
         pplx::task<discord::Invite> get_invite();
         pplx::task<void> remove();
     };
-};  // namespace discord
+} // namespace discord

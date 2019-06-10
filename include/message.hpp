@@ -47,4 +47,4 @@ namespace discord {
     private:
         std::string token;
     };
-};  // namespace discord
+} // namespace discord

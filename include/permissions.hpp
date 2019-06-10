@@ -38,4 +38,4 @@ namespace discord {
         PermissionOverwrite deny_perms;
         int base_permissions;
     };
-};  // namespace discord
+} // namespace discord

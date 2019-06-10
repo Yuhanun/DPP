@@ -30,4 +30,4 @@ namespace discord {
         std::string nick;
         datetime joined_at{ boost::local_time::not_a_date_time };
     };
-};  // namespace discord
+} // namespace discord

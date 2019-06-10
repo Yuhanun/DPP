@@ -121,7 +121,7 @@ namespace discord {
             listening,
             watching
         };
-    };  // namespace presence
+    } // namespace presence
 
     struct VoiceRegion {
         std::string id;

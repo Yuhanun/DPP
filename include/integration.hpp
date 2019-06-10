@@ -19,4 +19,4 @@ namespace discord {
         std::string account_name;
         datetime synced_at;
     };
-};  // namespace discord
+} // namespace discord

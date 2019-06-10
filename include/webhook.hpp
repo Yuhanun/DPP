@@ -32,4 +32,4 @@ namespace discord {
         pplx::task<void> execute_slack(bool, nlohmann::json const);
         pplx::task<void> execute_github(bool, nlohmann::json const);
     };
-};  // namespace discord
+} // namespace discord

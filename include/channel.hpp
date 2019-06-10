@@ -55,4 +55,4 @@ namespace discord {
         std::vector<std::shared_ptr<discord::User>> recipients;
         std::vector<discord::PermissionOverwrites> overwrites;
     };
-};  // namespace discord
+} // namespace discord

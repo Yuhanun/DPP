@@ -50,4 +50,4 @@ namespace discord {
 
         presence::activity type;
     };
-};  // namespace discord
+} // namespace discord

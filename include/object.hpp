@@ -17,4 +17,4 @@ namespace discord {
         friend std::ostream& operator<<(std::ostream& stream, Object const& o);
 
     };
-};  // namespace discord
+} // namespace discord

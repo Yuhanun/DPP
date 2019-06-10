@@ -93,4 +93,4 @@ namespace discord {
         pplx::task<discord::Emoji> edit_emoji(discord::Emoji const&, std::string, std::vector<discord::Role> = {});
         pplx::task<void> remove_emoji(discord::Emoji const&);
     };
-};  // namespace discord
+} // namespace discord

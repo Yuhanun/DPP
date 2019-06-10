@@ -27,4 +27,4 @@ namespace discord {
         Color color;
         PermissionOverwrites permissions;
     };
-};  // namespace discord
+} // namespace discord

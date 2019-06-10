@@ -29,4 +29,4 @@ namespace discord {
         bool operator==(Asset const&) const;
         bool operator!=(Asset const&) const;
     };
-};  // namespace discord
+} // namespace discord

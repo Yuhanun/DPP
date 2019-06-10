@@ -19,4 +19,4 @@ namespace discord {
             std::string web;
         } client_status;
     };
-};  // namespace discord
+} // namespace discord

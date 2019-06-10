@@ -15,4 +15,4 @@ namespace discord {
         std::string filename;
         std::string proxy_url;
     };
-};  // namespace discord
+} // namespace discord

@@ -26,4 +26,4 @@ namespace discord {
     private:
         nlohmann::json embed;
     };
-};  // namespace discord
+} // namespace discord
