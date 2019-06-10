@@ -19,7 +19,7 @@ namespace discord {
 
         template <typename... Tys>
         pplx::task<discord::Message> send(Tys&&... args) const {
-            return this->message.channel->send(std::forward<Tys>(args)...);
+            return message.channel->send(std::forward<Tys>(args)...);
         };
     };
 };  // namespace discord

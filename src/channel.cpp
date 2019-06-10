@@ -85,40 +85,29 @@ discord::Channel &discord::Channel::update(nlohmann::json const data) {
 }
 
 pplx::task<discord::Message> discord::Channel::send(std::string const &content, std::vector<File> const &files, bool tts) const {
-    (void)content;
-    (void)files;
-    (void)tts;
-    return send_request("GET", "").then([](auto const &) { return discord::Message{}; });
-}
-
-pplx::task<discord::Message> discord::Channel::send(EmbedBuilder const &embed, std::vector<File> const &files, bool tts, std::string const &content) const {
     discord::detail::bot_instance->wait_for_ratelimits(id, channel);
-    std::vector<std::pair<std::unique_ptr<std::ifstream> const &, std::string const &>> pass_data = {};
+    std::vector<std::pair<std::ifstream, std::string>> pass_data = {};
     for (auto const &each : files) {
         std::string custom_filename = each.spoiler ? "SPOILER_" : "";
         if (is_image_or_gif(each.filepath)) {
-            pass_data.emplace_back(std::make_unique<std::ifstream>(each.filepath, std::ios::binary), custom_filename + each.filename);
+            pass_data.emplace_back(std::ifstream{ each.filepath, std::ios::binary }, custom_filename + each.filename);
         } else {
-            pass_data.emplace_back(std::make_unique<std::ifstream>(each.filepath), custom_filename + each.filename);
+            pass_data.emplace_back(std::ifstream{ each.filepath }, custom_filename + each.filename);
         }
     }
 
     auto p = generate_form_data(pass_data, nlohmann::json{
                                                { "content", content },
-                                               { "tts", tts },
-                                               { "embed", embed.to_json() } });
-    auto &boundary = p.first;
-    auto &form_data = p.second;
+                                               { "tts", tts } });
 
-    // http_client client{ { endpoint("/channels/%/messages", this->id) } };
-    http_client client{ { "https://enoq8tobmbkdqqu.m.pipedream.net" } };
+    http_client client{ { endpoint("/channels/%/messages", this->id) } };
     http_request msg{ methods::POST };
 
-    msg.set_body(form_data, "application/octet-stream");
+
+    msg.set_body(p.second, "multipart/form-data; boundary=" + p.first);
     msg.headers().add("Authorization", format("Bot %", discord::detail::bot_instance->token));
-    msg.headers().add("Content-Type", format("multipart/form-data;boundary=\"%\"", boundary));
     msg.headers().add("User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)");
-    msg.headers().add("Content-Length", form_data.size());
+    msg.headers().add("Accept", "*/*");
 
     auto send_lambda = [&]() {
         return client.request(msg).then([=](http_response resp_val) {
@@ -126,7 +115,58 @@ pplx::task<discord::Message> discord::Channel::send(EmbedBuilder const &embed, s
             auto next_action = static_cast<int>(handle_resp(resp_val.status_code()));
 
             auto response = resp_val.extract_utf8string(true).get();
-            std::cout << response << std::endl;
+            auto parsed_json = response.empty() ? nlohmann::json{} : nlohmann::json::parse(response);
+
+            if (next_action == success) {
+                return OK(parsed_json);
+            } else if (next_action == resend_request) {
+                return ERR<nlohmann::json>("", {}, {}, resp_val);
+            } else {
+                return ERR<nlohmann::json>(get_value(parsed_json, "message", ""), {}, get_default_headers(), resp_val);
+            }
+        });
+    };
+    return send_lambda().then([&](request_response task) {
+        while (!task.get().is_ok()) {
+            if (task.get().unwrap_err().response.status_code() == 429) {
+                task = send_lambda();
+            }
+        }
+        return discord::Message{ task.get().unwrap() };
+    });
+}
+
+pplx::task<discord::Message> discord::Channel::send(EmbedBuilder const &embed, std::vector<File> const &files, bool tts, std::string const &content) const {
+    discord::detail::bot_instance->wait_for_ratelimits(id, channel);
+    std::vector<std::pair<std::ifstream, std::string>> pass_data = {};
+    for (auto const &each : files) {
+        std::string custom_filename = each.spoiler ? "SPOILER_" : "";
+        if (is_image_or_gif(each.filepath)) {
+            pass_data.emplace_back(std::ifstream{ each.filepath, std::ios::binary }, custom_filename + each.filename);
+        } else {
+            pass_data.emplace_back(std::ifstream{ each.filepath }, custom_filename + each.filename);
+        }
+    }
+
+    auto p = generate_form_data(pass_data, nlohmann::json{
+                                               { "content", content },
+                                               { "tts", tts },
+                                               { "embed", embed.to_json() } });
+
+    http_client client{ { endpoint("/channels/%/messages", this->id) } };
+    http_request msg{ methods::POST };
+
+    msg.set_body(p.second, "multipart/form-data; boundary=" + p.first);
+    msg.headers().add("Authorization", format("Bot %", discord::detail::bot_instance->token));
+    msg.headers().add("User-Agent", "DiscordBot (http://www.github.com/yuhanun/dpp, 0.0.0)");
+    msg.headers().add("Accept", "*/*");
+
+    auto send_lambda = [&]() {
+        return client.request(msg).then([=](http_response resp_val) {
+            discord::detail::bot_instance->handle_ratelimits(resp_val.headers(), this->id, channel);
+            auto next_action = static_cast<int>(handle_resp(resp_val.status_code()));
+
+            auto response = resp_val.extract_utf8string(true).get();
             auto parsed_json = response.empty() ? nlohmann::json{} : nlohmann::json::parse(response);
 
             if (next_action == success) {

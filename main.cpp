@@ -22,13 +22,9 @@ int main() {
                                                                        << "ID: " << bot.id << std::endl
                                                                        << "-----------------------------" << std::endl; });
 
-    // struct File {
-    //     std::string filename;
-    //     std::string filepath;
-    //     bool spoiler;
-    // };
     bot.register_command("test", [](discord::Context const& ctx) mutable {
         ctx.channel->send(discord::EmbedBuilder().set_title("test"), { { "test.txt", "todo.txt", true } }, false, "hello");
+        ctx.channel->send("Hello", { { "test.txt", "todo.txt", false } }, true);
     });
 
     return bot.run();

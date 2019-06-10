@@ -172,7 +172,7 @@ namespace discord {
 #endif
     }
 
-    std::pair<std::string, std::string> generate_form_data(std::vector<std::pair<std::unique_ptr<std::ifstream> const &, std::string const &>> const &strm, nlohmann::json const &json_payload) {
+    std::pair<std::string, std::string> generate_form_data(std::vector<std::pair<std::ifstream, std::string>> &strm, nlohmann::json const &json_payload = {}) {
         std::stringstream data;
 
         std::string boundary{};
@@ -180,14 +180,17 @@ namespace discord {
             boundary += (rand() % 26) + 'A';
         }
 
-        for (auto const &each : strm) {
+        for (auto &each : strm) {
             std::string filename = "file";
-            data << "--" << boundary;
-            data << " Content-Disposition: form-data; name=\"file\"; filename=\""
-                 << each.second << " Content-Type : application/octet-stream"
-                 << "\" " << read_entire_file(*each.first);
+            data << "--" << boundary << "\r\n";
+            data << "Content-Disposition: form-data; name=\"file\"; filename=\""
+                 << each.second << "\"\r\nContent-Type: application/octet-stream\r\n\r\n"
+                 << read_entire_file(each.first) << "\r\n\r\n";
         }
-        data << "--" << boundary << " Content-Disposition: form-data; name=\"payload_json\" " << json_payload.dump();
+        if (json_payload.size()) {
+            data << "--" << boundary << "\r\nContent-Disposition: form-data; name=\"payload_json\"\r\n\r\n"
+                 << json_payload.dump() << "\r\n";
+        }
         data << "--" << boundary << "--";
 
         return { boundary, data.str() };
