@@ -5,6 +5,17 @@
 
 namespace discord {
     class Channel : public Object {
+        /**
+     * @brief a discord::Channel object, to which messages can be sent
+     * 
+     * ```cpp
+     *      discord::utils::get(bot.channels, [](auto& chan){ return chan->id == 570591769302007838; }).send("Hello!").wait();
+     * 
+     *      // or
+     * 
+     *      discord::Channel{ 570591769302007838 }.send("Hello!").wait();
+     * ```
+     */
     public:
         Channel() = default;
         Channel(snowflake id);
@@ -39,20 +50,20 @@ namespace discord {
         pplx::task<void> edit_position(int);
 
     public:
-        int type;
-        int bitrate;
-        int position;
-        int user_limit;
-        int rate_limit_per_user;
+        int type; /**< Type of the channel */
+        int bitrate; /**< Bitrate of the channel */
+        int position; /**< Position of the channel */
+        int user_limit; /**< User limit of the (Voice)channel */
+        int rate_limit_per_user; /**< Ratelimits for the (Voice)channel */
 
-        std::shared_ptr<discord::Channel> parent;
-        snowflake last_message_id;
+        std::shared_ptr<discord::Channel> parent; /**< Parent (Category)channel, can be default constructed */
+        snowflake last_message_id; /**< Snowflake, id, of the last message sent */
 
-        std::string name;
-        std::string topic;
+        std::string name; /**< Name of the channel */
+        std::string topic; /**< Topic of the channel */
 
-        std::shared_ptr<discord::Guild> guild;
-        std::vector<std::shared_ptr<discord::User>> recipients;
-        std::vector<discord::PermissionOverwrites> overwrites;
+        std::shared_ptr<discord::Guild> guild; /**< Pointer to the guild this belongs to, can be default constructed */
+        std::vector<std::shared_ptr<discord::User>> recipients; /**< Recipients of this channel, can be default constructed */
+        std::vector<discord::PermissionOverwrites> overwrites; /**< PermissionOverwrites for this channel */
     };
 } // namespace discord

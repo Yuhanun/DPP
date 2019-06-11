@@ -5,6 +5,9 @@
 
 namespace discord {
     struct AuditLogKeyChange {
+        /**
+         * @brief A class that holds all possible things that changed in an Auditlog
+         */
         AuditLogKeyChange(const nlohmann::json&, snowflake);
         AuditLogKeyChange() = default;
         std::string name;
@@ -49,6 +52,9 @@ namespace discord {
     };
 
     class AuditLogEntry {
+        /**
+         * @brief An entry in AuditLogs
+         */
     public:
         AuditLogEntry() = default;
         AuditLogEntry(nlohmann::json const&);
@@ -75,6 +81,9 @@ namespace discord {
     };
 
     struct AuditLogs {
+        /**
+         * @brief A struct that holds all the audit logs, their corresponding users and webhooks.
+         */
         AuditLogs() = default;
         AuditLogs(const nlohmann::json&);
         std::vector<discord::Webhook> webhooks;

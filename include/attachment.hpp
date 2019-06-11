@@ -3,16 +3,19 @@
 
 namespace discord {
     class Attachment {
+        /**
+         * @class An attachment is a file sent with a discord::Message
+         */
     public:
         Attachment() = default;
         Attachment(nlohmann::json const);
 
-        int size;
-        int width;
-        int height;
-        snowflake id;
-        std::string url;
-        std::string filename;
-        std::string proxy_url;
+        int size; /**< Size of the attachment */
+        int width; /**< Width of the attachment */
+        int height; /**< Height of the attachment */
+        snowflake id; /**< Id of attachment */
+        std::string url; /**< Url to attachment */
+        std::string filename; /**< Filename of attachment */
+        std::string proxy_url; /**< Proxied url of file */
     };
-} // namespace discord
+}  // namespace discord

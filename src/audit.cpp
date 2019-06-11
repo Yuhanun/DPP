@@ -12,6 +12,11 @@ namespace discord {
           user_id{ to_sf(get_value(j, "user_id", "0")) },
           id{ to_sf(get_value(j, "id", "0")) },
           action_type{ AuditLogEventType{ get_value(j, "action_type", AuditLogEventType{}) } } {
+        /**
+         * @brief Constructs an AuditLogEntry from raw event data
+         * 
+         * @param[in] j Raw event data
+         */
         if (j.contains("changes"))
             for (const auto& each : j["changes"])
                 changes.emplace_back(each, target_id);
@@ -28,6 +33,11 @@ namespace discord {
     }
 
     AuditLogs::AuditLogs(const nlohmann::json& j) {
+        /**
+         * @brief Constructs an AuditLogs object from raw event data
+         * 
+         * @param[in] j Raw event data
+         */
         audit_log_entries.emplace_back(AuditLogEntry{ j });
     }
 
@@ -63,6 +73,12 @@ namespace discord {
           nick{ get_value(j, "nick", "") },
           id{ to_sf(get_value(j, "id", "0")) },
           type{ get_value(j, "type", "") } {
+        /**
+         * @brief Constructs an AUditLogKeyChange object from raw event data.
+         * 
+         * @param[in] j Raw event data
+         * @param[in] edited_obj Snowflake of the object that changed
+         */
         owner = discord::User{ to_sf(get_value(j, "owner_id", "0")) };
 
         if (j.contains("permissions")) {

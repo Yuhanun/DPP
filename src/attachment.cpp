@@ -3,6 +3,9 @@
 
 discord::Attachment::Attachment(nlohmann::json const data)
     : size{ data["size"] },
+    /**
+     * @brief Constructs an Attachment from raw event data
+     */
       width{ get_value(data, "width", 0) },
       height{ get_value(data, "height", 0) },
       id{ to_sf(data["id"]) },
