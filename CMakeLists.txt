@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(DPP)
 
+set ( CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/cmake/ )
 find_package(OpenSSL REQUIRED)
 find_package(cpprestsdk REQUIRED NAMES cpprestsdk cpprest)
 find_package(Boost COMPONENTS system date_time REQUIRED)
