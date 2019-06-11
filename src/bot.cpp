@@ -454,7 +454,7 @@ namespace discord {
          * @brief Updates the bot's Presence, the current "playing" or "streaming", etc.
          * 
          * ```cpp
-         *      bot.change_presence(
+         *      bot.update_presence(
          *          discord::Activity{
          *              discord::format("to % guilds", bot.guilds.size()),
          *              presence::activity::listening,

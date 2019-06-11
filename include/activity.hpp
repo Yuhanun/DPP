@@ -10,7 +10,7 @@ namespace discord {
          * Construct this class to change the presence of your bot.
          * 
          * ```cpp
-         *      bot.change_presence(
+         *      bot.update_presence(
          *          discord::Activity{
          *              discord::format("to % guilds", bot.guilds.size()),
          *              presence::activity::listening,

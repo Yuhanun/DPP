@@ -10,8 +10,8 @@
 #include "embedbuilder.hpp"
 #include "events.hpp"
 #include "member.hpp"
-#include "user.hpp"
 #include "role.hpp"
+#include "user.hpp"
 #include "utils.hpp"
 
 int main() {
@@ -33,6 +33,16 @@ int main() {
         }
         ctx.channel->send(output)
             .get();
+    });
+
+    bot.register_command("presence", [](discord::Context ctx) {
+        ctx.bot->update_presence(
+            discord::Activity{
+                "Mehodin is developing!",
+                presence::activity::streaming,
+                presence::status::idle,
+                false,
+                "http://twitch.tv/Mehodin" });
     });
 
     return bot.run();

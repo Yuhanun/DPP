@@ -9,7 +9,7 @@ discord::Activity::Activity(std::string const& name, presence::activity const& t
     * @brief Constructor that should be used for updating your bot's presence
     * 
     * ```cpp
-    *      bot.change_presence(
+    *      bot.update_presence(
     *          discord::Activity{
     *              discord::format("to % guilds", bot.guilds.size()),
     *              presence::activity::listening,
