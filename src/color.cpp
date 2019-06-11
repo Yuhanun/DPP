@@ -14,9 +14,6 @@ discord::Color::Color(int r, int g, int b)
      * @param[in] b Blue value
      * 
      */
-    if (raw_color >= 0) {
-        return;
-    }
     raw_int = (r << 16) + (g << 8) + (b);
 }
 
