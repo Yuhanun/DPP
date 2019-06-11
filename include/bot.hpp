@@ -56,8 +56,6 @@ namespace discord {
         void register_command(std::string const& command_name, std::function<void(discord::Context)> function);
         void update_presence(Activity const&);
 
-        pplx::task<discord::Message> send_message(snowflake, std::string, bool = false);
-        pplx::task<discord::Message> send_message(snowflake, nlohmann::json, bool = false);
         pplx::task<discord::Guild> create_guild(std::string const&, std::string const& = "us-east", int const& = 0, int const& = 0, int const& = 0);
 
         void on_incoming_packet(const websocketpp::connection_hdl&, const client::message_ptr&);

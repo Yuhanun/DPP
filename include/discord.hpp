@@ -147,7 +147,7 @@ namespace discord {
     struct File {
         std::string filename;
         std::string filepath;
-        bool spoiler;
+        bool spoiler = false;
     };
 
     struct RateLimit {

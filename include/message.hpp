@@ -1,6 +1,9 @@
 #pragma once
 #include "object.hpp"
 #include "discord.hpp"
+#include "embedbuilder.hpp"
+#include "attachment.hpp"
+#include "role.hpp"
 
 namespace discord {
     class Message : public Object {

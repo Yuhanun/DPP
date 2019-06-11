@@ -35,12 +35,12 @@ int main() {
             .get();
     });
 
-    bot.register_command("presence", [](discord::Context ctx) {
-        ctx.bot->update_presence(
+    bot.register_command("presence", [&bot](discord::Context ctx) {
+        bot.update_presence(
             discord::Activity{
                 "Mehodin is developing!",
-                presence::activity::streaming,
-                presence::status::idle,
+                discord::presence::activity::streaming,
+                discord::presence::status::idle,
                 false,
                 "http://twitch.tv/Mehodin" });
     });

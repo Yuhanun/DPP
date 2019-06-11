@@ -72,53 +72,6 @@ namespace discord {
         internal_event_map["WEBHOOKS_UPDATE"] = std::bind(&discord::Bot::webhooks_update_event, this, std::placeholders::_1);
     }
 
-    pplx::task<discord::Message> Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
-        /**
-         * @brief Sends a message to a channel.
-         * 
-         * ```cpp
-         *      bot.send_message(bot.channels[0]->id, "hello", false).wait();
-         * ```
-         * 
-         * @param[in] channel_id The snowflake of the channel to which this message should be sent.
-         * @param[in] message_content The content of the message that's going to be sent.
-         * @param[in] tts If set to true, the message will be attempted to be sent as text to speech.
-         * 
-         *  @throws Asserts if the message failed to send, will be changed in the future.
-         *  @return pplx::task<discord::Message> object which contains a discord::Message corresponding to the message that just sent.
-         */
-        return send_request(methods::POST,
-                            get_channel_link(channel_id), channel_id, channel,
-                            { { "content", message_content }, { "tts", tts } })
-            .then([](request_response const &resp) {
-                return discord::Message{ resp.get().unwrap() };
-            });
-    }
-
-    pplx::task<discord::Message> Bot::send_message(snowflake channel_id, nlohmann::json message_content, bool tts) {
-        /**
-         *  @brief Sends a message to a channel.
-         * 
-         * ```cpp
-         *      bot.send_message(bot.channels[0]->id, { { "content", "Hello" } }, false).wait();
-         * ```
-         * 
-         *  @param[in] channel_id The snowflake of the channel to which this message should be sent.
-         *  @param[in] message_content The payload that will be sent to the discord API.
-         *  @param[in] tts If set to true, the message will be attempted to be sent as text to speech.
-         * 
-         *  @throws Asserts if the message failed to send, will be changed in the future.
-         *  @return pplx::task<discord::Message> object which contains a discord::Message corresponding to the message that just sent.
-         */
-
-
-        message_content["tts"] = tts;
-        return send_request(methods::POST, get_channel_link(channel_id), channel_id, channel, message_content)
-            .then([](request_response const &resp) {
-                return discord::Message{ resp.get().unwrap() };
-            });
-    }
-
     void Bot::on_incoming_packet(const websocketpp::connection_hdl &, const client::message_ptr &msg) {
         /**
          * @brief Incoming packet handler
@@ -888,6 +841,9 @@ namespace discord {
         auto g_id = to_sf(data["guild_id"]);
         auto mem_id = to_sf(data["user"]["id"]);
         auto guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
+        if (!guild) {
+            return;
+        }
         auto member = discord::utils::get(guild->members, [=](auto &mem) { return mem->id == mem_id; });
         if (!member) {
             member = std::make_shared<discord::Member>(guild->get_member(mem_id).get());

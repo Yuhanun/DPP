@@ -1,7 +1,7 @@
 import os
 import time
 
-use_clang = False
+use_clang = True
 
 if not os.path.isdir("build"):
     os.mkdir("build")
