@@ -37,7 +37,7 @@ namespace discord {
 
         pplx::task<void> bulk_delete(std::vector<discord::Message>&);
 
-        pplx::task<void> edit(nlohmann::json&);
+        pplx::task<discord::Channel> edit(nlohmann::json&);
         pplx::task<void> remove();
 
         // TODO: avatar
