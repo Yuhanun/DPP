@@ -18,9 +18,9 @@ namespace discord {
         Color(int);
 
     public:
-        int raw_int;
-        int r;
-        int g;
-        int b;
+        int raw_int; /**< Combined RGB value */
+        int r; /**< Red value */
+        int g; /**< Green value */
+        int b; /**< Blue value */
     };
 } // namespace discord
