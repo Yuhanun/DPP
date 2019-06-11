@@ -5,9 +5,26 @@
 
 discord::Activity::Activity(std::string const& name, presence::activity const& type, std::string const& status, bool const& afk, std::string const& url)
     : afk{ afk }, url{ url }, name{ name }, status{ status }, type{ type } {
+    /**
+    * @brief Constructor that should be used for updating your bot's presence
+    * 
+    * ```cpp
+    *      bot.change_presence(
+    *          discord::Activity{
+    *              discord::format("to % guilds", bot.guilds.size()),
+    *              presence::activity::listening,
+    *              presence::status::dnd,
+    *              false
+    *          }
+    *      )
+    * ```
+    */
 }
 
 discord::Activity::Activity(nlohmann::json const data) {
+    /**
+     * @brief Internal function used for constructing discord::Activity objects.
+     */
     name = data["name"];
     type = data["type"];
 
@@ -53,6 +70,13 @@ discord::Activity::Activity(nlohmann::json const data) {
 
 
 nlohmann::json discord::Activity::to_json() const {
+    /**
+     * @brief Creates JSON that's able to be sent to the server for updating presence
+     * 
+     * Shouldn't have to be used by a user.
+     * 
+     * @return Returns a json payload, ready to send to the server
+     */
     auto payload = nlohmann::json({ { "game", { { "name", name }, { "type", static_cast<int>(type) } } },
                                     { "status", status },
                                     { "afk", afk },

@@ -30,43 +30,43 @@ namespace discord {
 
         nlohmann::json to_json() const;
 
-        bool afk;
+        bool afk; /**< Whether the user this activity belongs to is afk */
 
         struct {
-            std::string id;
-            size_t current_size;
-            size_t max_size;
-        } party;
+            std::string id; /**< Id of the party */
+            size_t current_size; /**< Current size of the party */
+            size_t max_size; /**< Maximum size of the party */
+        } party; /**< The party of the user, might be default constructed */
 
         struct {
-            std::string large_image;
-            std::string large_text;
-            std::string small_image;
-            std::string small_text;
-        } assets;
+            std::string large_image; /**< Hash of the large image, will be replaced with an Asset */
+            std::string large_text; /**< The large text of the user his activity */
+            std::string small_image; /**< Hash of the small image, will be replaced with an Asset */
+            std::string small_text; /**< The small text of the user his activity */
+        } assets; /**< Assets that belong to this activity */
 
         struct {
-            std::string join;
-            std::string spectate;
-            std::string match;
-        } secrets;
+            std::string join; /**< Secret for joining this party */
+            std::string spectate; /**< Secret for spectating this game */
+            std::string match; /**< Secret for this specific instanced match */
+        } secrets; /**< Secrets that belong to this activity */
 
-        bool instance;
-        int flags;
+        bool instance; /**< Whether or not the activity is an instanced game session */
+        int flags;     /**< Flags of this activity `OR`d together, describes which fields of this struct are populated, check <a href="https://discordapp.com/developers/docs/topics/gateway#activity-object-activity-flags">this</a> for more info */
 
         struct {
-            discord::datetime start;
-            discord::datetime end;
-        } timestamps;
+            discord::datetime start; /**< Time when the activity started */
+            discord::datetime end; /**< Time when the activity ends */
+        } timestamps; /**< Timestamps for start and/or end of the game */
 
-        std::string state;
-        std::string details;
-        snowflake application_id;
+        std::string state; /**< The user's current party status */
+        std::string details; /**< What the player is currently doing */
+        snowflake application_id; /**< Application ID for the game */
 
-        std::string url;
-        std::string name;
-        std::string status;
+        std::string url; /**< Stream url, is validated when `type` is presence::activity::streaming */
+        std::string name; /**< The activity's name */
+        std::string status; /**< Only used for sending a presence to the gateway */
 
-        presence::activity type;
+        presence::activity type; /**< The type of the activity */
     };
 }  // namespace discord
