@@ -21,16 +21,18 @@ namespace discord {
     Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
         : ready{ false }, token{ token }, prefix{ prefix }, message_cache_count{ message_cache_count } {
         /**
-         *  @brief Constructs a discord::Bot object
+         * @brief Constructs a discord::Bot object
          * 
-         *  @param[in] token The discord bot token which should be used for running your bot.
-         *  @param[in] prefix The bot's prefix that should be used for command handling.
-         *  @param[in] message_cache_count Amount of messages that should be cached by the bot. Useful for message_delete and message_update events.
-         *  ~~~~~~~~~~~~~~~~~~{.cpp}
-         *       discord::Bot bot{TOKEN, ".", 5000};
-         *  ~~~~~~~~~~~~~~~~~~~
-         *  No more than one discord::Bot should be constructed and ran at a time to prevent using tokens that don't correspond with their bot instances.
-         *  @return discord::Bot, this is a constructor
+         * ```cpp
+         *      discord::Bot bot{TOKEN, ".", 5000};
+         * ```
+         * 
+         * @param[in] token The discord bot token which should be used for running your bot.
+         * @param[in] prefix The bot's prefix that should be used for command handling.
+         * @param[in] message_cache_count Amount of messages that should be cached by the bot. Useful for message_delete and message_update events.
+         * 
+         * No more than one discord::Bot should be constructed and ran at a time to prevent using tokens that don't correspond with their bot instances.
+         * @return discord::Bot, this is a constructor
          */
         discord::detail::bot_instance = this;
         internal_event_map["HELLO"] = std::bind(&discord::Bot::hello_event, this, std::placeholders::_1);
@@ -72,15 +74,15 @@ namespace discord {
 
     pplx::task<discord::Message> Bot::send_message(snowflake channel_id, std::string message_content, bool tts) {
         /**
-         *  @brief Sends a message to a channel.
+         * @brief Sends a message to a channel.
          * 
-         *  @param[in] channel_id The snowflake of the channel to which this message should be sent.
-         *  @param[in] message_content The content of the message that's going to be sent.
-         *  @param[in] tts If set to true, the message will be attempted to be sent as text to speech.
-         * 
-         *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *      bot.send_message(bot.channels[0]->id, "hello", false).wait();
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         * ```
+         * 
+         * @param[in] channel_id The snowflake of the channel to which this message should be sent.
+         * @param[in] message_content The content of the message that's going to be sent.
+         * @param[in] tts If set to true, the message will be attempted to be sent as text to speech.
          * 
          *  @throws Asserts if the message failed to send, will be changed in the future.
          *  @return pplx::task<discord::Message> object which contains a discord::Message corresponding to the message that just sent.
@@ -97,18 +99,18 @@ namespace discord {
         /**
          *  @brief Sends a message to a channel.
          * 
+         * ```cpp
+         *      bot.send_message(bot.channels[0]->id, { { "content", "Hello" } }, false).wait();
+         * ```
+         * 
          *  @param[in] channel_id The snowflake of the channel to which this message should be sent.
          *  @param[in] message_content The payload that will be sent to the discord API.
          *  @param[in] tts If set to true, the message will be attempted to be sent as text to speech.
          * 
-         *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-         *      bot.send_message(bot.channels[0]->id, { { "content", "Hello" } }, false).wait();
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-         * 
          *  @throws Asserts if the message failed to send, will be changed in the future.
          *  @return pplx::task<discord::Message> object which contains a discord::Message corresponding to the message that just sent.
          */
-        
+
 
         message_content["tts"] = tts;
         return send_request(methods::POST, get_channel_link(channel_id), channel_id, channel, message_content)
@@ -261,14 +263,14 @@ namespace discord {
          * Registers a command that will call \ref function when \ref prefix + \ref command_name has been received in any channel that the bot has access to.
          * 
          * Example:
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *     discord::Bot bot{".", TOKEN};
          *     bot.register_command("hello", [](discord::Context ctx){
          *          ctx.channel->send("Hello!").wait();
          *     });
          * 
          *     bot.run();
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         * ```
          * 
          * This will trigger when someone types ".hello" in any chat.
          * 
@@ -374,22 +376,23 @@ namespace discord {
     pplx::task<discord::Guild> Bot::create_guild(std::string const &name, std::string const &region, int const &verification_level, int const &default_message_notifications, int const &explicit_content_filter) {
         /**
          * @brief Creates a new Guild.
-         * @param[in] name Name of the guild that's going to get created
-         * @param[in] region Region that the guild is going to be based in on discord's servers, these regions are obtainable through the \ref get_voice_regions function.
-         * @param[in] verification_level Verification level of the guild 0 for None, 1 for Low, 2 for Medium, 3 for High, 4 for Very high.
-         * @param[in] default_message_notifications Default message notification level, 0 for all messages, 1 for mentions only
-         * @param[in] explicit_content_filter Explicit content filter in the guild, 0 for disabled, 1 for members without roles, 2 for all members
          * 
          * This method should only be used if your bot is in less than 10 guilds, otherwise this will result in Undefined Behavior
          * 
-         * ~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *     discord::Guild new_guild = bot.create_guild("My test guild", "us-west", 0, 0, 1).get();
          *     for (auto& channel : new_guild.channels){
          *         if (channel->type == guild_text_channel) {
          *             channel->send("Hello! This is a newly created guild!").wait();
          *         }
          *     }
-         * ~~~~~~~~~~~~~~~~~~~~~~
+         * ```
+         * 
+         * @param[in] name Name of the guild that's going to get created
+         * @param[in] region Region that the guild is going to be based in on discord's servers, these regions are obtainable through the \ref get_voice_regions function.
+         * @param[in] verification_level Verification level of the guild 0 for None, 1 for Low, 2 for Medium, 3 for High, 4 for Very high.
+         * @param[in] default_message_notifications Default message notification level, 0 for all messages, 1 for mentions only
+         * @param[in] explicit_content_filter Explicit content filter in the guild, 0 for disabled, 1 for members without roles, 2 for all members
          * 
          * @throws discord::Guild::Guild Anything that the discord::Guild constructor can throw
          * 
@@ -420,14 +423,14 @@ namespace discord {
          * Keep in mind that it is not guaranteed that all the VoiceRegion objects are properly constructed.
          * The members that are not contained in discord's response will be default initialized if discord's response is valid JSON but does not contain all keys.
          * 
-         * ~~~~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *      for (discord::VoiceRegion const& region : bot.get_voice_regions()) {
          *          if (!region.deprecated) {
          *              bot.create_guild("Test guild", region.name).wait();
          *              break;
          *          }
          *      }
-         * ~~~~~~~~~~~~~~~
+         * ```
          * 
          * @return pplx::task<std::vector<discord::VoiceRegion>> Which eventually yields a vector with discord::VoiceRegion objects.
          */
@@ -450,9 +453,7 @@ namespace discord {
         /**
          * @brief Updates the bot's Presence, the current "playing" or "streaming", etc.
          * 
-         * @param[in] act A discord::Activity object, constructed through discord::Activity::Activity(std::string const& name, presence::activity const& type, std::string const& status, bool const& afk, std::string const& url);
-         * 
-         * ~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *      bot.change_presence(
          *          discord::Activity{
          *              discord::format("to % guilds", bot.guilds.size()),
@@ -461,7 +462,9 @@ namespace discord {
          *              false
          *          }
          *      )
-         * ~~~~~~~~~~~~
+         * ```
+         * 
+         * @param[in] act A discord::Activity object, constructed through discord::Activity::Activity(std::string const& name, presence::activity const& type, std::string const& status, bool const& afk, std::string const& url);
          * 
          * @return void
          */
@@ -927,9 +930,9 @@ namespace discord {
         /**
          * @brief Fetch the current user (bot) from the discord api
          * 
-         * ~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *      std::cout << bot.get_current_user().get() << std::endl;
-         * ~~~~~~~~~~~~
+         * ```
          * 
          * @return pplx::task<discord::User> that will eventually yield a discord::User object, which is the current user, the bot.
          */
@@ -943,12 +946,12 @@ namespace discord {
         /**
          * @brief Fetch a user (discord::User) from the discord api
          * 
+         * ```cpp
+         *      std::cout << bot.get_user(302517149359144962).get() << std::endl;
+         * ```
+         * 
          * @param[in] u_id the snowflake id of the user to fetch
          * 
-         * ~~~~~~~~~~~~{.cpp}
-         *      std::cout << bot.get_user(302517149359144962).get() << std::endl;
-         * ~~~~~~~~~~~~~
-         *
          * @throws json Anything that discord::User's constructor can throw.
          * @return pplx::task<discord::User> that will eventually yield a discord::User object, which is the user with id \ref u_id
          */
@@ -962,11 +965,11 @@ namespace discord {
         /**
          * @brief Edits the current user by making a call to the discord api
          * 
-         * @param[in] username The new username of your bot.
-         * 
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *      bot.edit("New_username").wait();
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~
+         * ```
+         * 
+         * @param[in] username The new username of your bot.
          * 
          * Avatar is not supported as of right now, support might come soon.
          * 
@@ -992,18 +995,18 @@ namespace discord {
         /**
          * @brief Gets \limit amount of guilds that the current bot user is in
          * 
-         * @param[in] limit The amount of guilds to fetch at most.
-         * @param[in] before If this is set, only guilds with a snowflake, id, lower than \ref before will be received.
-         * @param[in] after If this is set, only guilds with a snowflake, id, higher than \ref after will be received.
-         * 
          * Set before and after to the default value if you want any guild.
          * If limit is set to 0, 100 guilds will be yielded.
          * 
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *      for (auto const& guild : bot.get_guilds(150, 0, 0)) { 
          *          std::cout << guild << std::endl; 
          *      }
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~
+         * ```
+         * 
+         * @param[in] limit The amount of guilds to fetch at most.
+         * @param[in] before If this is set, only guilds with a snowflake, id, lower than \ref before will be received.
+         * @param[in] after If this is set, only guilds with a snowflake, id, higher than \ref after will be received.
          * 
          * @throws json Anything that discord::Guild's constructor can throw
          * @return pplx::task<std::vector<discord::Guild>> that will eventually yield the std::vector<discord::Guild> object, which contains the guilds that were just yielded.
@@ -1036,16 +1039,17 @@ namespace discord {
         /**
          * @brief Creates a group DM.
          * 
+         * 
          * @param[in] acces_tokens A vector of std::strings of the users you want to add their discord access_tokens.
          * @param[in] nicks A json dictionary representation of user snowflakes to their respective nicknames.
          * 
          * For example, a \ref nicks could be the following:
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.json}
+         * ```json
          *      {
          *          { 518149726294769676, "Luke" },
          *          { 553478921870508061, "Jake" }
          *      }
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         * ```
          * 
          * @throws json Anything that discord::Channel's constructor can throw
          * @return pplx::task<discord::Channel> that will eventually yield the new discord::Channel object, which is the new dm_channel that was just created.
@@ -1065,11 +1069,11 @@ namespace discord {
         /**
          * @brief Gets the bot its connections
          * 
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.json}
+         * ```cpp
          *      for (auto const& each : bot.get_connections().get()) {
          *         std::cout << each.name << " -> " << each.id << std::endl;
          *      }
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         * ```
          * 
          * @throws json Anything that nlohmann::json can throw
          * @return pplx::task<std::vector<discord::Connection>> that will eventually yield the the std::vector<discord::Connection>, which contains the connections that your bot has.
@@ -1098,11 +1102,11 @@ namespace discord {
         /**
          * @brief Fetch a guild (discord::Guild) from the discord api
          * 
-         * @param[in] g_id The snowflake, id, of the guild to fetch.
-         * 
-         * ~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *      std::cout << bot.get_guild(562636135428521984).get() << std::endl;
-         * ~~~~~~~~~~~~~
+         * ```
+         * 
+         * @param[in] g_id The snowflake, id, of the guild to fetch.
          *
          * @throws json Anything that discord::Guild's constructor can throw.
          * @return pplx::task<discord::Guild> that will eventually yield a discord::Guild object, which is the Guild with id \ref g_id
@@ -1117,11 +1121,11 @@ namespace discord {
         /**
          * @brief Fetch a channel (discord::Channel) from the discord api
          * 
-         * @param[in] chan_id The snowflake, id, of the channel to fetch
-         * 
-         * ~~~~~~~~~~~~{.cpp}
+         * ```cpp
          *      std::cout << bot.get_channel(570591769302007838).get() << std::endl;
-         * ~~~~~~~~~~~~~
+         * ```
+         * 
+         * @param[in] chan_id The snowflake, id, of the channel to fetch
          *
          * @throws json Anything that discord::Channel's constructor can throw.
          * @return pplx::task<discord::Channel> that will eventually yield a discord::Channel object, which is the channel with id \ref chan_id

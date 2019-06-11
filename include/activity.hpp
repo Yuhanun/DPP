@@ -3,6 +3,26 @@
 
 namespace discord {
     class Activity {
+        /**
+         * @class
+         * @brief discord::Activity class, the activity of a user
+         * 
+         * Construct this class to change the presence of your bot.
+         * 
+         * ```cpp
+         *      bot.change_presence(
+         *          discord::Activity{
+         *              discord::format("to % guilds", bot.guilds.size()),
+         *              presence::activity::listening,
+         *              presence::status::dnd,
+         *              false
+         *          }
+         *      )
+         * ```
+         * 
+         * @throws Anything any of its members can throw.
+         */
+
     public:
         Activity() = default;
         Activity(nlohmann::json const);
@@ -10,7 +30,6 @@ namespace discord {
 
         nlohmann::json to_json() const;
 
-    private:
         bool afk;
 
         struct {
@@ -50,4 +69,4 @@ namespace discord {
 
         presence::activity type;
     };
-} // namespace discord
+}  // namespace discord
