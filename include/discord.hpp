@@ -39,13 +39,16 @@ namespace discord {
     struct AuditLogKeyChange;
 
     namespace detail {
-        inline discord::Bot* bot_instance;
-    }  // namespace detail
+        inline discord::Bot* bot_instance; /**< Global instance of your bot */
+    }                                      // namespace detail
 
     typedef int64_t snowflake;
     typedef boost::posix_time::ptime datetime;
 
     enum object_type {
+        /**
+         * @brief Enum used for object types, either role or member
+         */
         role,
         member
     };
@@ -108,6 +111,9 @@ namespace discord {
 
     namespace presence {
         struct status {
+            /**
+             * @brief Struct used for presence updates
+             */
             inline const static std::string online = "online";
             inline const static std::string dnd = "dnd";
             inline const static std::string idle = "idle";
@@ -116,44 +122,62 @@ namespace discord {
         };
 
         enum class activity : short {
+            /**
+             * @brief Enum used for presence updates
+             */
             playing,
             streaming,
             listening,
             watching
         };
-    } // namespace presence
+    }  // namespace presence
 
     struct VoiceRegion {
-        std::string id;
-        std::string name;
-        bool vip;
-        bool optimal;
-        bool deprecated;
-        bool custom;
+        /**
+         * @brief Struct that represents a voice region
+         */
+        std::string id;   /**< Id of the voice region */
+        std::string name; /**< Name of the voice region */
+        bool vip;         /**< Whether or not this voice region is VIP server only */
+        bool optimal;     /**< Whether this is the optimal voice region for your bot instance */
+        bool deprecated;  /**< Whether this voice region is deprecated */
+        bool custom;      /**< Whether this is a custom voice region */
     };
 
     struct Connection {
-        snowflake id;
-        std::string name;
-        std::string type;
-        bool revoked;
-        std::vector<Integration> integrations;
-        bool verified;
-        bool friend_sync;
-        bool show_activity;
-        int visibility;
+        /**
+         * @brief Represents a connection with a user, for example twitch.
+         */
+        snowflake id;                          /**< Snowflake, id, of this connection */
+        std::string name;                      /**< Name of this connection */
+        std::string type;                      /**< Type of this connection */
+        bool revoked;                          /**< Whether this connection has been revoked */
+        std::vector<Integration> integrations; /**< A vector of integration objects */
+        bool verified;                         /**< Whether this connection has been verified */
+        bool friend_sync;                      /**< Whether friend sync is enabled for this connection */
+        bool show_activity;                    /**< Whether this connection shows activity */
+        int visibility;                        /**< Visibility level for this connection */
     };
 
     struct File {
-        std::string filename;
-        std::string filepath;
-        bool spoiler = false;
+        /**
+         * @brief Struct used for sending files
+         * 
+         * ```cpp
+         *      channel.send("hello!", { { "file.txt", "/usr/bin/test.txt", true } });
+         */
+        std::string filename; /**< Filename that discord should display */
+        std::string filepath; /**< Path to your local file */
+        bool spoiler = false; /**< Whether or not this file is spoilered */
     };
 
     struct RateLimit {
-        int rate_limit_limit = 500;
-        int rate_limit_remaining = 500;
-        datetime ratelimit_reset = datetime{};
+        /**
+         * @brief Internal ratelimit struct
+         */
+        int rate_limit_limit = 500;            /**< Maximum amount of requests for this bucket */
+        int rate_limit_remaining = 500;        /**< Remaining request count for this bucker */
+        datetime ratelimit_reset = datetime{}; /**< Datetime at which the bucket resets */
     };
 
     typedef pplx::task<Result<nlohmann::json>> request_response;

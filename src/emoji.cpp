@@ -7,6 +7,9 @@
 
 discord::Emoji::Emoji(nlohmann::json event)
     : discord::Object(to_sf(get_value(event, "id", "0"))) {
+    /**
+     * @brief Constructs an Emoji from an Emoji JSON representation
+     */
     name = event["name"];
 
     if (event.contains("roles")) {
@@ -43,5 +46,10 @@ discord::Emoji::Emoji(nlohmann::json event)
 }
 
 discord::Emoji::operator std::string() {
+    /**
+     * @brief Gives a string that can be used in messages to send this emoji
+     * 
+     * @return std::string that represents this emoji
+     */
     return format("<%:%:%>", animated ? "a" : "", name, id);
 }
