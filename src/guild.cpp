@@ -12,6 +12,13 @@
 
 discord::Guild::Guild(snowflake id)
     : discord::Object(id) {
+    /**
+     * @brief Constructs a guild from a snowflake
+     * 
+     * @param[in] id Snowflake, id, of the guild to construct
+     * 
+     * Retrieves entire guild from cache, if it doesn't exist only the "id" field is populated
+     */
     auto g = discord::utils::get(discord::detail::bot_instance->guilds, [id](auto const& guild) {
         return guild->id == id;
     });
@@ -22,6 +29,13 @@ discord::Guild::Guild(snowflake id)
 
 discord::Guild::Guild(nlohmann::json const guild)
     : discord::Object(to_sf(guild["id"])),
+    /**
+     * @brief Constructs a guild from event data
+     * 
+     * @param[in] guild Raw event data
+     * 
+     * Constructs a guild from raw event data, all fields will be populated if they are in the data
+     */
       mfa_level{ get_value(guild, "mfa_level", 0) },
       afk_timeout{ get_value(guild, "afk_timeout", 0) },
       member_count{ get_value(guild, "member_count", 0) },
@@ -97,6 +111,15 @@ discord::Guild::Guild(nlohmann::json const guild)
 }
 
 discord::Guild& discord::Guild::update(nlohmann::json const data) {
+    /**
+     * @brief Updates a guild from raw event data
+     * 
+     * Should not be used by a user.
+     * 
+     * @param[in] data Raw event data
+     * 
+     * @return Returns a reference to *this
+     */
     update_object_bulk(data,
                        "mfa_level", mfa_level,
                        "afk_timeout", afk_timeout,
@@ -157,6 +180,18 @@ discord::Guild& discord::Guild::update(nlohmann::json const data) {
 }
 
 pplx::task<std::vector<discord::Webhook>> discord::Guild::get_webhooks() {
+    /**
+     * @brief Gets the webhooks belonging to a guild
+     * 
+     * ```cpp
+     *      auto webhooks = guild.get_webhooks().get();
+     *      for (auto const& each : webhooks) {
+     *          std::cout << each.id << std::endl;
+     *      }
+     * ```
+     * 
+     * @return Returns a pplx::task which eventually yields a vector will all the webhooks.
+     */
     return send_request(methods::GET,
                         endpoint("/guilds/%/webhooks", id), id, guild)
         .then([](request_response const& response) {
