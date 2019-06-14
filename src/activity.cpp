@@ -36,6 +36,7 @@ discord::Activity::Activity(nlohmann::json const data) {
     std::optional<nlohmann::json> ts_obj = get_value_optional<nlohmann::json>(data, "timestamps");
 
     if (ts_obj.has_value()) {
+        timestamps = timestamp{};
         auto millis = get_value_optional<size_t>(ts_obj.value(), "start");
         if (millis.has_value()) {
             if (millis != 0) {
@@ -56,6 +57,7 @@ discord::Activity::Activity(nlohmann::json const data) {
 
     auto party_obj = get_value_optional<nlohmann::json>(data, "party");
     if (party_obj.has_value()) {
+        party = party_t{};
         party->id = get_value_optional<std::string>(party_obj.value(), "id");
         auto size = get_value_optional<nlohmann::json>(party_obj.value(), "size");
         if (size.has_value()) {
@@ -66,6 +68,7 @@ discord::Activity::Activity(nlohmann::json const data) {
 
     auto assets_obj = get_value_optional<nlohmann::json>(data, "assets");
     if (assets_obj.has_value()) {
+        assets = asset_t{};
         assets->large_image = get_value_optional<std::string>(assets_obj.value(), "large_image");
         assets->large_text = get_value_optional<std::string>(assets_obj.value(), "large_text");
         assets->small_image = get_value_optional<std::string>(assets_obj.value(), "small_image");
@@ -74,6 +77,7 @@ discord::Activity::Activity(nlohmann::json const data) {
 
     auto secrets_obj = get_value_optional<nlohmann::json>(data, "secrets");
     if (secrets_obj.has_value()) {
+        secrets = secret{};
         secrets->join = get_value_optional<std::string>(secrets_obj.value(), "join");
         secrets->spectate = get_value_optional<std::string>(secrets_obj.value(), "spectate");
         secrets->spectate = get_value_optional<std::string>(secrets_obj.value(), "match");
