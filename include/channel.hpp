@@ -1,6 +1,5 @@
 #pragma once
 #include "object.hpp"
-#include "discord.hpp"
 #include "permissions.hpp"
 
 namespace discord {

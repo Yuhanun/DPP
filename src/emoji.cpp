@@ -1,8 +1,6 @@
 #include "emoji.hpp"
 #include "guild.hpp"
-#include "object.hpp"
 #include "role.hpp"
-#include "user.hpp"
 #include "utils.hpp"
 
 discord::Emoji::Emoji(nlohmann::json event)
@@ -12,21 +10,22 @@ discord::Emoji::Emoji(nlohmann::json event)
      */
     name = event["name"];
 
-    if (event.contains("roles")) {
-        for (auto const& each : event["roles"]) {
-            [&]() {
-                std::shared_ptr<discord::Role> rl;
-                auto role_id = to_sf(each);
-                for (auto const& gld : discord::detail::bot_instance->guilds) {
-                    for (auto const& role : gld->roles) {
-                        if (role->id == role_id) {
-                            roles.push_back(role);
-                            return;
-                        }
+    if (!event.contains("roles")) {
+        return;
+    }
+    for (auto const& each : event["roles"]) {
+        [&]() {
+            std::shared_ptr<discord::Role> rl;
+            auto role_id = to_sf(each);
+            for (auto const& gld : discord::detail::bot_instance->guilds) {
+                for (auto const& role : gld->roles) {
+                    if (role->id == role_id) {
+                        roles.push_back(role);
+                        return;
                     }
                 }
-            }();
-        }
+            }
+        }();
     }
 
     if (event.contains("user")) {

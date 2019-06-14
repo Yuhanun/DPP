@@ -1,9 +1,11 @@
 #pragma once
-#include "discord.hpp"
 #include "object.hpp"
 #include "user.hpp"
 
 namespace discord {
+
+    typedef int64_t snowflake;
+
     class Emoji : public Object {
         /**
          * @brief Class which represents an Emoji.

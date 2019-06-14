@@ -2,6 +2,7 @@
 #include <discord.hpp>
 
 namespace discord {
+
     class Activity {
         /**
          * @class

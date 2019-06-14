@@ -1,5 +1,6 @@
 #pragma once
-#include "discord.hpp"
+#include <string>
+#include <cstdint>
 
 namespace discord {
 

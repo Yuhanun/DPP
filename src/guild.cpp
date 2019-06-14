@@ -1,9 +1,6 @@
-#include <nlohmann/json.hpp>
-#include "utils.hpp"
 #include "guild.hpp"
+#include "utils.hpp"
 #include "role.hpp"
-#include "member.hpp"
-#include "user.hpp"
 #include "integration.hpp"
 #include "emoji.hpp"
 #include "audit.hpp"

@@ -1,9 +1,10 @@
 #pragma once
-#include <discord.hpp>
+#include "nlohmann/json.hpp"
 #include "user.hpp"
 #include "events.hpp"
 
 namespace discord {
+
     struct AuditLogKeyChange {
         /**
          * @brief A class that holds all possible things that changed in an Auditlog

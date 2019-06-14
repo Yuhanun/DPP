@@ -1,13 +1,7 @@
 #include "channel.hpp"
-#include "attachment.hpp"
-#include "embedbuilder.hpp"
 #include "emoji.hpp"
-#include "guild.hpp"
 #include "invite.hpp"
 #include "message.hpp"
-#include "object.hpp"
-#include "role.hpp"
-#include "user.hpp"
 #include "utils.hpp"
 #include "webhook.hpp"
 

@@ -1,10 +1,12 @@
 #pragma once
+#include "nlohmann/json.hpp"
 #include "object.hpp"
-#include <discord.hpp>
 #include "channel.hpp"
 #include "assets.hpp"
 
 namespace discord {
+
+    typedef int64_t snowflake;
 
     class Guild : public Object {
     public:

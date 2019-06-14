@@ -3,8 +3,6 @@
 
 #include <boost/date_time/local_time/local_time.hpp>
 #include <nlohmann/json.hpp>
-#include <websocketpp/client.hpp>
-#include <websocketpp/config/asio_client.hpp>
 
 #include <cpprest/http_client.h>
 
@@ -55,59 +53,50 @@ namespace discord {
 
     using namespace boost;
 
-    typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
-    typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
-
     using namespace web;
     using namespace web::http;
     using namespace web::http::client;
 
-    using websocketpp::lib::bind;
-
     typedef Events<
-        void(),                                                                                         // HELLO
-        void(),                                                                                         // READY
-        void(),                                                                                         // RESUMED
-        void(),                                                                                         // INVALID_SESSION,
-        void(std::shared_ptr<discord::Channel> const),                                                  // CHANNEL_CREATE
-        void(std::shared_ptr<discord::Channel> const),                                                  // CHANNEL_UPDATE
-        void(std::shared_ptr<discord::Channel> const),                                                  // CHANNEL_DELETE
-        void(std::shared_ptr<discord::Channel> const, datetime const),                                  // CHANNEL_PINS_UPDATE
-        void(std::shared_ptr<discord::Guild> const),                                                    // GUILD_CREATE
-        void(std::shared_ptr<discord::Guild> const),                                                    // GUILD_UPDATE
-        void(std::shared_ptr<discord::Guild> const),                                                    // GUILD_DELETE
-        void(std::shared_ptr<discord::Guild> const, std::shared_ptr<discord::User> const),              // GUILD_BAN_ADD,
-        void(std::shared_ptr<discord::Guild> const, std::shared_ptr<discord::User> const),              // GUILD_BAN_REMOVE,
-        void(std::shared_ptr<discord::Guild> const),                                                    // GUILD_EMOJIS_UPDATE
-        void(std::shared_ptr<discord::Guild> const),                                                    // GUILD_INTEGRATIONS_UPDATE
-        void(std::shared_ptr<discord::Member> const),                                                   // GUILD_MEMBER_ADD
-        void(std::shared_ptr<discord::Guild> const, std::shared_ptr<discord::User> const),              // GUILD_MEMBER_REMOVE
-        void(std::shared_ptr<discord::Member> const),                                                   // GUILD_MEMBER_UPDATE
-        void(),                                                                                         // GUILD_MEMBERS_CHUNK
-        void(std::shared_ptr<discord::Role> const),                                                     // GUILD_ROLE_CREATE
-        void(std::shared_ptr<discord::Role> const),                                                     // GUILD_ROLE_UPDATE
-        void(std::shared_ptr<discord::Role> const),                                                     // GUILD_ROLE_DELETE
-        void(std::shared_ptr<discord::Message> const),                                                  // MESSAGE_CREATE
-        void(std::shared_ptr<discord::Message> const),                                                  // MESSAGE_UPDATE
-        void(std::shared_ptr<discord::Message> const),                                                  // MESSAGE_DELETE
-        void(std::vector<std::shared_ptr<discord::Message>> const),                                     // MESSAGE_DELETE_BULK
-        void(std::shared_ptr<discord::Message> const, discord::Emoji const),                            // MESSAGE_REACTION_ADD
-        void(std::shared_ptr<discord::Message> const, discord::Emoji const),                            // MESSAGE_REACTION_REMOVE
-        void(std::shared_ptr<discord::Message> const),                                                  // MESSAGE_REACTION_REMOVE_ALL
-        void(std::shared_ptr<discord::Member> const),                                                   // PRECENSE_UPDATE
-        void(std::shared_ptr<discord::User> const, std::shared_ptr<discord::Channel> const, datetime),  // TYPING_START
-        void(std::shared_ptr<discord::User> const),                                                     // USER_UPDATE
-        void(nlohmann::json const),                                                                     // VOICE_STATE_UPDATE
-        void(nlohmann::json const),                                                                     // VOICE_SERVER_UPDATE
-        void(std::shared_ptr<discord::Channel> const),                                                  // WEBHOOKS_UPDATE
-        void(snowflake, snowflake, nlohmann::json const),                                               // RAW_MESSAGE_UPDATE
-        void(snowflake, snowflake, nlohmann::json const),                                               // RAW_MESSAGE_DELETE
-        void(snowflake, nlohmann::json const)>                                                          // RAW_MESSAGE_DELETE_BULK
+        void(),                                                       // HELLO
+        void(),                                                       // READY
+        void(),                                                       // RESUMED
+        void(),                                                       // INVALID_SESSION,
+        void(discord::Channel const),                                 // CHANNEL_CREATE
+        void(discord::Channel const),                                 // CHANNEL_UPDATE
+        void(discord::Channel const),                                 // CHANNEL_DELETE
+        void(discord::Channel const, datetime const),                 // CHANNEL_PINS_UPDATE
+        void(discord::Guild const),                                   // GUILD_CREATE
+        void(discord::Guild const),                                   // GUILD_UPDATE
+        void(discord::Guild const),                                   // GUILD_DELETE
+        void(discord::Guild const, discord::User const),              // GUILD_BAN_ADD,
+        void(discord::Guild const, discord::User const),              // GUILD_BAN_REMOVE,
+        void(discord::Guild const),                                   // GUILD_EMOJIS_UPDATE
+        void(discord::Guild const),                                   // GUILD_INTEGRATIONS_UPDATE
+        void(discord::Member const),                                  // GUILD_MEMBER_ADD
+        void(discord::Guild const, discord::User const),              // GUILD_MEMBER_REMOVE
+        void(discord::Member const),                                  // GUILD_MEMBER_UPDATE
+        void(),                                                       // GUILD_MEMBERS_CHUNK
+        void(discord::Role const),                                    // GUILD_ROLE_CREATE
+        void(discord::Role const),                                    // GUILD_ROLE_UPDATE
+        void(discord::Role const),                                    // GUILD_ROLE_DELETE
+        void(discord::Message const),                                 // MESSAGE_CREATE
+        void(discord::Message const),                                 // MESSAGE_UPDATE
+        void(discord::Message const),                                 // MESSAGE_DELETE
+        void(std::vector<discord::Message> const),                    // MESSAGE_DELETE_BULK
+        void(discord::Message const, discord::Emoji const),           // MESSAGE_REACTION_ADD
+        void(discord::Message const, discord::Emoji const),           // MESSAGE_REACTION_REMOVE
+        void(discord::Message const),                                 // MESSAGE_REACTION_REMOVE_ALL
+        void(discord::Member const),                                  // PRECENSE_UPDATE
+        void(discord::User const, discord::Channel const, datetime),  // TYPING_START
+        void(discord::User const),                                    // USER_UPDATE
+        void(nlohmann::json const),                                   // VOICE_STATE_UPDATE
+        void(nlohmann::json const),                                   // VOICE_SERVER_UPDATE
+        void(discord::Channel const),                                 // WEBHOOKS_UPDATE
+        void(snowflake, snowflake, nlohmann::json const),             // RAW_MESSAGE_UPDATE
+        void(snowflake, snowflake, nlohmann::json const),             // RAW_MESSAGE_DELETE
+        void(snowflake, nlohmann::json const)>                        // RAW_MESSAGE_DELETE_BULK
         function_handler;
-
-    using websocketpp::lib::bind;
-    using websocketpp::lib::placeholders::_1;
-    using websocketpp::lib::placeholders::_2;
 
     namespace presence {
         struct status {

@@ -3,8 +3,16 @@
 #include <discord.hpp>
 #include <nlohmann/json.hpp>
 
-namespace discord {
+#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio_client.hpp>
 
+namespace discord {
+    
+    using websocketpp::lib::bind;
+    using websocketpp::lib::placeholders::_1;
+    using websocketpp::lib::placeholders::_2;
+    typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
+    typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
     typedef int64_t snowflake;
 
     class Bot {

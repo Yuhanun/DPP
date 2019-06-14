@@ -1,7 +1,11 @@
 #pragma once
-#include "discord.hpp"
+#include <string>
+#include "unordered_map"
+#include "nlohmann/json.hpp"
 
 namespace discord {
+    typedef int64_t snowflake;
+
     class PermissionOverwrite {
     public:
         PermissionOverwrite() = default;

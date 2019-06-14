@@ -1,5 +1,4 @@
 #include "activity.hpp"
-#include <nlohmann/json.hpp>
 #include "bot.hpp"
 #include "utils.hpp"
 

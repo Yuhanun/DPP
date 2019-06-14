@@ -1,7 +1,11 @@
 #pragma once
-#include "discord.hpp"
+#include "nlohmann/json.hpp"
+#include <cstdint>
 
 namespace discord {
+
+    typedef int64_t snowflake;
+
     class Attachment {
         /**
          * @class An attachment is a file sent with a discord::Message
