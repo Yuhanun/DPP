@@ -156,6 +156,17 @@ namespace discord {
     nlohmann::json get_value(nlohmann::json const &j, const char *s);
 
     template <typename T>
+    inline std::optional<T> get_value_optional(nlohmann::json const &j, const char *key) {
+        if (!j.contains(key)) {
+            return {};
+        }
+        if (j[key].is_null()) {
+            return {};
+        }
+        return j[key];
+    }
+
+    template <typename T>
     void update_object(nlohmann::json const &j, const char *key, T &var) {
         if (!j.contains(key)) {
             return;

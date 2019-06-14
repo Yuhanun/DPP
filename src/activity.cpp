@@ -33,39 +33,54 @@ discord::Activity::Activity(nlohmann::json const data) {
             url = data["url"];
         }
     }
-    auto ts_obj = get_value(data, "timestamps", nlohmann::json({}));
+    std::optional<nlohmann::json> ts_obj = get_value_optional<nlohmann::json>(data, "timestamps");
 
-    auto millis = get_value(ts_obj, "start", 0);
-    if (millis != 0) {
-        timestamps.start = boost::posix_time::from_time_t(millis / 1000) + boost::posix_time::millisec(millis % 1000);
+    if (ts_obj.has_value()) {
+        auto millis = get_value_optional<size_t>(ts_obj.value(), "start");
+        if (millis.has_value()) {
+            if (millis != 0) {
+                timestamps->start = boost::posix_time::from_time_t(millis.value() / 1000) + boost::posix_time::millisec(millis.value() % 1000);
+            }
+        }
+        millis = get_value_optional<size_t>(ts_obj.value(), "end");
+        if (millis.has_value()) {
+            if (millis != 0) {
+                timestamps->end = boost::posix_time::from_time_t(millis.value() / 1000) + boost::posix_time::millisec(millis.value() % 1000);
+            }
+        }
     }
-    millis = get_value(ts_obj, "end", 0);
-    if (millis != 0) {
-        timestamps.end = boost::posix_time::from_time_t(millis / 1000) + boost::posix_time::millisec(millis % 1000);
+
+    application_id = get_value_optional<snowflake>(data, "application_id");
+    details = get_value_optional<std::string>(data, "details");
+    state = get_value_optional<std::string>(data, "state");
+
+    auto party_obj = get_value_optional<nlohmann::json>(data, "party");
+    if (party_obj.has_value()) {
+        party->id = get_value_optional<std::string>(party_obj.value(), "id");
+        auto size = get_value_optional<nlohmann::json>(party_obj.value(), "size");
+        if (size.has_value()) {
+            party->current_size = size.value()[0];
+            party->max_size = size.value()[1];
+        }
     }
 
-    application_id = to_sf(get_value(data, "application_id", "0"));
-    details = get_value(data, "details", "");
-    state = get_value(data, "state", "");
+    auto assets_obj = get_value_optional<nlohmann::json>(data, "assets");
+    if (assets_obj.has_value()) {
+        assets->large_image = get_value_optional<std::string>(assets_obj.value(), "large_image");
+        assets->large_text = get_value_optional<std::string>(assets_obj.value(), "large_text");
+        assets->small_image = get_value_optional<std::string>(assets_obj.value(), "small_image");
+        assets->small_text = get_value_optional<std::string>(assets_obj.value(), "small_text");
+    }
 
-    auto party_obj = get_value(data, "party", nlohmann::json({}));
-    party.id = get_value(party_obj, "id", "");
-    party.current_size = get_value(party_obj, "size", nlohmann::json({ 0, 0 }))[0];
-    party.max_size = get_value(party_obj, "size", nlohmann::json({ 0, 0 }))[1];
+    auto secrets_obj = get_value_optional<nlohmann::json>(data, "secrets");
+    if (secrets_obj.has_value()) {
+        secrets->join = get_value_optional<std::string>(secrets_obj.value(), "join");
+        secrets->spectate = get_value_optional<std::string>(secrets_obj.value(), "spectate");
+        secrets->spectate = get_value_optional<std::string>(secrets_obj.value(), "match");
+    }
 
-    auto assets_obj = get_value(data, "assets", nlohmann::json({}));
-    assets.large_image = get_value(assets_obj, "large_image", "");
-    assets.large_text = get_value(assets_obj, "large_text", "");
-    assets.small_image = get_value(assets_obj, "small_image", "");
-    assets.small_text = get_value(assets_obj, "small_text", "");
-
-    auto secrets_obj = get_value(data, "secrets", nlohmann::json({}));
-    secrets.join = get_value(secrets_obj, "join", "");
-    secrets.spectate = get_value(secrets_obj, "spectate", "");
-    secrets.spectate = get_value(secrets_obj, "match", "");
-
-    instance = get_value(data, "instance", false);
-    flags = get_value(data, "flags", 0);
+    instance = get_value_optional<bool>(data, "instance");
+    flags = get_value_optional<int>(data, "flags");
 }
 
 
@@ -82,7 +97,7 @@ nlohmann::json discord::Activity::to_json() const {
                                     { "afk", afk },
                                     { "since", nullptr } });
     if (type == presence::activity::streaming) {
-        payload["game"]["url"] = url;
+        payload["game"]["url"] = url.value();
     }
     return payload;
 }
