@@ -1,13 +1,25 @@
 #pragma once
 #include <assets.hpp>
-#include <discord.hpp>
-#include <nlohmann/json.hpp>
+#include "function_type.hpp"
+#include "nlohmann/json.hpp"
 
+#include <cpprest/http_client.h>
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
 
 namespace discord {
-    
+
+    class Role;
+    class User;
+    class Emoji;
+    class Guild;
+    class Member;
+    class Channel;
+    class Message;
+    struct Context;
+    class Activity;
+    class Integration;
+
     using websocketpp::lib::bind;
     using websocketpp::lib::placeholders::_1;
     using websocketpp::lib::placeholders::_2;
@@ -33,6 +45,33 @@ namespace discord {
          * @throws Anything any of its members can throw.
          */
     public:
+        struct Connection {
+            /**
+            * @brief Represents a connection with a user, for example twitch.
+            */
+            snowflake id;                          /**< Snowflake, id, of this connection */
+            std::string name;                      /**< Name of this connection */
+            std::string type;                      /**< Type of this connection */
+            bool revoked;                          /**< Whether this connection has been revoked */
+            std::vector<Integration> integrations; /**< A vector of integration objects */
+            bool verified;                         /**< Whether this connection has been verified */
+            bool friend_sync;                      /**< Whether friend sync is enabled for this connection */
+            bool show_activity;                    /**< Whether this connection shows activity */
+            int visibility;                        /**< Visibility level for this connection */
+        };
+
+        struct VoiceRegion {
+            /**
+            * @brief Struct that represents a voice region
+            */
+            std::string id;   /**< Id of the voice region */
+            std::string name; /**< Name of the voice region */
+            bool vip;         /**< Whether or not this voice region is VIP server only */
+            bool optimal;     /**< Whether this is the optimal voice region for your bot instance */
+            bool deprecated;  /**< Whether this voice region is deprecated */
+            bool custom;      /**< Whether this is a custom voice region */
+        };
+
         Bot(std::string const&, const std::string, std::size_t = 5000);
         template <size_t EVENT, typename FType>
         void register_callback(FType&& func) {
@@ -80,7 +119,7 @@ namespace discord {
         pplx::task<std::vector<discord::Guild>> get_user_guilds(int = 0, snowflake = 0, snowflake = 0);
 
         pplx::task<discord::Channel> create_group_dm(std::vector<std::string> const&, nlohmann::json const&);
-        pplx::task<std::vector<discord::Connection>> get_connections();
+        pplx::task<std::vector<Connection>> get_connections();
         pplx::task<discord::Channel> get_channel(snowflake);
         pplx::task<discord::Guild> get_guild(snowflake);
 
@@ -137,21 +176,31 @@ namespace discord {
         std::string get_identify_packet();
 
     public:
-        bool authenticated; /**< Whether the bot is currently authenticated */
+        bool authenticated;        /**< Whether the bot is currently authenticated */
         std::string discriminator; /**< The discriminator of the bot */
 
         snowflake id; /**< The snowflake, id, of your current bot instance */
 
-        bool bot; /**< Whether your instance is a bot, always true unless ran with a user account */
-        bool ready; /**< Whether your bot has emitted "READY" */
-        bool verified; /**< Whether your bot is email verified */
+        bool bot;         /**< Whether your instance is a bot, always true unless ran with a user account */
+        bool ready;       /**< Whether your bot has emitted "READY" */
+        bool verified;    /**< Whether your bot is email verified */
         bool mfa_enabled; /**< Whether your bot has Multi Factor Authentication enabled */
 
-        std::string token; /**< Token of your bot which is passed through the constructor */
-        std::string email; /**< Email of your bot, might be default constructed */
-        std::string prefix; /**< Prefix of your bot, as passed through the constructor */
-        std::string username; /**< Discord username of your bot */
+        std::string token;     /**< Token of your bot which is passed through the constructor */
+        std::string email;     /**< Email of your bot, might be default constructed */
+        std::string prefix;    /**< Prefix of your bot, as passed through the constructor */
+        std::string username;  /**< Discord username of your bot */
         discord::Asset avatar; /**< Avatar of your bot */
+
+
+        struct RateLimit {
+            /**
+            * @brief Internal ratelimit struct
+            */
+            int rate_limit_limit = 500;                                            /**< Maximum amount of requests for this bucket */
+            int rate_limit_remaining = 500;                                        /**< Remaining request count for this bucker */
+            boost::posix_time::ptime ratelimit_reset = boost::posix_time::ptime{}; /**< Datetime at which the bucket resets */
+        };
 
         std::vector<std::shared_ptr<discord::User>> users;   /**< 
             User cache
@@ -183,7 +232,46 @@ namespace discord {
         */
 
     private:
-        function_handler func_holder;
+        Events<
+            void(),                                                                       // HELLO
+            void(),                                                                       // READY
+            void(),                                                                       // RESUMED
+            void(),                                                                       // INVALID_SESSION,
+            void(discord::Channel const),                                                 // CHANNEL_CREATE
+            void(discord::Channel const),                                                 // CHANNEL_UPDATE
+            void(discord::Channel const),                                                 // CHANNEL_DELETE
+            void(discord::Channel const, boost::posix_time::ptime const),                 // CHANNEL_PINS_UPDATE
+            void(discord::Guild const),                                                   // GUILD_CREATE
+            void(discord::Guild const),                                                   // GUILD_UPDATE
+            void(discord::Guild const),                                                   // GUILD_DELETE
+            void(discord::Guild const, discord::User const),                              // GUILD_BAN_ADD,
+            void(discord::Guild const, discord::User const),                              // GUILD_BAN_REMOVE,
+            void(discord::Guild const),                                                   // GUILD_EMOJIS_UPDATE
+            void(discord::Guild const),                                                   // GUILD_INTEGRATIONS_UPDATE
+            void(discord::Member const),                                                  // GUILD_MEMBER_ADD
+            void(discord::Guild const, discord::User const),                              // GUILD_MEMBER_REMOVE
+            void(discord::Member const),                                                  // GUILD_MEMBER_UPDATE
+            void(),                                                                       // GUILD_MEMBERS_CHUNK
+            void(discord::Role const),                                                    // GUILD_ROLE_CREATE
+            void(discord::Role const),                                                    // GUILD_ROLE_UPDATE
+            void(discord::Role const),                                                    // GUILD_ROLE_DELETE
+            void(discord::Message const),                                                 // MESSAGE_CREATE
+            void(discord::Message const),                                                 // MESSAGE_UPDATE
+            void(discord::Message const),                                                 // MESSAGE_DELETE
+            void(std::vector<discord::Message> const),                                    // MESSAGE_DELETE_BULK
+            void(discord::Message const, discord::Emoji const),                           // MESSAGE_REACTION_ADD
+            void(discord::Message const, discord::Emoji const),                           // MESSAGE_REACTION_REMOVE
+            void(discord::Message const),                                                 // MESSAGE_REACTION_REMOVE_ALL
+            void(discord::Member const),                                                  // PRECENSE_UPDATE
+            void(discord::User const, discord::Channel const, boost::posix_time::ptime),  // TYPING_START
+            void(discord::User const),                                                    // USER_UPDATE
+            void(nlohmann::json const),                                                   // VOICE_STATE_UPDATE
+            void(nlohmann::json const),                                                   // VOICE_SERVER_UPDATE
+            void(discord::Channel const),                                                 // WEBHOOKS_UPDATE
+            void(snowflake, snowflake, nlohmann::json const),                             // RAW_MESSAGE_UPDATE
+            void(snowflake, snowflake, nlohmann::json const),                             // RAW_MESSAGE_DELETE
+            void(snowflake, nlohmann::json const)>                                        // RAW_MESSAGE_DELETE_BULK
+            func_holder;
         nlohmann::json hello_packet;
         nlohmann::json ready_packet;
         std::size_t message_cache_count;

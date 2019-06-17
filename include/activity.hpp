@@ -1,7 +1,35 @@
 #pragma once
-#include <discord.hpp>
+#include <optional>
+#include <string>
+#include <nlohmann/json.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace discord {
+
+    typedef int64_t snowflake;
+
+    namespace presence {
+        struct status {
+            /**
+             * @brief Struct used for presence updates
+             */
+            inline const static std::string online = "online";
+            inline const static std::string dnd = "dnd";
+            inline const static std::string idle = "idle";
+            inline const static std::string invisible = "invisible";
+            inline const static std::string offline = "offline";
+        };
+
+        enum class activity : short {
+            /**
+             * @brief Enum used for presence updates
+             */
+            playing,
+            streaming,
+            listening,
+            watching
+        };
+    }  // namespace presence
 
     class Activity {
         /**
@@ -62,8 +90,8 @@ namespace discord {
         std::optional<int> flags;     /**< Flags of this activity `OR`d together, describes which fields of this struct are populated, check <a href="https://discordapp.com/developers/docs/topics/gateway#activity-object-activity-flags">this</a> for more info */
 
         struct timestamp {
-            std::optional<discord::datetime> start; /**< Time when the activity started */
-            std::optional<discord::datetime> end;   /**< Time when the activity ends */
+            std::optional<boost::posix_time::ptime> start; /**< Time when the activity started */
+            std::optional<boost::posix_time::ptime> end;   /**< Time when the activity ends */
         };
 
         std::optional<timestamp> timestamps; /**< Timestamps for start and/or end of the game */

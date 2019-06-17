@@ -1,5 +1,4 @@
 #pragma once
-#include "bot.hpp"
 #include "result.hpp"
 
 #include <nlohmann/json.hpp>
@@ -9,6 +8,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace discord {
+
+    typedef int64_t snowflake;
 
     namespace utils {
         template <typename S, typename F>
@@ -262,7 +263,7 @@ namespace discord {
                                     std::string hash = "",
                                     bool is_animated = false);
 
-    discord::datetime time_from_discord_string(const std::string &tempstr);
+    boost::posix_time::ptime time_from_discord_string(const std::string &tempstr);
 
     enum request_next_action {
         success,
@@ -278,9 +279,9 @@ namespace discord {
 
     int handle_resp(int status_code);
 
-    request_response send_request(web::http::method mthd, const std::string &uri,
-                                  snowflake obj_id = -1, int bucket_ = global,
-                                  nlohmann::json const &j = {});
+    pplx::task<Result<nlohmann::json>> send_request(web::http::method mthd, const std::string &uri,
+                                                    snowflake obj_id = -1, int bucket_ = global,
+                                                    nlohmann::json const &j = {});
 
     std::string read_entire_file(std::ifstream &file);
 

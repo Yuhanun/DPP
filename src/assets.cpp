@@ -27,8 +27,8 @@ namespace discord {
          * @return std::string Contains image data.
          */
         if (!gotten_data) {
-            http_client client{ { this->url } };
-            http_request msg{ methods::GET };
+            web::http::client::http_client client{ { this->url } };
+            web::http::http_request msg{ methods::GET };
 
             for (auto const& each : get_default_headers()) {
                 msg.headers().add(each.first, each.second);

@@ -1,9 +1,11 @@
 #pragma once
-#include "discord.hpp"
+#include <cpprest/http_client.h>
 #include <variant>
+#include "discord.hpp"
+
 
 namespace discord {
-    
+
     using namespace web::http;
 
     struct Err {
@@ -121,4 +123,4 @@ namespace discord {
         return { Err{ err, data, headers, resp } };
     }
 
-} // namespace discord
+}  // namespace discord

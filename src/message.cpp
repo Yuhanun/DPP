@@ -11,6 +11,7 @@
 #include "user.hpp"
 #include "role.hpp"
 #include "member.hpp"
+#include "bot.hpp"
 
 discord::Message::Message(snowflake id)
     : discord::Object(id) {
@@ -18,7 +19,6 @@ discord::Message::Message(snowflake id)
 
 discord::Message::Message(nlohmann::json const j)
     : discord::Object(to_sf(j["id"])) {
-    token = discord::detail::bot_instance->token;
     snowflake sender_id = to_sf(get_value(get_value(j, "author", nlohmann::json({ { "id", "0" } })), "id", "0"));
     pinned = get_value(j, "pinned", false);
     tts = get_value(j, "tts", false);
@@ -146,7 +146,7 @@ pplx::task<void> discord::Message::remove() {
     return send_request(methods::DEL,
                         endpoint("/channels/%/messages/%", channel->id, id),
                         channel->id, bucket_type::channel)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<discord::Message> discord::Message::edit(std::string content) {
@@ -154,7 +154,7 @@ pplx::task<discord::Message> discord::Message::edit(std::string content) {
                         endpoint("/channels/%/messages/%", channel->id, id),
                         channel->id, bucket_type::channel,
                         { { "content", content }, { "tts", tts } })
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Message{ resp.get().unwrap() };
         });
 }
@@ -164,7 +164,7 @@ pplx::task<discord::Message> discord::Message::edit(EmbedBuilder embed, std::str
                         endpoint("/channels/%/messages/%", channel->id, id),
                         channel->id, bucket_type::channel,
                         { { "content", content }, { "tts", tts }, { "embed", embed.to_json() } })
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Message{ resp.get().unwrap() };
         });
 }
@@ -173,35 +173,35 @@ pplx::task<void> discord::Message::unpin() {
     return send_request(methods::DEL,
                         endpoint("/channels/%/pins/%", channel->id, id),
                         channel->id, bucket_type::channel)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Message::pin() {
     return send_request(methods::PUT,
                         endpoint("/channels/%/pins/%", channel->id, id),
                         channel->id, bucket_type::channel)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Message::add_reaction(discord::Emoji const& emote) {
     return send_request(methods::PUT,
                         endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id),
                         channel->id, bucket_type::channel)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Message::remove_own_reaction(discord::Emoji const& emote) {
     return send_request(methods::DEL,
                         endpoint("/channels/%/messages/%/reactions/%:%/@me", channel->id, id, emote.name, emote.id),
                         channel->id, bucket_type::channel)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Message::remove_reaction(discord::User const& user, discord::Emoji const& emote) {
     return send_request(methods::DEL,
                         endpoint("/channels/%/messages/%/reactions/%:%/%", channel->id, id, emote.name, emote.id, user.id),
                         channel->id, bucket_type::channel)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<std::vector<discord::User>> discord::Message::get_reactions(discord::Emoji const& emote, snowflake before, snowflake after, int limit) {
@@ -218,7 +218,7 @@ pplx::task<std::vector<discord::User>> discord::Message::get_reactions(discord::
                         endpoint("/channels/%/messages/%/reactions/%:%", channel->id, id, emote.name, emote.id),
                         channel->id, bucket_type::channel,
                         data)
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return from_json_array<discord::User>(resp.get().unwrap());
         });
 }
@@ -227,5 +227,5 @@ pplx::task<void> discord::Message::remove_all_reactions() {
     return send_request(methods::DEL,
                         endpoint("/channels/%/messages/%/reactions", channel->id, id),
                         channel->id, bucket_type::channel)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }

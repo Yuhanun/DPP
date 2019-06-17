@@ -1,4 +1,5 @@
 #include "utils.hpp"
+#include "bot.hpp"
 
 namespace discord {
 
@@ -89,7 +90,7 @@ namespace discord {
         }
     }
 
-    discord::datetime time_from_discord_string(const std::string &tempstr) {
+    boost::posix_time::ptime time_from_discord_string(const std::string &tempstr) {
         if (tempstr.empty()) {
             return boost::posix_time::ptime{};
         }
@@ -110,12 +111,12 @@ namespace discord {
         }
     }
 
-    request_response send_request(web::http::method mthd, const std::string &uri,
+    pplx::task<Result<nlohmann::json>> send_request(web::http::method mthd, const std::string &uri,
                                   snowflake obj_id, int bucket_,
                                   nlohmann::json const &j) {
         discord::detail::bot_instance->wait_for_ratelimits(obj_id, bucket_);
-        http_client client{ { uri } };
-        http_request msg{ mthd };
+        web::http::client::http_client client{ { uri } };
+        web::http::http_request msg{ mthd };
 
         if (mthd != methods::GET) {
             msg.set_body(j.dump());

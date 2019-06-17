@@ -51,7 +51,7 @@ pplx::task<discord::Webhook> discord::Webhook::edit(std::string const& name, sno
                         endpoint("/webhooks/%", id),
                         id, webhook,
                         data)
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Webhook{ resp.get().unwrap() };
         });
 }
@@ -61,7 +61,7 @@ pplx::task<discord::Webhook> discord::Webhook::edit(std::string const& name) {
                         endpoint("/webhooks/%", id),
                         id, webhook,
                         { { "name", name } })
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Webhook{ resp.get().unwrap() };
         });
 }
@@ -70,7 +70,7 @@ pplx::task<void> discord::Webhook::remove() {
     return send_request(methods::DEL,
                         endpoint("/webhooks/%/%", id, token),
                         id, webhook)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<discord::Message> discord::Webhook::send(std::string const& content, bool tts, std::string const& avatar_url, std::string const& username) {
@@ -87,7 +87,7 @@ pplx::task<discord::Message> discord::Webhook::send(std::string const& content, 
                         endpoint("/webhooks/%/%?wait=true", id, token),
                         id, webhook,
                         j)
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Message{ resp.get().unwrap() };
         });
 }
@@ -113,7 +113,7 @@ pplx::task<discord::Message> discord::Webhook::send(std::vector<EmbedBuilder> co
     return send_request(methods::POST,
                         endpoint("/webhooks/%/%?wait=true", id, token),
                         id, webhook, j)
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Message{ resp.get().unwrap() };
         });
 }
@@ -124,7 +124,7 @@ pplx::task<void> discord::Webhook::execute_slack(bool wait, nlohmann::json const
                         endpoint("/webhooks/%/%/slack?wait=%", id, token, wait),
                         id, webhook,
                         data)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Webhook::execute_github(bool wait, nlohmann::json const data) {
@@ -132,5 +132,5 @@ pplx::task<void> discord::Webhook::execute_github(bool wait, nlohmann::json cons
                         endpoint("/webhooks/%/%/github?wait=%", id, token, wait),
                         id, webhook,
                         data)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }

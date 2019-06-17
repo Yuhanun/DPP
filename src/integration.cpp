@@ -3,6 +3,7 @@
 #include "guild.hpp"
 #include "user.hpp"
 #include "role.hpp"
+#include "bot.hpp"
 
 discord::Integration::Integration(nlohmann::json const data)
     : id{ to_sf(get_value(data, "id", "0")) },

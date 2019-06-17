@@ -354,12 +354,12 @@ namespace discord {
                               { "explicit_content_filter", explicit_content_filter },
                               { "roles", {} },
                               { "channels", {} } })
-            .then([](request_response const &resp) {
+            .then([](pplx::task<Result<nlohmann::json>> const &resp) {
                 return discord::Guild{ resp.get().unwrap() };
             });
     }
 
-    pplx::task<std::vector<discord::VoiceRegion>> Bot::get_voice_regions() const {
+    pplx::task<std::vector<Bot::VoiceRegion>> Bot::get_voice_regions() const {
         /**
          * @brief Lists all available discord voice regions.
          * 
@@ -370,7 +370,7 @@ namespace discord {
          * The members that are not contained in discord's response will be default initialized if discord's response is valid JSON but does not contain all keys.
          * 
          * ```cpp
-         *      for (discord::VoiceRegion const& region : bot.get_voice_regions()) {
+         *      for (VoiceRegion const& region : bot.get_voice_regions()) {
          *          if (!region.deprecated) {
          *              bot.create_guild("Test guild", region.name).wait();
          *              break;
@@ -378,10 +378,10 @@ namespace discord {
          *      }
          * ```
          * 
-         * @return pplx::task<std::vector<discord::VoiceRegion>> Which eventually yields a vector with discord::VoiceRegion objects.
+         * @return pplx::task<std::vector<VoiceRegion>> Which eventually yields a vector with VoiceRegion objects.
          */
-        return send_request(methods::GET, endpoint("%/voice/regions"), 0, global).then([&](request_response const &resp) {
-            std::vector<discord::VoiceRegion> return_vec = {};
+        return send_request(methods::GET, endpoint("%/voice/regions"), 0, global).then([&](pplx::task<Result<nlohmann::json>> const &resp) {
+            std::vector<VoiceRegion> return_vec = {};
 
             for (auto const &each : resp.get().unwrap()) {
                 return_vec.push_back({ get_value(each, "id", ""),
@@ -890,7 +890,7 @@ namespace discord {
          * @return pplx::task<discord::User> that will eventually yield a discord::User object, which is the current user, the bot.
          */
         return send_request(methods::GET, endpoint("/users/@me"), 0, global)
-            .then([](request_response const &resp) {
+            .then([](pplx::task<Result<nlohmann::json>> const &resp) {
                 return discord::User{ resp.get().unwrap() };
             });
     }
@@ -909,7 +909,7 @@ namespace discord {
          * @return pplx::task<discord::User> that will eventually yield a discord::User object, which is the user with id \ref u_id
          */
         return send_request(methods::GET, endpoint("/users/%", u_id), 0, global)
-            .then([](request_response const &resp) {
+            .then([](pplx::task<Result<nlohmann::json>> const &resp) {
                 return discord::User{ resp.get().unwrap() };
             });
     }
@@ -932,7 +932,7 @@ namespace discord {
         return send_request(methods::PATCH,
                             endpoint("/users/@me"), 0, global,
                             { { "username", username } })
-            .then([](request_response const &resp) {
+            .then([](pplx::task<Result<nlohmann::json>> const &resp) {
                 return discord::User{
                     resp.get().unwrap()
                 };
@@ -976,7 +976,7 @@ namespace discord {
         }
 
         return send_request(methods::GET, endpoint("/users/@me/guilds"), 0, global, data)
-            .then([this](request_response const &resp) {
+            .then([this](pplx::task<Result<nlohmann::json>> const &resp) {
                 std::vector<discord::Guild> g_vec{};
                 for (auto const &each : resp.get().unwrap()) {
                     snowflake guild_id = to_sf(each["id"]);
@@ -1013,12 +1013,12 @@ namespace discord {
             data["access_tokens"].push_back(each);
         }
         return send_request(methods::POST, endpoint("/users/@me/channels"), 0, global, data)
-            .then([](request_response const &resp) {
+            .then([](pplx::task<Result<nlohmann::json>> const &resp) {
                 return discord::Channel{ resp.get().unwrap() };
             });
     }
 
-    pplx::task<std::vector<discord::Connection>> Bot::get_connections() {
+    pplx::task<std::vector<Bot::Connection>> Bot::get_connections() {
         /**
          * @brief Gets the bot its connections
          * 
@@ -1029,13 +1029,13 @@ namespace discord {
          * ```
          * 
          * @throws json Anything that nlohmann::json can throw
-         * @return pplx::task<std::vector<discord::Connection>> that will eventually yield the the std::vector<discord::Connection>, which contains the connections that your bot has.
+         * @return pplx::task<std::vector<Connection>> that will eventually yield the the std::vector<Connection>, which contains the connections that your bot has.
          */
         return send_request(methods::GET,
                             endpoint("/users/@me/connections"),
                             0, global)
-            .then([](request_response const &resp) {
-                std::vector<discord::Connection> conn_vec;
+            .then([](pplx::task<Result<nlohmann::json>> const &resp) {
+                std::vector<Connection> conn_vec;
                 for (auto const &each : resp.get().unwrap()) {
                     conn_vec.push_back({ to_sf(each["id"]),
                                          each["name"],
@@ -1065,7 +1065,7 @@ namespace discord {
          * @return pplx::task<discord::Guild> that will eventually yield a discord::Guild object, which is the Guild with id \ref g_id
          */
         return send_request(methods::GET, endpoint("/guilds/%", g_id), id, 0)
-            .then([](request_response const &resp) {
+            .then([](pplx::task<Result<nlohmann::json>> const &resp) {
                 return discord::Guild{ resp.get().unwrap() };
             });
     }
@@ -1084,7 +1084,7 @@ namespace discord {
          * @return pplx::task<discord::Channel> that will eventually yield a discord::Channel object, which is the channel with id \ref chan_id
          */
         return send_request(methods::GET, endpoint("/channels/%", chan_id), chan_id, channel)
-            .then([](request_response const &resp) {
+            .then([](pplx::task<Result<nlohmann::json>> const &resp) {
                 return discord::Channel{ resp.get().unwrap() };
             });
     }

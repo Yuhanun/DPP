@@ -1,5 +1,4 @@
 #pragma once
-#include <discord.hpp>
 #include "guild.hpp"
 #include "channel.hpp"
 #include "user.hpp"

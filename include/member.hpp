@@ -28,6 +28,6 @@ namespace discord {
         std::shared_ptr<discord::Guild> guild;
 
         std::string nick;
-        datetime joined_at{ boost::local_time::not_a_date_time };
+        boost::posix_time::ptime joined_at{ boost::local_time::not_a_date_time };
     };
 } // namespace discord

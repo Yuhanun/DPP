@@ -36,8 +36,8 @@ namespace discord {
         snowflake id;
 
         std::string content;
-        datetime timestamp{ boost::local_time::not_a_date_time };
-        datetime edited_timestamp{ boost::local_time::not_a_date_time };
+        boost::posix_time::ptime timestamp{ boost::local_time::not_a_date_time };
+        boost::posix_time::ptime edited_timestamp{ boost::local_time::not_a_date_time };
 
         std::shared_ptr<discord::Member> author;
         std::shared_ptr<discord::Channel> channel;
@@ -46,8 +46,5 @@ namespace discord {
         std::vector<discord::Role> mentioned_roles;
         std::vector<discord::Attachment> attachments;
         std::vector<discord::EmbedBuilder> embeds;
-
-    private:
-        std::string token;
     };
 } // namespace discord

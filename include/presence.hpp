@@ -1,8 +1,10 @@
 #pragma once
-#include "discord.hpp"
 #include "activity.hpp"
 
 namespace discord {
+    
+    class Role;
+
     class Presence {
     public:
         Presence() = default;

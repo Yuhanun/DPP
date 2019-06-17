@@ -5,17 +5,29 @@
 namespace discord {
     class Channel : public Object {
         /**
-     * @brief a discord::Channel object, to which messages can be sent
-     * 
-     * ```cpp
-     *      discord::utils::get(bot.channels, [](auto& chan){ return chan->id == 570591769302007838; }).send("Hello!").wait();
-     * 
-     *      // or
-     * 
-     *      discord::Channel{ 570591769302007838 }.send("Hello!").wait();
-     * ```
-     */
+        * @brief a discord::Channel object, to which messages can be sent
+        * 
+        * ```cpp
+        *      discord::utils::get(bot.channels, [](auto& chan){ return chan->id == 570591769302007838; }).send("Hello!").wait();
+        * 
+        *      // or
+        * 
+        *      discord::Channel{ 570591769302007838 }.send("Hello!").wait();
+        * ```
+        */
     public:
+        struct File {
+            /**
+            * @brief Struct used for sending files
+            * 
+            * ```cpp
+            *      channel.send("hello!", { { "file.txt", "/usr/bin/test.txt", true } });
+            */
+            std::string filename; /**< Filename that discord should display */
+            std::string filepath; /**< Path to your local file */
+            bool spoiler = false; /**< Whether or not this file is spoilered */
+        };
+        
         Channel() = default;
         Channel(snowflake id);
 
@@ -49,20 +61,20 @@ namespace discord {
         pplx::task<void> edit_position(int);
 
     public:
-        int type; /**< Type of the channel */
-        int bitrate; /**< Bitrate of the channel */
-        int position; /**< Position of the channel */
-        int user_limit; /**< User limit of the (Voice)channel */
+        int type;                /**< Type of the channel */
+        int bitrate;             /**< Bitrate of the channel */
+        int position;            /**< Position of the channel */
+        int user_limit;          /**< User limit of the (Voice)channel */
         int rate_limit_per_user; /**< Ratelimits for the (Voice)channel */
 
         std::shared_ptr<discord::Channel> parent; /**< Parent (Category)channel, can be default constructed */
-        snowflake last_message_id; /**< Snowflake, id, of the last message sent */
+        snowflake last_message_id;                /**< Snowflake, id, of the last message sent */
 
-        std::string name; /**< Name of the channel */
+        std::string name;  /**< Name of the channel */
         std::string topic; /**< Topic of the channel */
 
-        std::shared_ptr<discord::Guild> guild; /**< Pointer to the guild this belongs to, can be default constructed */
+        std::shared_ptr<discord::Guild> guild;                  /**< Pointer to the guild this belongs to, can be default constructed */
         std::vector<std::shared_ptr<discord::User>> recipients; /**< Recipients of this channel, can be default constructed */
-        std::vector<discord::PermissionOverwrites> overwrites; /**< PermissionOverwrites for this channel */
+        std::vector<discord::PermissionOverwrites> overwrites;  /**< PermissionOverwrites for this channel */
     };
-} // namespace discord
+}  // namespace discord

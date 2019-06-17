@@ -1,5 +1,4 @@
 #pragma once
-#include <discord.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -18,12 +17,12 @@ namespace discord {
          * ```
          */
         Context(discord::Bot*, discord::Message, std::vector<std::string> const&, std::function<void(Context)>, std::string const&);
-        discord::Bot* bot; /**< A raw pointer to your bot instance */
-        discord::Message message; /**< A discord::Message object, of the message that triggered this command */
-        std::vector<std::string> arguments; /**< Everything after prefix + command name, separated by spaces */
-        std::function<void(Context)> command; /**< Function that this Context object is being passed to */
-        std::string command_name; /**< Name of the invoked command */
-        std::shared_ptr<discord::Member> author; /**< Author of the message, shortcut for ctx.message.author */
+        discord::Bot* bot;                         /**< A raw pointer to your bot instance */
+        discord::Message message;                  /**< A discord::Message object, of the message that triggered this command */
+        std::vector<std::string> arguments;        /**< Everything after prefix + command name, separated by spaces */
+        std::function<void(Context)> command;      /**< Function that this Context object is being passed to */
+        std::string command_name;                  /**< Name of the invoked command */
+        std::shared_ptr<discord::Member> author;   /**< Author of the message, shortcut for ctx.message.author */
         std::shared_ptr<discord::Channel> channel; /**< Channel to which the message was sent, shortcut for ctx.message.channel */
 
         template <typename... Tys>
@@ -40,4 +39,4 @@ namespace discord {
             return message.channel->send(std::forward<Tys>(args)...);
         };
     };
-} // namespace discord
+}  // namespace discord

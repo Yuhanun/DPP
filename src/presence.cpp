@@ -1,8 +1,9 @@
 #include "presence.hpp"
-#include "utils.hpp"
 #include "activity.hpp"
-#include "role.hpp"
+#include "bot.hpp"
 #include "guild.hpp"
+#include "role.hpp"
+#include "utils.hpp"
 
 discord::Presence::Presence(const nlohmann::json j)
     : status(discord::get_value(j, "status", "")) {

@@ -1,8 +1,8 @@
 #pragma once
+#include "assets.hpp"
+#include "channel.hpp"
 #include "nlohmann/json.hpp"
 #include "object.hpp"
-#include "channel.hpp"
-#include "assets.hpp"
 
 namespace discord {
 
@@ -10,6 +10,18 @@ namespace discord {
 
     class Guild : public Object {
     public:
+        struct VoiceRegion {
+            /**
+            * @brief Struct that represents a voice region
+            */
+            std::string id;   /**< Id of the voice region */
+            std::string name; /**< Name of the voice region */
+            bool vip;         /**< Whether or not this voice region is VIP server only */
+            bool optimal;     /**< Whether this is the optimal voice region for your bot instance */
+            bool deprecated;  /**< Whether this voice region is deprecated */
+            bool custom;      /**< Whether this is a custom voice region */
+        };
+
         Guild() = default;
         Guild(snowflake);
 
@@ -41,7 +53,7 @@ namespace discord {
         pplx::task<int> get_prune_count(int);
         pplx::task<int> begin_prune(int, bool);
 
-        pplx::task<std::vector<discord::VoiceRegion>> get_voice_regions();
+        pplx::task<std::vector<VoiceRegion>> get_voice_regions();
         pplx::task<std::vector<discord::Invite>> get_invites();
 
         pplx::task<snowflake> get_embed();
@@ -73,7 +85,7 @@ namespace discord {
         discord::Asset icon;
         discord::Asset banner;
         discord::Asset splash;
-        datetime created_at{ boost::local_time::not_a_date_time };
+        boost::posix_time::ptime created_at{ boost::local_time::not_a_date_time };
         std::string vanity_url_code;
 
         std::vector<int> features;
@@ -95,4 +107,4 @@ namespace discord {
         pplx::task<discord::Emoji> edit_emoji(discord::Emoji const&, std::string, std::vector<discord::Role> = {});
         pplx::task<void> remove_emoji(discord::Emoji const&);
     };
-} // namespace discord
+}  // namespace discord

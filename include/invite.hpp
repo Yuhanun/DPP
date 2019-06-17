@@ -15,7 +15,7 @@ namespace discord {
         bool temporary;
 
         std::string code;
-        datetime created_at{ boost::local_time::not_a_date_time };
+        boost::posix_time::ptime created_at{ boost::local_time::not_a_date_time };
         discord::Member inviter;
         std::shared_ptr<discord::Channel> channel;
 

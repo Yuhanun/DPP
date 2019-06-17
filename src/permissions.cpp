@@ -1,5 +1,4 @@
 #include "permissions.hpp"
-#include "experimental/vector"
 #include "utils.hpp"
 
 discord::PermissionOverwrite::PermissionOverwrite(int value, int allow_type)
@@ -68,7 +67,7 @@ discord::PermissionOverwrites& discord::PermissionOverwrites::add_permission(std
 }
 
 nlohmann::json discord::PermissionOverwrites::to_json() const {
-    auto t = object_type == role ? "role" : "member";
+    auto t = object_type == 0 ? "role" : "member";
     auto vals = get_values();
     return nlohmann::json({ { "allow", vals.first },
                             { "deny", vals.second },

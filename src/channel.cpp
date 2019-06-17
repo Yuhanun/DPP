@@ -4,6 +4,7 @@
 #include "message.hpp"
 #include "utils.hpp"
 #include "webhook.hpp"
+#include "bot.hpp"
 
 discord::Channel::Channel(snowflake id)
     : discord::Object(id) {
@@ -59,7 +60,7 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id)
 
     if (data.contains("permission_overwrites")) {
         for (auto &each : data["permission_overwrites"]) {
-            int t = each["type"].get<std::string>() == "role" ? role : member;
+            int t = each["type"].get<std::string>() != "role";
             overwrites.emplace_back(each["allow"].get<int>(),
                                     each["deny"].get<int>(),
                                     to_sf(each["id"]),
@@ -140,8 +141,8 @@ pplx::task<discord::Message> discord::Channel::send(std::string const &content, 
                                                { "content", content },
                                                { "tts", tts } });
 
-    http_client client{ { endpoint("/channels/%/messages", this->id) } };
-    http_request msg{ methods::POST };
+    web::http::client::http_client client{ { endpoint("/channels/%/messages", this->id) } };
+    web::http::http_request msg{ methods::POST };
 
 
     msg.set_body(p.second, "multipart/form-data; boundary=" + p.first);
@@ -166,7 +167,7 @@ pplx::task<discord::Message> discord::Channel::send(std::string const &content, 
             }
         });
     };
-    return send_lambda().then([&](request_response task) {
+    return send_lambda().then([&](pplx::task<Result<nlohmann::json>> task) {
         while (!task.get().is_ok()) {
             if (task.get().unwrap_err().response.status_code() == 429) {
                 task = send_lambda();
@@ -215,8 +216,8 @@ pplx::task<discord::Message> discord::Channel::send(EmbedBuilder const &embed, s
                                                { "tts", tts },
                                                { "embed", embed.to_json() } });
 
-    http_client client{ { endpoint("/channels/%/messages", this->id) } };
-    http_request msg{ methods::POST };
+    web::http::client::http_client client{ { endpoint("/channels/%/messages", this->id) } };
+    web::http::http_request msg{ methods::POST };
 
     msg.set_body(p.second, "multipart/form-data; boundary=" + p.first);
     msg.headers().add("Authorization", format("Bot %", discord::detail::bot_instance->token));
@@ -240,7 +241,7 @@ pplx::task<discord::Message> discord::Channel::send(EmbedBuilder const &embed, s
             }
         });
     };
-    return send_lambda().then([&](request_response task) {
+    return send_lambda().then([&](pplx::task<Result<nlohmann::json>> task) {
         while (!task.get().is_ok()) {
             if (task.get().unwrap_err().response.status_code() == 429) {
                 task = send_lambda();
@@ -271,7 +272,7 @@ pplx::task<void> discord::Channel::bulk_delete(std::vector<discord::Message> &m)
     nlohmann::json data = nlohmann::json();
     data["messages"] = array;
     return send_request(methods::POST, endpoint("/channels/%/messages/bulk-delete", id), id, channel, data)
-        .then([](request_response const) {});
+        .then([](pplx::task<Result<nlohmann::json>> const) {});
 }
 
 pplx::task<std::vector<discord::Message>> discord::Channel::get_messages(int limit) {
@@ -294,7 +295,7 @@ pplx::task<std::vector<discord::Message>> discord::Channel::get_messages(int lim
                         endpoint("/channels/%/messages?limit=%", id, limit),
                         id,
                         channel)
-        .then([](request_response const &resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const &resp) {
             return from_json_array<discord::Message>(resp.get().unwrap());
         });
 }
@@ -328,7 +329,7 @@ pplx::task<discord::Channel> discord::Channel::edit(nlohmann::json &j) {
      * @return pplx::task<discord::Channel> which eventually yields the updated channel object.
      */
     return send_request(methods::PATCH, endpoint("/channels/%", id), id, channel, j)
-        .then([this](request_response const &resp) {
+        .then([this](pplx::task<Result<nlohmann::json>> const &resp) {
             return discord::Channel{
                 resp.get().unwrap(), this->id
             };
@@ -347,7 +348,7 @@ pplx::task<void> discord::Channel::remove() {
      * @return pplx::task<void> which doesn't yield anything, but should be `wait`'ed regardless
      */
     return send_request(methods::DEL, endpoint("/channels/%", id), id, channel)
-        .then([](request_response const &) {});
+        .then([](pplx::task<Result<nlohmann::json>> const &) {});
 }
 
 pplx::task<discord::Message> discord::Channel::get_message(snowflake id_) {
@@ -365,7 +366,7 @@ pplx::task<discord::Message> discord::Channel::get_message(snowflake id_) {
      */
     return send_request(methods::GET,
                         endpoint("/channels/%/messages/%", this->id, id_), this->id, channel)
-        .then([](request_response const &resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const &resp) {
             return discord::Message{ resp.get().unwrap() };
         });
 }
@@ -386,7 +387,7 @@ pplx::task<std::vector<discord::Invite>> discord::Channel::get_invites() {
     return send_request(methods::GET,
                         endpoint("/channels/%/invites", id),
                         id, channel)
-        .then([](request_response const &resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const &resp) {
             return from_json_array<discord::Invite>(resp.get().unwrap());
         });
 }
@@ -415,7 +416,7 @@ pplx::task<discord::Invite> discord::Channel::create_invite(int max_age, int max
                  { "max_uses", max_uses },
                  { "temporary", temporary },
                  { "unique", unique } })
-        .then([](request_response const &resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const &resp) {
             return discord::Invite{ resp.get().unwrap() };
         });
 }
@@ -436,7 +437,7 @@ pplx::task<std::vector<discord::Message>> discord::Channel::get_pins() {
     return send_request(methods::GET,
                         endpoint("/channels/%/pins", id),
                         id, channel)
-        .then([](request_response const &resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const &resp) {
             return from_json_array<discord::Message>(resp.get().unwrap());
         });
 }
@@ -459,7 +460,7 @@ pplx::task<discord::Webhook> discord::Channel::create_webhook(std::string const 
                         endpoint("/channels/%/webhooks", id),
                         id, channel,
                         { { "name", name } })
-        .then([](request_response const &resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const &resp) {
             return discord::Webhook{ resp.get().unwrap() };
         });
 }
@@ -479,7 +480,7 @@ pplx::task<std::vector<discord::Webhook>> discord::Channel::get_webhooks() {
      * @return pplx::task<std::vector<discord::Webhook>> which will eventually yield an std::vector containing this channel's webhooks
      */
     return send_request(methods::GET, endpoint("/channels/%/webhooks", id), id, channel)
-        .then([](request_response const &resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const &resp) {
             return from_json_array<discord::Webhook>(resp.get().unwrap());
         });
 }
@@ -500,7 +501,7 @@ pplx::task<void> discord::Channel::remove_permissions(discord::Object const &obj
     return send_request(methods::DEL,
                         format("%/channels/%/permissions/%", id, obj.id),
                         id, channel)
-        .then([](request_response const &) {});
+        .then([](pplx::task<Result<nlohmann::json>> const &) {});
 }
 
 pplx::task<void> discord::Channel::typing() {
@@ -519,7 +520,7 @@ pplx::task<void> discord::Channel::typing() {
     return send_request(methods::POST,
                         endpoint("/channels/%/typing", id),
                         id, channel)
-        .then([](request_response const &) {});
+        .then([](pplx::task<Result<nlohmann::json>> const &) {});
 }
 
 pplx::task<void> discord::Channel::add_group_dm_recipient(discord::User const &user, std::string const &access_token, std::string const &nick) {
@@ -538,7 +539,7 @@ pplx::task<void> discord::Channel::add_group_dm_recipient(discord::User const &u
     return send_request(methods::PUT,
                         endpoint("/channels/%/recipient/%", this->id, user.id),
                         id, channel, { { "access_token", access_token }, { "nick", nick } })
-        .then([](request_response const &) {});
+        .then([](pplx::task<Result<nlohmann::json>> const &) {});
 }
 
 pplx::task<void> discord::Channel::remove_group_dm_recipient(discord::User const &user) {
@@ -555,7 +556,7 @@ pplx::task<void> discord::Channel::remove_group_dm_recipient(discord::User const
     return send_request(methods::DEL,
                         endpoint("/channels/%/recipient/%", this->id, user.id),
                         id, channel)
-        .then([](request_response const &) {});
+        .then([](pplx::task<Result<nlohmann::json>> const &) {});
 }
 
 pplx::task<void> discord::Channel::edit_position(int new_pos) {
@@ -575,5 +576,5 @@ pplx::task<void> discord::Channel::edit_position(int new_pos) {
                         endpoint("/guilds/%/channels", this->guild->id),
                         this->guild->id, bucket_type::guild,
                         { { "id", this->id }, { "position", new_pos } })
-        .then([](request_response const &) {});
+        .then([](pplx::task<Result<nlohmann::json>> const &) {});
 }

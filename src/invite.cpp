@@ -2,6 +2,7 @@
 #include "utils.hpp"
 #include "guild.hpp"
 #include "role.hpp"
+#include "bot.hpp"
 
 discord::Invite::Invite(nlohmann::json const data) {
     code = data["code"];
@@ -32,7 +33,7 @@ pplx::task<discord::Invite> discord::Invite::get_invite() {
                         endpoint("/invites/%", code),
                         0, global,
                         { { "with_counts", true } })
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Invite{ resp.get().unwrap() };
         });
 }
@@ -41,5 +42,5 @@ pplx::task<void> discord::Invite::remove() {
     return send_request(methods::DEL,
                         endpoint("/invites/%", code),
                         0, global)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }

@@ -12,7 +12,7 @@ before = time.time()
 
 cmake_command = "cmake .."
 if use_clang:
-    cmake_command += " -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++"
+    cmake_command += " -DCMAKE_CXX_COMPILER=clang++"
 
 if not os.system(cmake_command) == 0:
     exit()

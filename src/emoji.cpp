@@ -2,6 +2,7 @@
 #include "guild.hpp"
 #include "role.hpp"
 #include "utils.hpp"
+#include "bot.hpp"
 
 discord::Emoji::Emoji(nlohmann::json event)
     : discord::Object(to_sf(get_value(event, "id", "0"))) {

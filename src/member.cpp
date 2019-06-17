@@ -3,6 +3,7 @@
 #include "user.hpp"
 #include "guild.hpp"
 #include "role.hpp"
+#include "bot.hpp"
 
 discord::Member::Member(snowflake id) {
     user->id = id;
@@ -66,7 +67,7 @@ pplx::task<void> discord::Member::edit(std::string const& t_name, bool t_mute, b
     return send_request(methods::PATCH,
                         endpoint("/guilds/%/members/%", this->guild->id, this->id),
                         guild->id, bucket_type::guild, data)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 
@@ -74,25 +75,25 @@ pplx::task<void> discord::Member::add_role(discord::Role const& new_role) {
     return send_request(methods::PUT,
                         endpoint("/guilds/%/members/%/roles/%", this->guild->id, this->id, new_role.id),
                         guild->id, bucket_type::guild)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Member::remove_role(discord::Role const& new_role) {
     return send_request(methods::DEL,
                         endpoint("/guilds/%/members/%/roles/%", this->guild->id, this->id, new_role.id),
                         guild->id, bucket_type::guild)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Member::kick() {
     return send_request(methods::DEL,
                         endpoint("/guilds/%/members/%", this->guild->id, this->id), guild->id, bucket_type::guild)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Member::ban(std::string const& _reason, int _days) {
     return send_request(methods::PUT,
                         endpoint("/guilds/%/members/%", this->guild->id, this->id), guild->id, bucket_type::guild,
                         { { "reason", _reason }, { "delete-message-days", _days } })
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }

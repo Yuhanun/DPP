@@ -66,7 +66,7 @@ namespace discord {
         snowflake id;
         AuditLogEventType action_type;
         int count;
-        object_type type;
+        int type;
         std::string reason;
 
         struct {

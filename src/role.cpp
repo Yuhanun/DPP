@@ -1,7 +1,8 @@
 #include "role.hpp"
-#include "utils.hpp"
-#include "object.hpp"
+#include "bot.hpp"
 #include "guild.hpp"
+#include "object.hpp"
+#include "utils.hpp"
 
 discord::Role::Role(snowflake id)
     : discord::Object(id) {
@@ -24,7 +25,7 @@ discord::Role::Role(nlohmann::json data, std::shared_ptr<discord::Guild> g)
 
     name = data["name"];
     color = discord::Color(data["color"].get<int>());
-    permissions = PermissionOverwrites(data["permissions"].get<int>(), 0, id, object_type::role);
+    permissions = PermissionOverwrites(data["permissions"].get<int>(), 0, id, 0);  // 0 is role, 1 is member
     guild = g;
 }
 
@@ -36,7 +37,7 @@ discord::Role& discord::Role::update(nlohmann::json data) {
                        "color", color);
 
     if (data.contains("permissions")) {
-        permissions = PermissionOverwrites(data["permissions"].get<int>(), 0, id, object_type::role);
+        permissions = PermissionOverwrites(data["permissions"].get<int>(), 0, id, 0);
     }
 
     return *this;
@@ -59,7 +60,7 @@ pplx::task<discord::Role> discord::Role::edit(std::string const& _name, Permissi
                           { "color", _color.raw_int },
                           { "hoist", _hoist },
                           { "mentionable", _mention } })
-        .then([=](request_response const& resp) {
+        .then([=](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Role{
                 resp.get().unwrap(), this->guild
             };

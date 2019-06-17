@@ -2,6 +2,9 @@
 #include "discord.hpp"
 
 namespace discord {
+    
+    typedef int64_t snowflake;
+
     class Integration {
     public:
         Integration(nlohmann::json const);
@@ -17,6 +20,6 @@ namespace discord {
         std::shared_ptr<discord::User> user;
         snowflake account_id;
         std::string account_name;
-        datetime synced_at;
+        boost::posix_time::ptime synced_at;
     };
 } // namespace discord

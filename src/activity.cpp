@@ -1,5 +1,4 @@
 #include "activity.hpp"
-#include "bot.hpp"
 #include "utils.hpp"
 
 discord::Activity::Activity(std::string const& name, presence::activity const& type, std::string const& status, bool const& afk, std::string const& url)

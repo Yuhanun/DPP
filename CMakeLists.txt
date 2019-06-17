@@ -42,7 +42,7 @@ add_library(discord_pp STATIC
 
 add_executable(bot
                main.cpp)
-
+               
 set(CMAKE_BUILD_TYPE Debug)
 
 set(EXECUTABLE_OUTPUT_PATH "./")
@@ -60,6 +60,7 @@ target_link_libraries(discord_pp PUBLIC OpenSSL::Crypto)
 target_link_libraries(discord_pp PUBLIC Threads::Threads)
 target_link_libraries(discord_pp PUBLIC Boost::date_time)
 target_link_libraries(discord_pp PUBLIC cpprest)
+
 
 if(MSVC)
   target_compile_options(bot PRIVATE /W4 /WX)

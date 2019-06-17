@@ -1,6 +1,7 @@
 #include "user.hpp"
 #include "utils.hpp"
 #include "channel.hpp"
+#include "bot.hpp"
 
 
 discord::User::User(snowflake id)
@@ -54,7 +55,7 @@ pplx::task<discord::Channel> discord::User::create_dm() {
                         endpoint("/users/@me/channels"),
                         0, global,
                         nlohmann::json({ { "recipient_id", id } }))
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Channel{
                 resp.get().unwrap()
             };

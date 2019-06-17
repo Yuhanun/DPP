@@ -6,6 +6,7 @@
 #include "audit.hpp"
 #include "invite.hpp"
 #include "webhook.hpp"
+#include "bot.hpp"
 
 discord::Guild::Guild(snowflake id)
     : discord::Object(id) {
@@ -191,7 +192,7 @@ pplx::task<std::vector<discord::Webhook>> discord::Guild::get_webhooks() {
      */
     return send_request(methods::GET,
                         endpoint("/guilds/%/webhooks", id), id, guild)
-        .then([](request_response const& response) {
+        .then([](pplx::task<Result<nlohmann::json>> const& response) {
             return from_json_array<discord::Webhook>(response.get().unwrap());
         });
 }
@@ -200,20 +201,20 @@ pplx::task<void> discord::Guild::leave() {
     return send_request(methods::DEL,
                         endpoint("/users/@me/guilds/%", id),
                         id, guild)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<std::vector<discord::Emoji>> discord::Guild::list_emojis() {
     return send_request(methods::GET,
                         endpoint("/guilds/%/emojis", id),
                         id, guild)
-        .then([](request_response const& val) { return from_json_array<discord::Emoji>(val.get().unwrap()); });
+        .then([](pplx::task<Result<nlohmann::json>> const& val) { return from_json_array<discord::Emoji>(val.get().unwrap()); });
 }
 
 pplx::task<discord::Emoji> discord::Guild::get_emoji(discord::Emoji const& e) {
     return send_request(methods::GET,
                         endpoint("/guilds/%/emojis/%", id, e.id), id, guild)
-        .then([=](request_response const& resp) {
+        .then([=](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Emoji{ resp.get().unwrap() };
         });
 }
@@ -230,7 +231,7 @@ pplx::task<discord::Emoji> discord::Guild::edit_emoji(discord::Emoji const& emot
                         endpoint("/guilds/%/emojis/%", id, emote.id),
                         id, guild,
                         data)
-        .then([=](request_response const& resp) { return discord::Emoji{ resp.get().unwrap() }; });
+        .then([=](pplx::task<Result<nlohmann::json>> const& resp) { return discord::Emoji{ resp.get().unwrap() }; });
 }
 
 pplx::task<void> discord::Guild::edit(std::string const& name, std::string const& rg, int verif_level, int default_message_notif, int explicit_cont_filt, snowflake afk_chan_id, int afk_timeout, std::string const& icon, snowflake owner_id, std::string const& splash, snowflake system_channel_id) {
@@ -252,18 +253,18 @@ pplx::task<void> discord::Guild::edit(std::string const& name, std::string const
                         endpoint("/guilds/%", id),
                         id, guild,
                         data)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Guild::remove() {
     return send_request(methods::DEL,
                         endpoint("/guilds/%", id),
                         id, guild)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<std::vector<discord::Channel>> discord::Guild::get_channels() {
-    return send_request(methods::GET, endpoint("/guilds/%/channels", id), id, guild).then([=](request_response const& resp) {
+    return send_request(methods::GET, endpoint("/guilds/%/channels", id), id, guild).then([=](pplx::task<Result<nlohmann::json>> const& resp) {
         return from_json_array_special<discord::Channel>(resp.get().unwrap(), id);
     });
 }
@@ -286,7 +287,7 @@ pplx::task<discord::Channel> discord::Guild::create_channel(std::string const& n
     if (parent_id != -1) data["parent_id"] = parent_id;
 
     return send_request(methods::POST, endpoint("/guilds/%/channels", id), id, guild, data)
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Channel{ resp.get().unwrap() };
         });
 }
@@ -296,13 +297,13 @@ pplx::task<void> discord::Guild::remove_emoji(discord::Emoji const& emote) {
     return send_request(methods::DEL,
                         endpoint("/guilds/%/emojis/%", id, emote.id),
                         id, guild)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<discord::Member> discord::Guild::get_member(snowflake m_id) {
     return send_request(methods::GET,
                         endpoint("/guilds/%/members/%", id, m_id), id, guild)
-        .then([=](request_response const& resp) {
+        .then([=](pplx::task<Result<nlohmann::json>> const& resp) {
             return discord::Member{
                 resp.get().unwrap(),
                 discord::utils::get(discord::detail::bot_instance->guilds, [this](auto const& g) { return id == g->id; })
@@ -314,7 +315,7 @@ pplx::task<std::vector<discord::Member>> discord::Guild::get_members(int limit, 
     return send_request(methods::GET,
                         endpoint("/guilds/%/members", this->id), id, guild,
                         { { "limit", limit }, { "after", after } })
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return from_json_array<discord::Member>(resp.get().unwrap());
         });
 }
@@ -323,7 +324,7 @@ pplx::task<std::vector<std::pair<std::string, discord::User>>> discord::Guild::g
     return send_request(methods::GET,
                         endpoint("/guilds/%/bans", id),
                         id, guild)
-        .then([=](request_response const& resp) {
+        .then([=](pplx::task<Result<nlohmann::json>> const& resp) {
             std::vector<std::pair<std::string, discord::User>> ret_vec;
             for (auto const& each : resp.get().unwrap()) {
                 ret_vec.push_back({ each["reason"], discord::User{ each["user"] } });
@@ -336,7 +337,7 @@ pplx::task<std::pair<std::string, discord::User>> discord::Guild::get_ban(discor
     return send_request(methods::GET,
                         endpoint("/guilds/%/bans/%", id, banned_obj.id),
                         id, guild)
-        .then([](request_response const& response) {
+        .then([](pplx::task<Result<nlohmann::json>> const& response) {
             return std::make_pair(response.get().unwrap()["reason"].get<std::string>(), discord::User{ response.get().unwrap()["user"] });
         });
 }
@@ -352,21 +353,21 @@ pplx::task<void> discord::Guild::edit_bot_username(std::string const& new_nick) 
     return send_request(methods::PATCH,
                         endpoint("/guilds/%/members/@me/nick", id), id, guild,
                         { { "nick", new_nick } })
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Guild::unban(discord::Object const& obj) {
     return send_request(
                methods::DEL,
                endpoint("/guilds/%/bans/%", id, obj.id), id, guild)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<std::vector<discord::Role>> discord::Guild::get_roles() {
     return send_request(
                methods::GET, endpoint("/guilds/%/roles", id),
                id, guild)
-        .then([this](request_response const& resp) {
+        .then([this](pplx::task<Result<nlohmann::json>> const& resp) {
             return from_json_array_special<discord::Role>(resp.get().unwrap(),
                                                           discord::utils::get(discord::detail::bot_instance->guilds,
                                                                               [this](auto const& gld) {
@@ -384,7 +385,7 @@ pplx::task<discord::Role> discord::Guild::create_role(std::string const& _name, 
                           { "color", _color.raw_int },
                           { "hoist", _hoist },
                           { "mentionable", _mention } })
-        .then([=](request_response const& val) {
+        .then([=](pplx::task<Result<nlohmann::json>> const& val) {
             return discord::Role{
                 val.get().unwrap(),
                 discord::utils::get(discord::detail::bot_instance->guilds, [=](auto const& g) { return g->id == this->id; })
@@ -396,7 +397,7 @@ pplx::task<int> discord::Guild::get_prune_count(int days) {
     return send_request(methods::GET,
                         endpoint("/guilds/%/prune", id), id, guild,
                         { { "days", days } })
-        .then([](request_response const& resp) { return resp.get().unwrap()["pruned"].get<int>(); });
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) { return resp.get().unwrap()["pruned"].get<int>(); });
 }
 
 pplx::task<int> discord::Guild::begin_prune(int days, bool compute_prune_count) {
@@ -404,13 +405,13 @@ pplx::task<int> discord::Guild::begin_prune(int days, bool compute_prune_count) 
                         endpoint("/guilds/%/prune", id), id, guild,
                         { { "days", days },
                           { "compute_prune_count", compute_prune_count } })
-        .then([](request_response const& resp) { return get_value(resp.get().unwrap(), "pruned", 0); });
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) { return get_value(resp.get().unwrap(), "pruned", 0); });
 }
 
-pplx::task<std::vector<discord::VoiceRegion>> discord::Guild::get_voice_regions() {
+pplx::task<std::vector<discord::Guild::VoiceRegion>> discord::Guild::get_voice_regions() {
     return send_request(methods::GET, endpoint("/guilds/%/regions", id), id, guild)
-        .then([=](request_response const& resp) {
-            std::vector<VoiceRegion> ret_val;
+        .then([=](pplx::task<Result<nlohmann::json>> const& resp) {
+            std::vector<discord::Guild::VoiceRegion> ret_val;
             for (auto const& each : resp.get().unwrap()) {
                 ret_val.push_back({ each["id"],
                                     each["name"],
@@ -426,7 +427,7 @@ pplx::task<std::vector<discord::VoiceRegion>> discord::Guild::get_voice_regions(
 pplx::task<std::vector<discord::Invite>> discord::Guild::get_invites() {
     return send_request(methods::GET,
                         endpoint("/guilds/%/invites", id), id, guild)
-        .then([=](request_response const& resp) {
+        .then([=](pplx::task<Result<nlohmann::json>> const& resp) {
             return from_json_array<discord::Invite>(resp.get().unwrap());
         });
 }
@@ -434,7 +435,7 @@ pplx::task<std::vector<discord::Invite>> discord::Guild::get_invites() {
 pplx::task<discord::snowflake> discord::Guild::get_embed() {
     return send_request(methods::GET,
                         endpoint("/guilds/%/embed", id), id, guild)
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return get_value<snowflake>(resp.get().unwrap(), "channel_id", 0);
         });
 }
@@ -443,7 +444,7 @@ pplx::task<discord::snowflake> discord::Guild::edit_embed(snowflake c_id) {
     return send_request(methods::PATCH,
                         endpoint("/guilds/%/embed", id), id, guild,
                         { { "enabled", c_id != -1 }, { "channel_id", c_id } })
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return get_value(resp.get().unwrap(), "channel_id", snowflake(0));
         });
 }
@@ -451,7 +452,7 @@ pplx::task<discord::snowflake> discord::Guild::edit_embed(snowflake c_id) {
 pplx::task<std::string> discord::Guild::get_vanity_invite_url() {
     return send_request(methods::GET,
                         endpoint("/guilds/%/vanity-url", id), id, guild)
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return get_value(resp.get().unwrap(), "code", "");
         });
 }
@@ -467,7 +468,7 @@ discord::Asset discord::Guild::get_widget_image(std::string const& style) {
 pplx::task<std::vector<discord::Integration>> discord::Guild::get_integrations() {
     return send_request(methods::GET,
                         endpoint("/guilds/%/integrations", id), id, guild)
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return from_json_array<discord::Integration>(resp.get().unwrap());
         });
 }
@@ -477,7 +478,7 @@ pplx::task<void> discord::Guild::create_integration(discord::Integration const& 
     return send_request(methods::POST,
                         endpoint("/guilds/%/integrations", id), id, guild,
                         { { "type", integr.type }, { "id", integr.id } })
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Guild::edit_integration(discord::Integration const& integr, int expire_behavior, int expire_grace_period, bool enable_emotes) {
@@ -486,7 +487,7 @@ pplx::task<void> discord::Guild::edit_integration(discord::Integration const& in
                         { { "expire_behavior", expire_behavior },
                           { "expire_grace_period", expire_grace_period },
                           { "enable_emoticons", enable_emotes } })
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 
@@ -494,14 +495,14 @@ pplx::task<void> discord::Guild::remove_integration(discord::Integration const& 
     return send_request(methods::DEL,
                         endpoint("/guilds/%/integrations/%", id, integr.id),
                         id, guild)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<void> discord::Guild::sync_integration(discord::Integration const& integr) {
     return send_request(methods::POST,
                         endpoint("/guilds/%/integrations/%/sync", id, integr.id),
                         id, guild)
-        .then([](request_response const&) {});
+        .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
 
 pplx::task<discord::Emoji> discord::Guild::create_emoji(std::string const& name, discord::Emoji& emote_data, std::vector<discord::Role> roles) {
@@ -515,14 +516,14 @@ pplx::task<discord::Emoji> discord::Guild::create_emoji(std::string const& name,
                         endpoint("/guilds/%/emojis", id),
                         id, guild,
                         data)
-        .then([](request_response const& data) { return discord::Emoji{ data.get().unwrap() }; });
+        .then([](pplx::task<Result<nlohmann::json>> const& data) { return discord::Emoji{ data.get().unwrap() }; });
 }
 
 pplx::task<discord::AuditLogs> discord::Guild::get_audit_logs() {
     return send_request(methods::GET,
                         endpoint("/guilds/%/audit-logs", id),
                         id, guild)
-        .then([](request_response const& resp) {
+        .then([](pplx::task<Result<nlohmann::json>> const& resp) {
             return AuditLogs{ resp.get().unwrap() };
         });
 }

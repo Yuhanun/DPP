@@ -4,6 +4,7 @@
 #include "channel.hpp"
 #include "webhook.hpp"
 #include "emoji.hpp"
+#include "bot.hpp"
 
 namespace discord {
 

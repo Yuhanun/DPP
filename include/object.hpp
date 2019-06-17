@@ -1,7 +1,11 @@
 #pragma once
+#include <cstdint>
 #include "discord.hpp"
 
 namespace discord {
+    
+    typedef int64_t snowflake;
+
     class Object {
     public:
         Object() = default;
