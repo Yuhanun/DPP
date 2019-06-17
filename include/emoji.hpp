@@ -6,6 +6,8 @@ namespace discord {
 
     typedef int64_t snowflake;
 
+    class Role;
+
     class Emoji : public Object {
         /**
          * @brief Class which represents an Emoji.

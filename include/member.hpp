@@ -1,9 +1,14 @@
 #pragma once
-#include "discord.hpp"
 #include "object.hpp"
 #include "presence.hpp"
 
+#include <pplx/pplxtasks.h>
+
 namespace discord {
+
+    class User;
+    class Guild;
+    class Channel;
 
     class Member : public Object {
     public:
@@ -28,6 +33,6 @@ namespace discord {
         std::shared_ptr<discord::Guild> guild;
 
         std::string nick;
-        boost::posix_time::ptime joined_at{ boost::local_time::not_a_date_time };
+        boost::posix_time::ptime joined_at{};
     };
-} // namespace discord
+}  // namespace discord

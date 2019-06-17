@@ -8,6 +8,12 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace discord {
+    
+    class Bot;
+
+    namespace detail {
+        inline discord::Bot *bot_instance; /**< Global instance of your bot */
+    }
 
     typedef int64_t snowflake;
 

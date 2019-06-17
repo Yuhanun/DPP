@@ -1,7 +1,7 @@
 #pragma once
 #include <cpprest/http_client.h>
+#include <nlohmann/json.hpp>
 #include <variant>
-#include "discord.hpp"
 
 
 namespace discord {

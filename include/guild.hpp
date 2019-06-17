@@ -4,9 +4,18 @@
 #include "nlohmann/json.hpp"
 #include "object.hpp"
 
+#include "boost/date_time/posix_time/posix_time.hpp"
+
 namespace discord {
 
     typedef int64_t snowflake;
+
+    class Role;
+    class Color;
+    class Emoji;
+    class Member;
+    struct AuditLogs;
+    class Integration;
 
     class Guild : public Object {
     public:
@@ -85,7 +94,7 @@ namespace discord {
         discord::Asset icon;
         discord::Asset banner;
         discord::Asset splash;
-        boost::posix_time::ptime created_at{ boost::local_time::not_a_date_time };
+        boost::posix_time::ptime created_at{};
         std::string vanity_url_code;
 
         std::vector<int> features;

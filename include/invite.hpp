@@ -1,8 +1,9 @@
 #pragma once
-#include "discord.hpp"
 #include "member.hpp"
+#include "nlohmann/json.hpp"
 
 namespace discord {
+
     class Invite {
     public:
         Invite() = default;
@@ -15,7 +16,7 @@ namespace discord {
         bool temporary;
 
         std::string code;
-        boost::posix_time::ptime created_at{ boost::local_time::not_a_date_time };
+        boost::posix_time::ptime created_at{};
         discord::Member inviter;
         std::shared_ptr<discord::Channel> channel;
 

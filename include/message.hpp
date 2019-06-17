@@ -1,11 +1,18 @@
 #pragma once
-#include "object.hpp"
-#include "discord.hpp"
-#include "embedbuilder.hpp"
 #include "attachment.hpp"
+#include "embedbuilder.hpp"
+#include "object.hpp"
 #include "role.hpp"
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 namespace discord {
+    
+    class Emoji;
+    class Member;
+
+    typedef int64_t snowflake;
+
     class Message : public Object {
     public:
         Message() = default;
@@ -36,8 +43,8 @@ namespace discord {
         snowflake id;
 
         std::string content;
-        boost::posix_time::ptime timestamp{ boost::local_time::not_a_date_time };
-        boost::posix_time::ptime edited_timestamp{ boost::local_time::not_a_date_time };
+        boost::posix_time::ptime timestamp{};
+        boost::posix_time::ptime edited_timestamp{};
 
         std::shared_ptr<discord::Member> author;
         std::shared_ptr<discord::Channel> channel;
@@ -47,4 +54,4 @@ namespace discord {
         std::vector<discord::Attachment> attachments;
         std::vector<discord::EmbedBuilder> embeds;
     };
-} // namespace discord
+}  // namespace discord

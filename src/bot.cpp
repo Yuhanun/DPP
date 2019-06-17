@@ -9,6 +9,8 @@
 #include "member.hpp"
 #include "utils.hpp"
 
+#include <boost/algorithm/string.hpp>
+
 namespace discord {
 
     Bot::Bot(const std::string &token, const std::string prefix, std::size_t message_cache_count)
@@ -239,11 +241,11 @@ namespace discord {
          * 
          * @return void
          */
-        if (!boost::starts_with(m.content, prefix)) {
+        if (m.content.find(prefix) == std::string::npos) {
             return;
         }
 
-        std::vector<std::string> argument_vec;
+        std::vector<std::string> argument_vec{};
         boost::split(argument_vec, m.content, boost::is_any_of(" "));
         if (!argument_vec.size()) {
             return;

@@ -1,8 +1,14 @@
 #pragma once
-#include "discord.hpp"
+#include <cstdint>
+#include <memory>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include "nlohmann/json.hpp"
 
 namespace discord {
-    
+
+    class Role;
+    class User;
+
     typedef int64_t snowflake;
 
     class Integration {

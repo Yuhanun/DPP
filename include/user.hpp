@@ -1,10 +1,18 @@
 #pragma once
 #include <cstdint>
-#include "object.hpp"
+#include <memory>
+
 #include "assets.hpp"
+#include "object.hpp"
+
+#include "nlohmann/json.hpp"
+#include "pplx/pplxtasks.h"
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 namespace discord {
 
+    class Channel;
+    
     typedef int64_t snowflake;
 
     class User : public Object {
@@ -25,4 +33,4 @@ namespace discord {
         discord::Asset avatar;
         std::string discriminator;
     };
-} // namespace discord
+}  // namespace discord

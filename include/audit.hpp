@@ -1,9 +1,14 @@
 #pragma once
+#include "events.hpp"
 #include "nlohmann/json.hpp"
 #include "user.hpp"
-#include "events.hpp"
 
 namespace discord {
+
+    class Asset;
+    class Webhook;
+    class Channel;
+    class PermissionOverwrites;
 
     struct AuditLogKeyChange {
         /**
@@ -91,4 +96,4 @@ namespace discord {
         std::vector<discord::User> users;
         std::vector<discord::AuditLogEntry> audit_log_entries;
     };
-} // namespace discord
+}  // namespace discord

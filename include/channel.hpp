@@ -2,7 +2,17 @@
 #include "object.hpp"
 #include "permissions.hpp"
 
+#include <pplx/pplxtasks.h>
+
 namespace discord {
+
+    class User;
+    class Guild;
+    class Invite;
+    class Webhook;
+    class Message;
+    class EmbedBuilder;
+
     class Channel : public Object {
         /**
         * @brief a discord::Channel object, to which messages can be sent
@@ -27,7 +37,7 @@ namespace discord {
             std::string filepath; /**< Path to your local file */
             bool spoiler = false; /**< Whether or not this file is spoilered */
         };
-        
+
         Channel() = default;
         Channel(snowflake id);
 

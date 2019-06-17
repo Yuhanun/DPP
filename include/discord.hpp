@@ -1,5 +1,4 @@
 #pragma once
-#include <boost/date_time/local_time/local_time.hpp>
 #include <nlohmann/json.hpp>
 
 #include <cpprest/http_client.h>
@@ -33,8 +32,4 @@ namespace discord {
     struct Context;
     struct AuditLogs;
     struct AuditLogKeyChange;
-
-    namespace detail {
-        inline discord::Bot* bot_instance; /**< Global instance of your bot */
-    }                                      // namespace detail
 }  // namespace discord

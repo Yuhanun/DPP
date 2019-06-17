@@ -6,6 +6,10 @@
 #include "message.hpp"
 
 namespace discord {
+
+    class Bot;
+    class Member;
+
     struct Context {
         /**
          * @brief Struct used for passing to commands

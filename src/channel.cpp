@@ -1,10 +1,10 @@
 #include "channel.hpp"
+#include "bot.hpp"
 #include "emoji.hpp"
 #include "invite.hpp"
 #include "message.hpp"
 #include "utils.hpp"
 #include "webhook.hpp"
-#include "bot.hpp"
 
 discord::Channel::Channel(snowflake id)
     : discord::Object(id) {

@@ -1,10 +1,16 @@
 #pragma once
 #include "color.hpp"
-#include "discord.hpp"
 #include "permissions.hpp"
 #include "object.hpp"
 
+#include "pplx/pplxtasks.h"
+
 namespace discord {
+    
+    class User;
+    class Guild;
+    class Channel;
+
     class Role : public Object {
     public:
         Role() = default;
