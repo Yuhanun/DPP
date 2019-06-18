@@ -15,14 +15,17 @@ int main() {
     discord::Bot bot{ token, ">" };
 
     bot.register_callback<discord::events::ready>(
-        [&bot]() { std::cout << "Ready!" << std::endl
-                             << "Logged in as: " << bot.username << "#" << bot.discriminator
-                             << std::endl
-                             << "ID: " << bot.id << std::endl
-                             << "-----------------------------" << std::endl; });
+        [&bot]() {
+            std::cout << "Ready!" << std::endl
+                      << "Logged in as: " << bot.username << "#" << bot.discriminator
+                      << std::endl
+                      << "ID: " << bot.id << std::endl
+                      << "-----------------------------" << std::endl;
+        });
+
 
     bot.register_command("test", [](discord::Context ctx) {
-        std::string output = discord::format("%, these were your arguments: ", ctx.author->user->mention);
+        std::string output = discord::format("%, these were your arguments: ", ctx.user->mention);
         for (auto const& each : ctx.arguments) {
             output += (each + " ");
         }

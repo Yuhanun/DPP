@@ -30,7 +30,7 @@ discord::Channel::Channel(snowflake id)
 }
 
 discord::Channel::Channel(nlohmann::json const data, snowflake guild_id)
-    : discord::Object(to_sf(data["id"])) {
+    : discord::Object(to_sf(data["id"].get<std::string>())) {
     /**
      * @brief Constructs a channel from raw event data
      * 
@@ -52,7 +52,7 @@ discord::Channel::Channel(nlohmann::json const data, snowflake guild_id)
         });
     }
 
-    if (type == channel_type::dm_channel || type == channel_type::group_dm_channel) {
+    if (data.contains("recipients")) {
         for (auto const &each : data["recipients"]) {
             recipients.emplace_back(each);
         }

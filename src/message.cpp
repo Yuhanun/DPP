@@ -1,17 +1,17 @@
+#include "message.hpp"
 #include <boost/date_time.hpp>
 #include <locale>
 #include <nlohmann/json.hpp>
-#include "utils.hpp"
-#include "message.hpp"
-#include "channel.hpp"
-#include "guild.hpp"
 #include "attachment.hpp"
+#include "bot.hpp"
+#include "channel.hpp"
 #include "embedbuilder.hpp"
 #include "emoji.hpp"
-#include "user.hpp"
-#include "role.hpp"
+#include "guild.hpp"
 #include "member.hpp"
-#include "bot.hpp"
+#include "role.hpp"
+#include "user.hpp"
+#include "utils.hpp"
 
 discord::Message::Message(snowflake id)
     : discord::Object(id) {
@@ -19,7 +19,7 @@ discord::Message::Message(snowflake id)
 
 discord::Message::Message(nlohmann::json const j)
     : discord::Object(to_sf(j["id"])) {
-    snowflake sender_id = to_sf(get_value(get_value(j, "author", nlohmann::json({ { "id", "0" } })), "id", "0"));
+    snowflake sender_id = j.contains("author") && j["author"].contains("id") ? to_sf(j["author"]["id"]) : 0;
     pinned = get_value(j, "pinned", false);
     tts = get_value(j, "tts", false);
     timestamp = time_from_discord_string(get_value(j, "timestamp", ""));
@@ -38,7 +38,7 @@ discord::Message::Message(nlohmann::json const j)
     });
 
     if (!channel) {
-        auto channel = std::make_shared<discord::Channel>(channel_id, 0);
+        channel = std::make_shared<discord::Channel>(discord::detail::bot_instance->get_channel(channel_id).get());
         discord::detail::bot_instance->channels.push_back(channel);
     }
 
@@ -46,9 +46,14 @@ discord::Message::Message(nlohmann::json const j)
         author = discord::utils::get(channel->guild->members, [sender_id](auto const& mem) {
             return mem->id == sender_id;
         });
+        user = author->user;
+    } else {
+        user = discord::utils::get(discord::detail::bot_instance->users, [sender_id](auto const& usr) {
+            return usr->id == sender_id;
+        });
     }
 
-    if (j.contains("mention_roles")) {
+    if (j.contains("attachments")) {
         for (auto const& attach : j["attachments"]) {
             attachments.emplace_back(attach);
         }

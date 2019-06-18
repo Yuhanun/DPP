@@ -46,6 +46,7 @@ namespace discord {
         boost::posix_time::ptime timestamp{};
         boost::posix_time::ptime edited_timestamp{};
 
+        std::shared_ptr<discord::User> user;
         std::shared_ptr<discord::Member> author;
         std::shared_ptr<discord::Channel> channel;
 

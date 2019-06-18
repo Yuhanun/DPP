@@ -241,7 +241,7 @@ namespace discord {
          * 
          * @return void
          */
-        if (m.content.find(prefix) == std::string::npos) {
+        if (m.content.find(prefix) != 0) {
             return;
         }
 
@@ -1087,7 +1087,9 @@ namespace discord {
          */
         return send_request(methods::GET, endpoint("/channels/%", chan_id), chan_id, channel)
             .then([](pplx::task<Result<nlohmann::json>> const &resp) {
-                return discord::Channel{ resp.get().unwrap() };
+                auto channel = resp.get().unwrap();
+                auto guild_id = to_sf(get_value(channel, "guild_id", "0"));
+                return discord::Channel{ resp.get().unwrap(), guild_id };
             });
     }
 
