@@ -36,11 +36,11 @@ int main() {
     bot.register_command("presence", [](discord::Context ctx) {
         ctx.bot->update_presence(
             discord::Activity{
-                "Mehodin is developing!",
+                "Shroud is streaming!",
                 discord::presence::activity::streaming,
                 discord::presence::status::idle,
                 false,
-                "http://twitch.tv/Mehodin" });
+                "http://twitch.tv/shroud" });
     });
 
     return bot.run();
