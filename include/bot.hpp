@@ -230,6 +230,8 @@ namespace discord {
                 }
             ```
         */
+        
+        std::unordered_map<std::string, std::function<void(discord::Context)>> command_map;
 
     private:
         Events<
@@ -291,7 +293,6 @@ namespace discord {
 
         std::vector<std::future<void>> futures;
         std::vector<std::shared_ptr<discord::Message>> messages;
-        std::unordered_map<std::string, std::function<void(discord::Context)>> command_map;
         std::unordered_map<std::string, std::function<void(nlohmann::json)>> internal_event_map;
 
         std::unordered_map<snowflake, RateLimit> guild_ratelimits;
