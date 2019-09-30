@@ -63,7 +63,16 @@
         "__config": "cpp",
         "__nullptr": "cpp",
         "*.ipp": "cpp",
-        "*.dat": "cpp"
+        "*.dat": "cpp",
+        "bit": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "algorithm": "cpp",
+        "iterator": "cpp",
+        "random": "cpp",
+        "string": "cpp",
+        "cfenv": "cpp",
+        "cinttypes": "cpp"
     },
     "editor.formatOnSave": true,
     "editor.formatOnType": true,

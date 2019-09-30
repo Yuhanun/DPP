@@ -1,5 +1,7 @@
 import os
 import time
+import shutil
+import platform
 
 use_clang = True
 
@@ -19,5 +21,11 @@ if not os.system(cmake_command) == 0:
 
 if not os.system("make") == 0:
     exit()
+
+if platform.system() == "Linux":
+    shutil.copy(f"./libdiscord_pp.a", "/usr/lib/libdiscord_pp.a")
+    shutil.copytree("../include", "/usr/include/discord_pp")
+    print("Moved binary and includes to /usr/lib and /usr/include")
+
 
 print("Total compilation time:", round(time.time() - before, 2), "seconds")
