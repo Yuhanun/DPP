@@ -45,6 +45,14 @@ namespace discord {
          * @throws Anything any of its members can throw.
          */
     public:
+        struct Command {
+            std::function<void(discord::Context)> function;
+            std::string name;
+            std::string description;
+            std::vector<std::string> hint_args;
+            std::vector<std::function<bool(discord::Context)>> requirements;
+        };
+
         struct Connection {
             /**
             * @brief Represents a connection with a user, for example twitch.
@@ -100,7 +108,7 @@ namespace discord {
             std::get<EVENT>(func_holder.tuple).push_back(std::forward<FType>(func));
         }
 
-        void register_command(std::string const& command_name, std::function<void(discord::Context)> function);
+        void register_command(std::string const &command_name, std::string const &command_desc, std::vector<std::string> params, std::function<void(discord::Context)> function, std::vector<std::function<bool(discord::Context)>> requirements);
         void update_presence(Activity const&);
 
         pplx::task<discord::Guild> create_guild(std::string const&, std::string const& = "us-east", int const& = 0, int const& = 0, int const& = 0);
@@ -231,7 +239,8 @@ namespace discord {
             ```
         */
         
-        std::unordered_map<std::string, std::function<void(discord::Context)>> command_map;
+        //std::unordered_map<std::string, std::function<void(discord::Context)>> command_map;
+        std::unordered_map<std::string, Command> commands;
 
     private:
         Events<

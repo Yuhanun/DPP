@@ -24,16 +24,28 @@ int main() {
         });
 
 
-    bot.register_command("test", [](discord::Context ctx) {
+    bot.register_command("test", "A Test command that prints command arguments out", {"..."}, [](discord::Context ctx) {
         std::string output = discord::format("%, these were your arguments: ", ctx.user->mention);
         for (auto const& each : ctx.arguments) {
             output += (each + " ");
         }
         ctx.channel->send(output)
             .wait();
+    }, {
+        [](discord::Context ctx)->bool {
+            if (ctx.arguments.size() >= 2) {
+                std::cout << "MORE THAN" << std::endl;
+                return true;
+            } else {
+                std::cout << "LESS THAN" << std::endl;
+                ctx.channel->send("Use more than 2 arguments!");
+                return false;
+            }
+        }
+        // List of requirement methods
     });
 
-    bot.register_command("presence", [](discord::Context ctx) {
+    bot.register_command("presence", "Changes presence to streaming and text to \"Shroud is streaming!\"", {}, [](discord::Context ctx) {
         ctx.bot->update_presence(
             discord::Activity{
                 "Shroud is streaming!",
@@ -41,7 +53,7 @@ int main() {
                 discord::presence::status::idle,
                 false,
                 "http://twitch.tv/shroud" });
-    });
+    }, {});
 
     return bot.run();
 }
