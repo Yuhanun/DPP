@@ -204,7 +204,7 @@ namespace discord {
         return r["url"];
     }
 
-    void Bot::register_command(std::string const &command_name, std::function<void(discord::Context)> function) {
+    void Bot::register_command(std::string const &command_name, std::string const &command_desc, std::vector<std::string> params, std::function<void(discord::Context)> function, std::vector<std::function<bool(discord::Context)>> requirements) {
         /**
          * @brief Registers a command.
          * 
@@ -229,10 +229,18 @@ namespace discord {
          * 
          * @return void
          */
-        command_map[boost::to_lower_copy(command_name)] = function;
+        //command_map[boost::to_lower_copy(command_name)] = function;
+        Command command;
+        command.name = command_name;
+        command.description = command_desc;
+        command.function = function;
+        command.requirements = requirements;
+        command.hint_args = params;
+        //commands.emplace(command_name, command);
+        commands.insert({command_name, command});
     }
 
-    void Bot::fire_commands(discord::Message &m) {
+    void Bot::fire_commands(discord::Message &message) {
         /**
          * @brief Internal function used for firing commands registered using register_command
          * 
@@ -241,25 +249,38 @@ namespace discord {
          * 
          * @return void
          */
-        if (m.content.find(prefix) != 0) {
+        if (message.content.find(prefix) != 0) {
             return;
         }
 
         std::vector<std::string> argument_vec{};
-        boost::split(argument_vec, m.content, boost::is_any_of(" "));
+        boost::split(argument_vec, message.content, boost::is_any_of(" "));
         if (!argument_vec.size()) {
             return;
         }
 
-        auto command_name = argument_vec[0].erase(0, prefix.size());
-        if (command_map.find(command_name) == command_map.end()) {
+        std::unordered_map<std::string, discord::Bot::Command>::iterator foundCommand = commands.find(argument_vec[0].substr(prefix.length()));
+        if (foundCommand == commands.end()) {
             return;
         }
 
+        auto command_name = argument_vec.front().erase(0, prefix.size());
+        auto command_function = commands.at(command_name).function;
         argument_vec.erase(argument_vec.begin());
-        auto f = command_map.at(command_name);
 
-        futures.push_back(std::async(std::launch::async, f, discord::Context{ this, m, argument_vec, f, command_name }));
+        std::vector<std::function<bool(discord::Context)>> command_req_functions = commands.at(command_name).requirements;
+
+        discord::Context command_context = discord::Context{ this, message, argument_vec, command_function, command_name };
+        bool requirements = true;
+        for (std::function<bool(discord::Context)> req_func : command_req_functions) {
+            requirements = requirements && req_func(command_context);
+        }
+
+        if (!requirements) {
+            return; // Requirements not met
+        }
+
+        futures.push_back(std::async(std::launch::async, command_function, command_context));
     }
 
     void Bot::initialize_variables(const std::string raw) {
