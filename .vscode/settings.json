@@ -69,6 +69,38 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
-    }
+        "variant": "cpp",
+        "__config": "cpp",
+        "__nullptr": "cpp",
+        "*.ipp": "cpp",
+        "*.dat": "cpp",
+        "bit": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "algorithm": "cpp",
+        "iterator": "cpp",
+        "random": "cpp",
+        "string": "cpp",
+        "cfenv": "cpp",
+        "cinttypes": "cpp"
+    },
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "C_Cpp.autocomplete": "Default",
+    "C_Cpp.clang_format_fallbackStyle": "Google",
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.clang_format_sortIncludes": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSaveTimeout": 0,
+    "editor.tabSize": 4,
+    "editor.tabCompletion": "on",
+    "C_Cpp.intelliSenseEngine": "Default",
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": true,
+        "strings": true
+    },
+    "editor.quickSuggestionsDelay": 0,
+    "editor.acceptSuggestionOnEnter": "on",
+    "C_Cpp.errorSquiggles": "Disabled"
 }
