@@ -270,8 +270,8 @@ namespace discord {
             void(discord::Message const),                                                 // MESSAGE_UPDATE
             void(discord::Message const),                                                 // MESSAGE_DELETE
             void(std::vector<discord::Message> const),                                    // MESSAGE_DELETE_BULK
-            void(discord::Message const, discord::Emoji const),                           // MESSAGE_REACTION_ADD
-            void(discord::Message const, discord::Emoji const),                           // MESSAGE_REACTION_REMOVE
+            void(discord::Message const, discord::Emoji const, discord::User),            // MESSAGE_REACTION_ADD
+            void(discord::Message const, discord::Emoji const, discord::User),            // MESSAGE_REACTION_REMOVE
             void(discord::Message const),                                                 // MESSAGE_REACTION_REMOVE_ALL
             void(discord::Member const),                                                  // PRECENSE_UPDATE
             void(discord::User const, discord::Channel const, boost::posix_time::ptime),  // TYPING_START

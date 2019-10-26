@@ -10,6 +10,7 @@
 #include "utils.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <sstream>
 
 namespace discord {
 
@@ -804,6 +805,7 @@ namespace discord {
             message = std::make_shared<discord::Message>();
         }
         message->id = m_id;
+
         auto c_id = to_sf(data["channel_id"]);
         if (!message->channel) {
             message->channel = discord::utils::get(channels, [=](auto &chan) { return chan->id == c_id; });
@@ -814,7 +816,11 @@ namespace discord {
             auto g_id = to_sf(data["guild_id"]);
             message->channel->guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
         }
-        func_holder.call<events::message_reaction_add>(futures, ready, *message, discord::Emoji{ data["emoji"] });
+
+        snowflake snow = to_sf(data["user_id"]);
+        discord::User user = get_user(snow).get();
+
+        func_holder.call<events::message_reaction_add>(futures, ready, *message, discord::Emoji{ data["emoji"] }, discord::User{snow});
     }
 
     void Bot::message_reaction_remove_event(nlohmann::json data) {
@@ -834,7 +840,11 @@ namespace discord {
             auto g_id = to_sf(data["guild_id"]);
             message->channel->guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
         }
-        func_holder.call<events::message_reaction_remove>(futures, ready, *message, discord::Emoji{ data["emoji"] });
+
+        snowflake snow = to_sf(data["user_id"]);
+        discord::User user = get_user(snow).get();
+        
+        func_holder.call<events::message_reaction_remove>(futures, ready, *message, discord::Emoji{ data["emoji"] }, discord::User{snow});
     }
 
     void Bot::message_reaction_remove_all_event(nlohmann::json data) {
