@@ -10,7 +10,6 @@
 #include "utils.hpp"
 
 #include <boost/algorithm/string.hpp>
-#include <sstream>
 
 namespace discord {
 
