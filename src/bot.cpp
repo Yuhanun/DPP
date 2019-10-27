@@ -816,10 +816,8 @@ namespace discord {
             message->channel->guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
         }
 
-        snowflake snow = to_sf(data["user_id"]);
-        discord::User user = get_user(snow).get();
-
-        func_holder.call<events::message_reaction_add>(futures, ready, *message, discord::Emoji{ data["emoji"] }, discord::User{snow});
+        snowflake user_snow = to_sf(data["user_id"]);
+        func_holder.call<events::message_reaction_add>(futures, ready, *message, discord::Emoji{ data["emoji"] }, discord::User{user_snow});
     }
 
     void Bot::message_reaction_remove_event(nlohmann::json data) {
@@ -840,10 +838,8 @@ namespace discord {
             message->channel->guild = discord::utils::get(guilds, [=](auto &gld) { return gld->id == g_id; });
         }
 
-        snowflake snow = to_sf(data["user_id"]);
-        discord::User user = get_user(snow).get();
-        
-        func_holder.call<events::message_reaction_remove>(futures, ready, *message, discord::Emoji{ data["emoji"] }, discord::User{snow});
+        snowflake user_snow = to_sf(data["user_id"]);
+        func_holder.call<events::message_reaction_remove>(futures, ready, *message, discord::Emoji{ data["emoji"] }, discord::User{user_snow});
     }
 
     void Bot::message_reaction_remove_all_event(nlohmann::json data) {
