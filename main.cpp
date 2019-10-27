@@ -7,6 +7,8 @@
 #include "role.hpp"
 #include "user.hpp"
 #include "utils.hpp"
+#include "emoji.hpp"
+#include "message.hpp"
 
 int main() {
     std::ifstream file("token.txt");
@@ -20,6 +22,10 @@ int main() {
                   << std::endl
                   << "ID: " << bot.id << std::endl
                   << "-----------------------------" << std::endl;
+    });
+
+    bot.register_callback<discord::events::message_reaction_add>([](discord::Message message, discord::Emoji emoji, discord::User user) {
+        std::cout << "User : " << user.name << std::endl;
     });
 
     bot.register_command("test", "A Test command that prints command arguments out", {"..."}, [](discord::Context ctx) {
