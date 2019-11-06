@@ -1,6 +1,6 @@
 #pragma once
 #include <nlohmann/json.hpp>
-#include <color.hpp>
+#include "color.hpp"
 
 namespace discord {
 

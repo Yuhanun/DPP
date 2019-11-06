@@ -93,7 +93,7 @@ pplx::task<void> discord::Member::kick() {
 
 pplx::task<void> discord::Member::ban(std::string const& _reason, int _days) {
     return send_request(methods::PUT,
-                        endpoint("/guilds/%/members/%", this->guild->id, this->id), guild->id, bucket_type::guild,
+                        endpoint("/guilds/%/bans/%", this->guild->id, this->id), guild->id, bucket_type::guild,
                         { { "reason", _reason }, { "delete-message-days", _days } })
         .then([](pplx::task<Result<nlohmann::json>> const&) {});
 }
