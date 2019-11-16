@@ -30,8 +30,6 @@ discord::EmbedBuilder &discord::EmbedBuilder::set_title(std::string const &title
      * 
      * @return Reference to the original discord::EmbedBuilder
      */
-    if (title.length > 256)
-        throw new std::range_error("RichEmbed titles may not exceed 256 characters.");
     embed["title"] = title;
     return *this;
 }
@@ -50,8 +48,6 @@ discord::EmbedBuilder &discord::EmbedBuilder::set_description(std::string const 
      * 
      * @return Reference to the original discord::EmbedBuilder
      */
-    if (desc.length > 2048) 
-        throw new std::range_error("RichEmbed Description may not exceed 2048 characters.");
     embed["description"] = desc;
     return *this;
 }
@@ -125,8 +121,6 @@ discord::EmbedBuilder &discord::EmbedBuilder::set_footer(std::string const &text
      * 
      * @return Reference to the original discord::EmbedBuilder
      */
-    if (text.length > 2048)
-        throw new std::range_error("RichEmbed footer may not exceed 2048 characters");
     embed["footer"] = nlohmann::json({});
     if (icon_url != "") {
         embed["footer"]["icon_url"] = icon_url;
@@ -232,8 +226,6 @@ discord::EmbedBuilder &discord::EmbedBuilder::set_author(std::string const &name
      * 
      * @return Reference to the original discord::EmbedBuilder
      */
-    if (name.length > 256)
-        throw new std::range_error("RichEmbed Author name may not exceed 256 characters.");
     embed["author"] = nlohmann::json({});
     if (!icon_url.empty()) {
         embed["author"]["icon_url"] = icon_url;
@@ -263,16 +255,6 @@ discord::EmbedBuilder &discord::EmbedBuilder::add_field(std::string const &name,
     if (!embed.contains("fields")) {
         embed["fields"] = nlohmann::json::array();
     }
-    if (embed["fields"].size > 25)
-        throw new std::range_error("RichEmbeds may not exceed 25 fields.");
-    if (name.length > 256)
-        throw new std::range_error("RichEmbed field names may not exceed 256 characters.");
-    if (name.length == 0)
-        throw new std::range_error("RichEmbed field names may not be empty.");
-    if (value.length > 1024)
-        throw new std::range_error("RichEmbed field values may not exceed 1024 characters.");
-    if (value.length == 0)
-        throw new std::range_error("RichEmbed field values may not be empty.");
     embed["fields"].push_back(nlohmann::json({ { "name", name },
                                                { "value", value },
                                                { "inline", in_line } }));
