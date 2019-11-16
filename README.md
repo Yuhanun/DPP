@@ -2,8 +2,8 @@
 A C++ Library interfacing Discord API, or should i say... C++ Discord API Wrapper.
 
 ## Dependencies
-- [asio](https://github.com/chriskohlhoff/asio)
 - [JSON](https://github.com/nlohmann/json)
+- [Boost::asio](https://www.boost.org/)
 - [Boost::system](https://www.boost.org/)
 - [Boost::date_time](https://www.boost.org/)
 - [OpenSSL](https://www.openssl.org/)
