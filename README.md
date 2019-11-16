@@ -2,6 +2,7 @@
 A C++ Library interfacing Discord API, or should i say... C++ Discord API Wrapper.
 
 ## Dependencies
+- [asio](https://github.com/chriskohlhoff/asio)
 - [JSON](https://github.com/nlohmann/json)
 - [Boost::system](https://www.boost.org/)
 - [Boost::date_time](https://www.boost.org/)
@@ -34,7 +35,7 @@ int main() {
                   << "-----------------------------" << std::endl;
     });
 
-    bot.register_command("ping", "Ping?", {"..."}, [](discord::Context ctx) {
+    bot.register_command("ping", "Ping?", {}, [](discord::Context ctx) {
         ctx.channel->send("pong!")
             .wait();
     }, {});
