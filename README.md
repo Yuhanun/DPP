@@ -7,6 +7,7 @@ A C++ Discord API wrapper
 - [Boost::date_time](https://www.boost.org/)
 - [Open SSL](https://www.openssl.org/)
 - [CPPRESTSDK](https://github.com/microsoft/cpprestsdk)
+- [websocketpp](https://github.com/zaphoyd/websocketpp)
 
 ## Example
 ```cpp
