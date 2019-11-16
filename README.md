@@ -5,7 +5,7 @@ A C++ Library interfacing Discord API, or should i say... C++ Discord API Wrappe
 - [JSON](https://github.com/nlohmann/json)
 - [Boost::system](https://www.boost.org/)
 - [Boost::date_time](https://www.boost.org/)
-- [Open SSL](https://www.openssl.org/)
+- [OpenSSL](https://www.openssl.org/)
 - [cpprest](https://github.com/microsoft/cpprestsdk)
 - [websocketpp](https://github.com/zaphoyd/websocketpp)
 
