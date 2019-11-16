@@ -6,7 +6,7 @@ A C++ Library interfacing Discord API, or should i say... C++ Discord API Wrappe
 - [Boost::system](https://www.boost.org/)
 - [Boost::date_time](https://www.boost.org/)
 - [Open SSL](https://www.openssl.org/)
-- [CPPRESTSDK](https://github.com/microsoft/cpprestsdk)
+- [cpprest](https://github.com/microsoft/cpprestsdk)
 - [websocketpp](https://github.com/zaphoyd/websocketpp)
 
 ## Example
@@ -37,7 +37,7 @@ int main() {
     bot.register_command("ping", "Ping?", {"..."}, [](discord::Context ctx) {
         ctx.channel->send("pong!")
             .wait();
-    });
+    }, {});
 
     return bot.run();
 }
