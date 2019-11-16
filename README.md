@@ -1,5 +1,5 @@
 # DPP
-A C++ Discord API wrapper
+A C++ Library interfacing Discord API, or should i say... C++ Discord API Wrapper.
 
 ## Dependencies
 - [JSON](https://github.com/nlohmann/json)
