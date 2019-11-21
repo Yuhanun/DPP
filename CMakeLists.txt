@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 project(DPP)
 
-set ( CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/cmake/ )
 find_package(OpenSSL REQUIRED)
-find_package(cpprestsdk REQUIRED NAMES cpprestsdk cpprest)
+find_package(cpprestsdk CONFIG REQUIRED NAMES)
 find_package(Boost COMPONENTS system date_time REQUIRED)
 find_package(Threads)
 
@@ -59,7 +58,7 @@ target_link_libraries(discord_pp PUBLIC OpenSSL::SSL)
 target_link_libraries(discord_pp PUBLIC OpenSSL::Crypto)
 target_link_libraries(discord_pp PUBLIC Threads::Threads)
 target_link_libraries(discord_pp PUBLIC Boost::date_time)
-target_link_libraries(discord_pp PUBLIC cpprest)
+target_link_libraries(discord_pp PRIVATE cpprestsdk::cpprest cpprestsdk::cpprestsdk_zlib_internal cpprestsdk::cpprestsdk_boost_internal cpprestsdk::cpprestsdk_openssl_internal)
 
 
 if(MSVC)
@@ -74,5 +73,5 @@ target_link_libraries(bot PUBLIC OpenSSL::SSL)
 target_link_libraries(bot PUBLIC OpenSSL::Crypto)
 target_link_libraries(bot PUBLIC Threads::Threads)
 target_link_libraries(bot PUBLIC Boost::date_time)
-target_link_libraries(bot PUBLIC cpprest)
+target_link_libraries(bot PRIVATE cpprestsdk::cpprest cpprestsdk::cpprestsdk_zlib_internal cpprestsdk::cpprestsdk_boost_internal cpprestsdk::cpprestsdk_openssl_internal)
 target_link_libraries(bot PUBLIC discord_pp)

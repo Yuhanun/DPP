@@ -10,6 +10,18 @@ A C++ Library interfacing Discord API, or should i say... C++ Discord API Wrappe
 - [cpprest](https://github.com/microsoft/cpprestsdk)
 - [websocketpp](https://github.com/zaphoyd/websocketpp)
 
+## Installation ##
+- vcpkg install nlohmann-json
+- vcpkg install cpprestsdk
+- vcpkg install boost
+
+- git clone https://www.github.com/yuhanun/DPP
+- cd DPP
+- mkdir build && cd build
+- vcpkg integrate install
+- cmake .. -DCMAKE_TOOLCHAIN_FILE=/use/what/integrate/install/gives
+- make
+
 ## Example
 ```cpp
 #include "attachment.hpp"
