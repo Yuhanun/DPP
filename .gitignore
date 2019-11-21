@@ -45,8 +45,6 @@ ipch/*
 
 *main.cpp
 
-
-*.clang-format
 token.txt
 *.png
 /build
