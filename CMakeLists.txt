@@ -42,7 +42,7 @@ add_library(discord_pp STATIC
 add_executable(bot
                main.cpp)
                
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 set(EXECUTABLE_OUTPUT_PATH "./")
 
